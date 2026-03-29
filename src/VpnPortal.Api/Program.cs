@@ -53,6 +53,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminOperationsService, AdminOperationsService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
+builder.Services.AddSingleton<IVpnPasswordMaterialService, VpnPasswordMaterialService>();
 builder.Services.AddSingleton<ITokenProtector, Sha256TokenProtector>();
 builder.Services.AddSingleton<DatabaseStatusService>();
 

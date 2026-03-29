@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS vpn_device_credentials (
     device_id BIGINT NOT NULL REFERENCES trusted_devices(id) ON DELETE CASCADE,
     vpn_username VARCHAR(128) NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
+    radius_nt_hash VARCHAR(64) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'revoked')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     rotated_at TIMESTAMPTZ NULL,

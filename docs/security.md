@@ -13,6 +13,7 @@
 - Portal passwords remain user-level secrets hashed with `Argon2id`.
 - Target VPN access uses separate issued device credentials instead of reusing the portal password record directly.
 - That separation reduces coupling between browser authentication and VPN credential lifecycle.
+- Password-based VPN device credentials require storing additional password material for the AAA path, including an `NT hash` for `MSCHAPv2` validation.
 
 ## Expected Operational Controls
 
@@ -28,4 +29,4 @@
 - The repository models VPN trust policy, but VPN-side enforcement still depends on external integration work.
 - Platform-specific device identity quality may differ across VPN clients.
 - Session disconnect in the portal is currently a repository-level state change, not guaranteed real-time VPN teardown.
-- The per-device VPN credential model now exists in the application, but the VPN and AAA runtime path still does not enforce it yet.
+- The per-device VPN credential model now exists in the application, but the VPN and AAA runtime path still needs production validation and accounting integration.

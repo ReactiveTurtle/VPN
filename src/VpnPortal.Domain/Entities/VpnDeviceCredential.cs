@@ -10,6 +10,7 @@ public sealed class VpnDeviceCredential
     public TrustedDevice? Device { get; set; }
     public string VpnUsername { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
+    public string RadiusNtHash { get; set; } = string.Empty;
     public VpnDeviceCredentialStatus Status { get; set; } = VpnDeviceCredentialStatus.Active;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? RotatedAt { get; set; }

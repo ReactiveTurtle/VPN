@@ -86,6 +86,7 @@ public sealed class PostgreSqlUserRepository(PostgreSqlConnectionFactory connect
                    device_id as DeviceId,
                    vpn_username as VpnUsername,
                    password_hash as PasswordHash,
+                   radius_nt_hash as RadiusNtHash,
                    status,
                    created_at as CreatedAt,
                    rotated_at as RotatedAt,
@@ -332,7 +333,7 @@ public sealed class PostgreSqlUserRepository(PostgreSqlConnectionFactory connect
         }
     }
 
-    private sealed record DeviceCredentialRow(int Id, int UserId, int DeviceId, string VpnUsername, string PasswordHash, string Status, DateTimeOffset CreatedAt, DateTimeOffset? RotatedAt, DateTimeOffset? RevokedAt, DateTimeOffset? LastUsedAt)
+    private sealed record DeviceCredentialRow(int Id, int UserId, int DeviceId, string VpnUsername, string PasswordHash, string RadiusNtHash, string Status, DateTimeOffset CreatedAt, DateTimeOffset? RotatedAt, DateTimeOffset? RevokedAt, DateTimeOffset? LastUsedAt)
     {
         public VpnDeviceCredential ToEntity()
         {
@@ -343,6 +344,7 @@ public sealed class PostgreSqlUserRepository(PostgreSqlConnectionFactory connect
                 DeviceId = DeviceId,
                 VpnUsername = VpnUsername,
                 PasswordHash = PasswordHash,
+                RadiusNtHash = RadiusNtHash,
                 Status = Enum.Parse<VpnDeviceCredentialStatus>(Status, true),
                 CreatedAt = CreatedAt,
                 RotatedAt = RotatedAt,

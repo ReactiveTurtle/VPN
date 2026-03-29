@@ -52,4 +52,9 @@ Bootstrap assets under `infrastructure/vpn-host/postgresql/` cover:
 
 The repository now includes an application-side `vpn_device_credentials` table and lifecycle.
 
-FreeRADIUS still needs its final SQL policy to validate those credentials and map them into runtime VPN authorization.
+The current password-based design stores both:
+
+- `password_hash` for application-side secure storage
+- `radius_nt_hash` for `FreeRADIUS` `MSCHAPv2` validation
+
+FreeRADIUS still needs production validation and full accounting integration to map those credentials into runtime VPN authorization.

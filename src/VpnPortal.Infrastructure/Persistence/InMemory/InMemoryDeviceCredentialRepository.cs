@@ -57,6 +57,7 @@ public sealed class InMemoryDeviceCredentialRepository(InMemoryPortalStore store
             DeviceId = source.DeviceId,
             VpnUsername = source.VpnUsername,
             PasswordHash = source.PasswordHash,
+            RadiusNtHash = source.RadiusNtHash,
             Status = source.Status,
             CreatedAt = source.CreatedAt,
             RotatedAt = source.RotatedAt,

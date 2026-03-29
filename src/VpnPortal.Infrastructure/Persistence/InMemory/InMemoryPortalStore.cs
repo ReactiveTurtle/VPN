@@ -147,6 +147,7 @@ public sealed class InMemoryPortalStore
             DeviceId = 1,
             VpnUsername = "alex.d1",
             PasswordHash = "$argon2id$v=19$m=65536,t=3,p=1$rxaqCBytGMHXfA9JHW0Dug==$8jk57FB8d7rL95gz8krS8Zr0+hI4s/wPzblAvNlIV1A=",
+            RadiusNtHash = "2B576ACBE6BCFDA7294D6BD18041B8FE",
             Status = VpnDeviceCredentialStatus.Active,
             CreatedAt = new DateTimeOffset(2026, 3, 27, 8, 0, 0, TimeSpan.Zero)
         }

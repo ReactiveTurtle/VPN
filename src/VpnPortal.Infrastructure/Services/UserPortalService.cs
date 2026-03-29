@@ -12,7 +12,7 @@ public sealed class UserPortalService(
     ITrustedIpRepository trustedIpRepository,
     IIpChangeConfirmationRepository ipChangeConfirmationRepository,
     ITokenProtector tokenProtector,
-    IPasswordHasher passwordHasher,
+    IVpnPasswordMaterialService vpnPasswordMaterialService,
     IEmailService emailService,
     IAuditService auditService) : IUserPortalService
 {
@@ -116,12 +116,14 @@ public sealed class UserPortalService(
         }, cancellationToken);
 
         var vpnPassword = tokenProtector.GenerateRawToken(24);
+        var passwordMaterial = vpnPasswordMaterialService.Create(vpnPassword);
         var credential = await deviceCredentialRepository.AddAsync(new VpnDeviceCredential
         {
             UserId = userId,
             DeviceId = device.Id,
             VpnUsername = BuildVpnUsername(user.Username, device.Id),
-            PasswordHash = passwordHasher.Hash(vpnPassword),
+            PasswordHash = passwordMaterial.PasswordHash,
+            RadiusNtHash = passwordMaterial.RadiusNtHash,
             Status = VpnDeviceCredentialStatus.Active,
             CreatedAt = now
         }, cancellationToken);
@@ -145,7 +147,9 @@ public sealed class UserPortalService(
         }
 
         var vpnPassword = tokenProtector.GenerateRawToken(24);
-        credential.PasswordHash = passwordHasher.Hash(vpnPassword);
+        var passwordMaterial = vpnPasswordMaterialService.Create(vpnPassword);
+        credential.PasswordHash = passwordMaterial.PasswordHash;
+        credential.RadiusNtHash = passwordMaterial.RadiusNtHash;
         credential.RotatedAt = DateTimeOffset.UtcNow;
         await deviceCredentialRepository.UpdateAsync(credential, cancellationToken);
         await auditService.WriteAsync("user", userId, "device_credential_rotated", "vpn_device_credential", credential.Id.ToString(), null, new { deviceId, credential.VpnUsername }, cancellationToken);

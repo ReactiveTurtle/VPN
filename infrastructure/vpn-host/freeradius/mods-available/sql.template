@@ -10,8 +10,7 @@ sql {
 
     read_clients = no
 
-    # This file establishes SQL connectivity and service bootstrapping.
-    # Final authorize and accounting queries must be updated after the
-    # per-device VPN credential schema from ADR 0006 and ADR 0007 is
-    # implemented in the application schema.
+    # The project uses custom PostgreSQL-backed policy data instead of the
+    # default radcheck/radreply schema. The authorize policy in
+    # sites-available/default resolves NT-Password from vpn_device_credentials.
 }

@@ -2,13 +2,22 @@ server default {
     authorize {
         preprocess
         chap
-        mschap
         suffix
-        eap
         sql
 
-        # Replace this placeholder policy once vpn_device_credentials exists.
-        reject
+        update control {
+            &control:NT-Password := "%{sql:SELECT c.radius_nt_hash FROM vpn_device_credentials c JOIN trusted_devices d ON d.id = c.device_id JOIN vpn_users u ON u.id = c.user_id WHERE lower(c.vpn_username) = lower('%{SQL-User-Name}') AND c.status = 'active' AND d.status = 'active' AND u.active = true LIMIT 1}"
+        }
+
+        if (!&control:NT-Password) {
+            update reply {
+                Reply-Message := "VPN credential not found or inactive"
+            }
+            reject
+        }
+
+        mschap
+        eap
     }
 
     authenticate {

@@ -15,6 +15,7 @@ public sealed class PostgreSqlDeviceCredentialRepository(PostgreSqlConnectionFac
                    device_id as DeviceId,
                    vpn_username as VpnUsername,
                    password_hash as PasswordHash,
+                   radius_nt_hash as RadiusNtHash,
                    status,
                    created_at as CreatedAt,
                    rotated_at as RotatedAt,
@@ -33,13 +34,14 @@ public sealed class PostgreSqlDeviceCredentialRepository(PostgreSqlConnectionFac
     public async Task<VpnDeviceCredential> AddAsync(VpnDeviceCredential credential, CancellationToken cancellationToken)
     {
         const string sql = """
-            insert into vpn_device_credentials (user_id, device_id, vpn_username, password_hash, status, created_at, rotated_at, revoked_at, last_used_at)
-            values (@UserId, @DeviceId, @VpnUsername, @PasswordHash, @Status, @CreatedAt, @RotatedAt, @RevokedAt, @LastUsedAt)
+            insert into vpn_device_credentials (user_id, device_id, vpn_username, password_hash, radius_nt_hash, status, created_at, rotated_at, revoked_at, last_used_at)
+            values (@UserId, @DeviceId, @VpnUsername, @PasswordHash, @RadiusNtHash, @Status, @CreatedAt, @RotatedAt, @RevokedAt, @LastUsedAt)
             returning id,
                       user_id as UserId,
                       device_id as DeviceId,
                       vpn_username as VpnUsername,
                       password_hash as PasswordHash,
+                      radius_nt_hash as RadiusNtHash,
                       status,
                       created_at as CreatedAt,
                       rotated_at as RotatedAt,
@@ -54,6 +56,7 @@ public sealed class PostgreSqlDeviceCredentialRepository(PostgreSqlConnectionFac
             credential.DeviceId,
             credential.VpnUsername,
             credential.PasswordHash,
+            credential.RadiusNtHash,
             Status = credential.Status.ToString().ToLowerInvariant(),
             credential.CreatedAt,
             credential.RotatedAt,
@@ -69,6 +72,7 @@ public sealed class PostgreSqlDeviceCredentialRepository(PostgreSqlConnectionFac
         const string sql = """
             update vpn_device_credentials
             set password_hash = @PasswordHash,
+                radius_nt_hash = @RadiusNtHash,
                 status = @Status,
                 rotated_at = @RotatedAt,
                 revoked_at = @RevokedAt,
@@ -81,6 +85,7 @@ public sealed class PostgreSqlDeviceCredentialRepository(PostgreSqlConnectionFac
         {
             credential.Id,
             credential.PasswordHash,
+            credential.RadiusNtHash,
             Status = credential.Status.ToString().ToLowerInvariant(),
             credential.RotatedAt,
             credential.RevokedAt,
@@ -102,7 +107,7 @@ public sealed class PostgreSqlDeviceCredentialRepository(PostgreSqlConnectionFac
         return affected > 0;
     }
 
-    private sealed record Row(int Id, int UserId, int DeviceId, string VpnUsername, string PasswordHash, string Status, DateTimeOffset CreatedAt, DateTimeOffset? RotatedAt, DateTimeOffset? RevokedAt, DateTimeOffset? LastUsedAt)
+    private sealed record Row(int Id, int UserId, int DeviceId, string VpnUsername, string PasswordHash, string RadiusNtHash, string Status, DateTimeOffset CreatedAt, DateTimeOffset? RotatedAt, DateTimeOffset? RevokedAt, DateTimeOffset? LastUsedAt)
     {
         public VpnDeviceCredential ToEntity() => new()
         {
@@ -111,6 +116,7 @@ public sealed class PostgreSqlDeviceCredentialRepository(PostgreSqlConnectionFac
             DeviceId = DeviceId,
             VpnUsername = VpnUsername,
             PasswordHash = PasswordHash,
+            RadiusNtHash = RadiusNtHash,
             Status = Enum.Parse<VpnDeviceCredentialStatus>(Status, true),
             CreatedAt = CreatedAt,
             RotatedAt = RotatedAt,

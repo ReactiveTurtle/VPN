@@ -27,7 +27,9 @@
 
 - Portal-side persistence and workflow logic are present.
 - External VPN and AAA server configuration is now represented operationally in this repository under `infrastructure/vpn-host/`.
-- Application-side per-device VPN credentials now exist, but final FreeRADIUS SQL policy is still pending.
+- Application-side per-device VPN credentials now exist.
+- FreeRADIUS bootstrap templates now resolve `NT-Password` from `vpn_device_credentials` for password-based device credentials.
+- End-to-end production validation of the AAA path is still pending.
 
 ## Target Runtime Flow
 
