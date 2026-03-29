@@ -27,6 +27,7 @@ This repository contains a VPN access portal and supporting infrastructure.
 - The API now exposes `POST /api/internal/radius/accounting-events` protected by `InternalApi:SharedSecret` for VPN-side session accounting intake.
 - `infrastructure/vpn-host/freeradius/sites-available/default.template` is the current source of truth for FreeRADIUS policy checks, including `active` and `max_devices` gating.
 - `infrastructure/vpn-host/freeradius/scripts/forward-accounting-event.sh.template` is the canonical host-side helper for forwarding accounting events into the internal API.
+- The current `max_devices` gate is device-aware and counts other active device sessions, so reconnecting the same device should not consume an additional slot by itself.
 
 ## Key Paths
 

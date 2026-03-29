@@ -24,6 +24,7 @@
 - Separate database roles should exist for the portal application and FreeRADIUS.
 - VPN host secrets should be stored under locked-down files in `/etc/vpnportal/` or equivalent restricted paths.
 - `FreeRADIUS` should reject inactive users and new sessions beyond `max_devices` before VPN tunnel establishment.
+- The current `max_devices` policy is device-aware: it counts other active device sessions rather than blindly rejecting a reconnect from the same device credential.
 
 ## Current Risks / Gaps
 

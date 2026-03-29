@@ -30,6 +30,7 @@
 - Application-side per-device VPN credentials now exist.
 - FreeRADIUS bootstrap templates now resolve `NT-Password` from `vpn_device_credentials` for password-based device credentials.
 - FreeRADIUS bootstrap templates now also gate access by user `active` state and `max_devices` using PostgreSQL-backed policy checks.
+- The current `max_devices` check counts other active devices for the same user, so reconnecting the same device does not consume an extra slot by itself.
 - The API now exposes an internal accounting endpoint for VPN-side session updates.
 - The VPN host bootstrap now installs `/usr/local/lib/vpnportal/forward-accounting-event.sh` as the canonical helper for forwarding accounting events to the internal API.
 - End-to-end production validation of the AAA path is still pending.

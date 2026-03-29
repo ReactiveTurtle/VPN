@@ -16,7 +16,7 @@ server default {
             reject
         }
 
-        if (%{sql:SELECT COUNT(*) FROM vpn_device_credentials c JOIN vpn_users u ON u.id = c.user_id JOIN vpn_sessions s ON s.user_id = u.id WHERE lower(c.vpn_username) = lower('%{SQL-User-Name}') AND c.status = 'active' AND s.active = true} >= %{sql:SELECT u.max_devices FROM vpn_device_credentials c JOIN vpn_users u ON u.id = c.user_id WHERE lower(c.vpn_username) = lower('%{SQL-User-Name}') AND c.status = 'active' LIMIT 1}) {
+        if (%{sql:SELECT COUNT(DISTINCT s.device_id) FROM vpn_device_credentials c JOIN vpn_users u ON u.id = c.user_id JOIN vpn_sessions s ON s.user_id = u.id WHERE lower(c.vpn_username) = lower('%{SQL-User-Name}') AND c.status = 'active' AND s.active = true AND s.device_id IS NOT NULL AND s.device_id <> c.device_id} >= %{sql:SELECT u.max_devices FROM vpn_device_credentials c JOIN vpn_users u ON u.id = c.user_id WHERE lower(c.vpn_username) = lower('%{SQL-User-Name}') AND c.status = 'active' LIMIT 1}) {
             update reply {
                 Reply-Message := "Maximum active device limit reached"
             }
