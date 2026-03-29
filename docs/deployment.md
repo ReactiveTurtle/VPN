@@ -76,6 +76,10 @@ Apply schema changes explicitly by running the separate migration program before
 
 After the schema exists, create the first `superadmin` manually using `docs/runbooks/create-first-superadmin.md`.
 
+The same program can also generate an `Argon2id` password hash for the first `superadmin`:
+
+- `dotnet run --project src/VpnPortal.Migrations -- hash-password "<plaintext>"`
+
 ## PostgreSQL Bootstrap
 
 The VPN host bootstrap explicitly installs and initializes `PostgreSQL` because the database is a shared dependency for:

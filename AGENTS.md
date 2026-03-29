@@ -37,6 +37,7 @@ This repository contains a VPN access portal and supporting infrastructure.
 - `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md` is the current source of truth for validating the end-to-end server-side VPN flow.
 - PostgreSQL persistence is `EF Core`-based; schema changes live under `src/VpnPortal.Migrations/Migrations/` and are applied by the separate `VpnPortal.Migrations` program.
 - The first `superadmin` should be created manually after migrations are applied; `docs/runbooks/create-first-superadmin.md` is the current source of truth for that procedure.
+- `VpnPortal.Migrations` also supports `hash-password <plaintext>` to generate a compatible Argon2id hash for manual `superadmin` creation.
 
 ## Key Paths
 

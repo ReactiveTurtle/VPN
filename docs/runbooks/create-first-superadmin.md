@@ -14,6 +14,16 @@ Use this runbook after:
 - admin username
 - Argon2id password hash
 
+## Generate Password Hash
+
+Generate a compatible `Argon2id` hash with the migration program:
+
+```bash
+dotnet run --project src/VpnPortal.Migrations -- hash-password "replace-with-strong-password"
+```
+
+Use the printed value as `password_hash` in the manual insert.
+
 ## Current Argon2id Parameters
 
 The application currently verifies hashes generated with these defaults:
@@ -39,3 +49,4 @@ VALUES ('replace-me', 'replace-with-argon2id-hash', NOW());
 - Do not create superadmins through the public portal.
 - Do not store plaintext passwords in the repository.
 - Keep this operation limited to trusted administrative access on the server.
+- The same `VpnPortal.Migrations` program is used both for schema migration and for generating the manual bootstrap password hash.
