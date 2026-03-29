@@ -21,6 +21,33 @@ public sealed class PostgreSqlDeviceRepository(PostgreSqlConnectionFactory conne
         return row?.ToEntity();
     }
 
+    public async Task<TrustedDevice> AddAsync(TrustedDevice device, CancellationToken cancellationToken)
+    {
+        const string sql = """
+            insert into trusted_devices (user_id, device_uuid, device_name, device_type, platform, status, first_seen_at, last_seen_at, approved_at, revoked_at)
+            values (@UserId, @DeviceUuid, @DeviceName, @DeviceType, @Platform, @Status, @FirstSeenAt, @LastSeenAt, @ApprovedAt, @RevokedAt)
+            returning id, user_id as UserId, device_uuid as DeviceUuid, coalesce(device_name, 'Unnamed device') as DeviceName,
+                      device_type as DeviceType, platform, status, first_seen_at as FirstSeenAt, last_seen_at as LastSeenAt;
+            """;
+
+        using var connection = connectionFactory.Create();
+        var row = await connection.QuerySingleAsync<Row>(new CommandDefinition(sql, new
+        {
+            device.UserId,
+            device.DeviceUuid,
+            device.DeviceName,
+            device.DeviceType,
+            device.Platform,
+            Status = device.Status.ToString().ToLowerInvariant(),
+            device.FirstSeenAt,
+            device.LastSeenAt,
+            ApprovedAt = device.Status == DeviceStatus.Active ? device.FirstSeenAt : (DateTimeOffset?)null,
+            RevokedAt = (DateTimeOffset?)null
+        }, cancellationToken: cancellationToken));
+
+        return row.ToEntity();
+    }
+
     public async Task<bool> RevokeAsync(int userId, int deviceId, CancellationToken cancellationToken)
     {
         const string sql = """

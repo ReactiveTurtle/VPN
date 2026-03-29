@@ -67,6 +67,26 @@ CREATE TABLE IF NOT EXISTS trusted_devices (
 
 CREATE INDEX IF NOT EXISTS ix_trusted_devices_user_id_status ON trusted_devices(user_id, status);
 
+CREATE TABLE IF NOT EXISTS vpn_device_credentials (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES vpn_users(id) ON DELETE CASCADE,
+    device_id BIGINT NOT NULL REFERENCES trusted_devices(id) ON DELETE CASCADE,
+    vpn_username VARCHAR(128) NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'revoked')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    rotated_at TIMESTAMPTZ NULL,
+    revoked_at TIMESTAMPTZ NULL,
+    last_used_at TIMESTAMPTZ NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ix_vpn_device_credentials_device_active
+    ON vpn_device_credentials(device_id)
+    WHERE status = 'active';
+
+CREATE INDEX IF NOT EXISTS ix_vpn_device_credentials_user_id_status
+    ON vpn_device_credentials(user_id, status);
+
 CREATE TABLE IF NOT EXISTS trusted_ips (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES vpn_users(id) ON DELETE CASCADE,

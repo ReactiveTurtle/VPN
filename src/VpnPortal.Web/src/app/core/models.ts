@@ -57,8 +57,19 @@ export interface TrustedDevice {
   deviceType: string;
   platform: string;
   status: string;
+  vpnUsername: string | null;
+  credentialStatus: string | null;
+  credentialRotatedAt: string | null;
   firstSeenAt: string;
   lastSeenAt: string | null;
+}
+
+export interface IssuedVpnDeviceCredential {
+  deviceId: number;
+  deviceName: string;
+  vpnUsername: string;
+  vpnPassword: string;
+  message: string;
 }
 
 export interface VpnSession {

@@ -28,4 +28,4 @@
 - The repository models VPN trust policy, but VPN-side enforcement still depends on external integration work.
 - Platform-specific device identity quality may differ across VPN clients.
 - Session disconnect in the portal is currently a repository-level state change, not guaranteed real-time VPN teardown.
-- The final per-device VPN credential model is documented in ADRs but not yet implemented in the application schema and API.
+- The per-device VPN credential model now exists in the application, but the VPN and AAA runtime path still does not enforce it yet.

@@ -8,9 +8,11 @@ namespace VpnPortal.Infrastructure.Services;
 public sealed class UserPortalService(
     IUserRepository userRepository,
     IDeviceRepository deviceRepository,
+    IDeviceCredentialRepository deviceCredentialRepository,
     ITrustedIpRepository trustedIpRepository,
     IIpChangeConfirmationRepository ipChangeConfirmationRepository,
     ITokenProtector tokenProtector,
+    IPasswordHasher passwordHasher,
     IEmailService emailService,
     IAuditService auditService) : IUserPortalService
 {
@@ -31,6 +33,9 @@ public sealed class UserPortalService(
                 x.DeviceType,
                 x.Platform,
                 x.Status.ToString().ToLowerInvariant(),
+                x.ActiveCredential?.VpnUsername,
+                x.ActiveCredential?.Status.ToString().ToLowerInvariant(),
+                x.ActiveCredential?.RotatedAt,
                 x.FirstSeenAt,
                 x.LastSeenAt))
             .ToArray();
@@ -73,6 +78,79 @@ public sealed class UserPortalService(
             .ToArray();
 
         return new UserDashboardDto(user.Id, user.Email, user.Username, user.Active, user.MaxDevices, devices, trustedIps, pendingConfirmations, sessions);
+    }
+
+    public async Task<IssuedVpnDeviceCredentialDto?> IssueDeviceCredentialAsync(int userId, IssueVpnDeviceCredentialCommand command, CancellationToken cancellationToken)
+    {
+        var user = await userRepository.GetByIdWithRelationsAsync(userId, cancellationToken);
+        if (user is null)
+        {
+            return null;
+        }
+
+        var deviceName = command.DeviceName?.Trim();
+        var deviceType = command.DeviceType?.Trim().ToLowerInvariant();
+        var platform = command.Platform?.Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(deviceName) || string.IsNullOrWhiteSpace(deviceType) || string.IsNullOrWhiteSpace(platform))
+        {
+            return null;
+        }
+
+        var activeDeviceCount = user.Devices.Count(x => x.Status == DeviceStatus.Active);
+        if (activeDeviceCount >= user.MaxDevices)
+        {
+            return null;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var device = await deviceRepository.AddAsync(new TrustedDevice
+        {
+            UserId = userId,
+            DeviceUuid = $"dev-{Guid.NewGuid():N}",
+            DeviceName = deviceName,
+            DeviceType = deviceType,
+            Platform = platform,
+            Status = DeviceStatus.Active,
+            FirstSeenAt = now,
+            LastSeenAt = now
+        }, cancellationToken);
+
+        var vpnPassword = tokenProtector.GenerateRawToken(24);
+        var credential = await deviceCredentialRepository.AddAsync(new VpnDeviceCredential
+        {
+            UserId = userId,
+            DeviceId = device.Id,
+            VpnUsername = BuildVpnUsername(user.Username, device.Id),
+            PasswordHash = passwordHasher.Hash(vpnPassword),
+            Status = VpnDeviceCredentialStatus.Active,
+            CreatedAt = now
+        }, cancellationToken);
+
+        await auditService.WriteAsync("user", userId, "device_credential_issued", "vpn_device_credential", credential.Id.ToString(), null, new { device.Id, credential.VpnUsername }, cancellationToken);
+        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, "VPN credential issued. Save this password now because it will not be shown again.");
+    }
+
+    public async Task<IssuedVpnDeviceCredentialDto?> RotateDeviceCredentialAsync(int userId, int deviceId, CancellationToken cancellationToken)
+    {
+        var device = await deviceRepository.GetByIdAsync(deviceId, cancellationToken);
+        if (device is null || device.UserId != userId || device.Status == DeviceStatus.Revoked)
+        {
+            return null;
+        }
+
+        var credential = await deviceCredentialRepository.GetActiveByDeviceIdAsync(deviceId, cancellationToken);
+        if (credential is null)
+        {
+            return null;
+        }
+
+        var vpnPassword = tokenProtector.GenerateRawToken(24);
+        credential.PasswordHash = passwordHasher.Hash(vpnPassword);
+        credential.RotatedAt = DateTimeOffset.UtcNow;
+        await deviceCredentialRepository.UpdateAsync(credential, cancellationToken);
+        await auditService.WriteAsync("user", userId, "device_credential_rotated", "vpn_device_credential", credential.Id.ToString(), null, new { deviceId, credential.VpnUsername }, cancellationToken);
+
+        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, "VPN credential rotated. Save the new password now because it will not be shown again.");
     }
 
     public Task<bool> RevokeDeviceAsync(int userId, int deviceId, CancellationToken cancellationToken)
@@ -166,6 +244,7 @@ public sealed class UserPortalService(
 
     private async Task<bool> RevokeAndAuditAsync(int userId, int deviceId, CancellationToken cancellationToken)
     {
+        await deviceCredentialRepository.RevokeActiveByDeviceIdAsync(userId, deviceId, cancellationToken);
         var revoked = await deviceRepository.RevokeAsync(userId, deviceId, cancellationToken);
         if (revoked)
         {
@@ -173,5 +252,12 @@ public sealed class UserPortalService(
         }
 
         return revoked;
+    }
+
+    private static string BuildVpnUsername(string username, int deviceId)
+    {
+        var safeUser = new string(username.Trim().ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
+        safeUser = string.IsNullOrWhiteSpace(safeUser) ? "user" : safeUser;
+        return $"{safeUser}.d{deviceId}";
     }
 }

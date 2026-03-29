@@ -41,6 +41,34 @@ public sealed class MeController(IUserPortalService userPortalService) : Control
         return revoked ? NoContent() : NotFound();
     }
 
+    [HttpPost("devices")]
+    [ProducesResponseType<IssuedVpnDeviceCredentialDto>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> IssueDeviceCredential([FromBody] IssueVpnDeviceCredentialCommand command, CancellationToken cancellationToken)
+    {
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await userPortalService.IssueDeviceCredentialAsync(userId.Value, command, cancellationToken);
+        return result is null ? BadRequest() : Ok(result);
+    }
+
+    [HttpPost("devices/{deviceId:int}/rotate-credential")]
+    [ProducesResponseType<IssuedVpnDeviceCredentialDto>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> RotateDeviceCredential(int deviceId, CancellationToken cancellationToken)
+    {
+        var userId = GetUserId();
+        if (userId is null)
+        {
+            return Forbid();
+        }
+
+        var result = await userPortalService.RotateDeviceCredentialAsync(userId.Value, deviceId, cancellationToken);
+        return result is null ? NotFound() : Ok(result);
+    }
+
     [HttpPost("ip-confirmations/request")]
     [ProducesResponseType<IpConfirmationRequestResultDto>(StatusCodes.Status200OK)]
     public async Task<IActionResult> RequestIpConfirmation([FromBody] RequestIpConfirmationCommand command, CancellationToken cancellationToken)

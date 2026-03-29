@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ActivationCompleted, ActivationTokenStatus, AdminSession, AdminUser, AppStatus, AuditLogEntry, IpConfirmationRequestResult, SessionUser, UserDashboard, VpnRequest } from './models';
+import { ActivationCompleted, ActivationTokenStatus, AdminSession, AdminUser, AppStatus, AuditLogEntry, IpConfirmationRequestResult, IssuedVpnDeviceCredential, SessionUser, UserDashboard, VpnRequest } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class PortalApiService {
@@ -58,6 +58,14 @@ export class PortalApiService {
 
   revokeDevice(deviceId: number): Observable<void> {
     return this.http.delete<void>(`/api/me/devices/${deviceId}`, this.authOptions);
+  }
+
+  issueDeviceCredential(payload: { deviceName: string; deviceType: string; platform: string }): Observable<IssuedVpnDeviceCredential> {
+    return this.http.post<IssuedVpnDeviceCredential>('/api/me/devices', payload, this.authOptions);
+  }
+
+  rotateDeviceCredential(deviceId: number): Observable<IssuedVpnDeviceCredential> {
+    return this.http.post<IssuedVpnDeviceCredential>(`/api/me/devices/${deviceId}/rotate-credential`, {}, this.authOptions);
   }
 
   requestIpConfirmation(payload: { requestedIp: string; deviceId?: number | null }): Observable<IpConfirmationRequestResult> {

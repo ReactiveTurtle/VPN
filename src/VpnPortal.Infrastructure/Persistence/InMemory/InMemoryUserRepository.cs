@@ -60,7 +60,7 @@ public sealed class InMemoryUserRepository(InMemoryPortalStore store) : IUserRep
         return Task.CompletedTask;
     }
 
-    private static VpnUser Clone(VpnUser source)
+    private VpnUser Clone(VpnUser source)
     {
         return new VpnUser
         {
@@ -95,7 +95,23 @@ public sealed class InMemoryUserRepository(InMemoryPortalStore store) : IUserRep
                 Platform = device.Platform,
                 Status = device.Status,
                 FirstSeenAt = device.FirstSeenAt,
-                LastSeenAt = device.LastSeenAt
+                LastSeenAt = device.LastSeenAt,
+                ActiveCredential = store.DeviceCredentials
+                    .Where(c => c.DeviceId == device.Id && c.Status == Domain.Enums.VpnDeviceCredentialStatus.Active)
+                    .Select(c => new VpnDeviceCredential
+                    {
+                        Id = c.Id,
+                        UserId = c.UserId,
+                        DeviceId = c.DeviceId,
+                        VpnUsername = c.VpnUsername,
+                        PasswordHash = c.PasswordHash,
+                        Status = c.Status,
+                        CreatedAt = c.CreatedAt,
+                        RotatedAt = c.RotatedAt,
+                        RevokedAt = c.RevokedAt,
+                        LastUsedAt = c.LastUsedAt
+                    })
+                    .FirstOrDefault()
             }).ToArray(),
             Sessions = source.Sessions.Select(session => new VpnSession
             {

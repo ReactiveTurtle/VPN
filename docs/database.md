@@ -11,6 +11,7 @@ The main schema lives in `database/001_schema.sql`.
 - `vpn_requests`
 - `account_tokens`
 - `trusted_devices`
+- `vpn_device_credentials`
 - `trusted_ips`
 - `vpn_sessions`
 - `ip_change_confirmations`
@@ -42,12 +43,13 @@ Bootstrap assets under `infrastructure/vpn-host/postgresql/` cover:
 - `vpn_requests` stores inbound access requests
 - `account_tokens` stores activation and related token records
 - `trusted_devices` and `trusted_ips` model policy state for connection trust
+- `vpn_device_credentials` stores issued password-based credentials per device
 - `vpn_sessions` tracks active and historical sessions
 - `ip_change_confirmations` supports approval flow for new IPs
 - `audit_log` provides security and operations traceability
 
-## Planned Schema Evolution
+## Current Constraint
 
-ADR `0006` and ADR `0007` define a target model where portal passwords remain separate from per-device VPN credentials.
+The repository now includes an application-side `vpn_device_credentials` table and lifecycle.
 
-That target model requires additional schema work that is not yet present in `database/001_schema.sql`, including a dedicated representation for issued VPN device credentials.
+FreeRADIUS still needs its final SQL policy to validate those credentials and map them into runtime VPN authorization.

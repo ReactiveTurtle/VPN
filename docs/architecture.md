@@ -36,7 +36,7 @@ The original brief allowed `Blazor/ASP.NET Core`, but the current repository imp
 
 1. User authenticates with cookie-based auth.
 2. Dashboard loads trusted devices, trusted IPs, pending confirmations, and sessions.
-3. User can revoke a device and request or confirm a trusted IP change.
+3. User can issue or rotate a per-device VPN credential, revoke a device, and request or confirm a trusted IP change.
 
 ### Admin operations
 
@@ -73,4 +73,4 @@ This repository models the data and portal workflows required for strongSwan and
 
 - server bootstrap and configuration under `infrastructure/vpn-host/`
 - final `FreeRADIUS` SQL policy
-- application-side implementation of per-device VPN credentials
+- runtime use of per-device VPN credentials by the VPN and AAA path

@@ -8,6 +8,8 @@ public sealed class InMemoryPortalStore
     private readonly object sync = new();
     private int nextRequestId = 3;
     private int nextUserId = 2;
+    private int nextDeviceId = 2;
+    private int nextDeviceCredentialId = 2;
     private int nextTokenId = 2;
     private int nextTrustedIpId = 2;
     private int nextIpConfirmationId = 2;
@@ -136,6 +138,20 @@ public sealed class InMemoryPortalStore
         }
     ];
 
+    public List<VpnDeviceCredential> DeviceCredentials { get; } =
+    [
+        new VpnDeviceCredential
+        {
+            Id = 1,
+            UserId = 1,
+            DeviceId = 1,
+            VpnUsername = "alex.d1",
+            PasswordHash = "$argon2id$v=19$m=65536,t=3,p=1$rxaqCBytGMHXfA9JHW0Dug==$8jk57FB8d7rL95gz8krS8Zr0+hI4s/wPzblAvNlIV1A=",
+            Status = VpnDeviceCredentialStatus.Active,
+            CreatedAt = new DateTimeOffset(2026, 3, 27, 8, 0, 0, TimeSpan.Zero)
+        }
+    ];
+
     public int AllocateRequestId()
     {
         lock (sync)
@@ -149,6 +165,22 @@ public sealed class InMemoryPortalStore
         lock (sync)
         {
             return nextUserId++;
+        }
+    }
+
+    public int AllocateDeviceId()
+    {
+        lock (sync)
+        {
+            return nextDeviceId++;
+        }
+    }
+
+    public int AllocateDeviceCredentialId()
+    {
+        lock (sync)
+        {
+            return nextDeviceCredentialId++;
         }
     }
 

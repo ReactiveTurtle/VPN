@@ -40,3 +40,4 @@ This repository contains a VPN access portal and supporting infrastructure.
 - When architecture or behavior changes, update `docs/` first or in the same change.
 - Reflect actual code state, not only target-state intentions from the original brief.
 - Treat `docs/architecture.md`, `docs/database.md`, and `docs/roadmap.md` as the primary documentation touchpoints.
+- After each completed implementation cycle, create a separate git commit before starting the next cycle.

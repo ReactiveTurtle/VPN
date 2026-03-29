@@ -26,6 +26,37 @@ public sealed class InMemoryDeviceRepository(InMemoryPortalStore store) : IDevic
         });
     }
 
+    public Task<TrustedDevice> AddAsync(TrustedDevice device, CancellationToken cancellationToken)
+    {
+        var user = store.Users.First(x => x.Id == device.UserId);
+        var copy = new TrustedDevice
+        {
+            Id = store.AllocateDeviceId(),
+            UserId = device.UserId,
+            DeviceUuid = device.DeviceUuid,
+            DeviceName = device.DeviceName,
+            DeviceType = device.DeviceType,
+            Platform = device.Platform,
+            Status = device.Status,
+            FirstSeenAt = device.FirstSeenAt,
+            LastSeenAt = device.LastSeenAt
+        };
+
+        user.Devices.Add(copy);
+        return Task.FromResult(new TrustedDevice
+        {
+            Id = copy.Id,
+            UserId = copy.UserId,
+            DeviceUuid = copy.DeviceUuid,
+            DeviceName = copy.DeviceName,
+            DeviceType = copy.DeviceType,
+            Platform = copy.Platform,
+            Status = copy.Status,
+            FirstSeenAt = copy.FirstSeenAt,
+            LastSeenAt = copy.LastSeenAt
+        });
+    }
+
     public Task<bool> RevokeAsync(int userId, int deviceId, CancellationToken cancellationToken)
     {
         var device = store.Users

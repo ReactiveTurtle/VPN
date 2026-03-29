@@ -80,6 +80,22 @@ public sealed class PostgreSqlUserRepository(PostgreSqlConnectionFactory connect
             order by coalesce(last_seen_at, first_seen_at) desc;
             """;
 
+        const string credentialsSql = """
+            select id,
+                   user_id as UserId,
+                   device_id as DeviceId,
+                   vpn_username as VpnUsername,
+                   password_hash as PasswordHash,
+                   status,
+                   created_at as CreatedAt,
+                   rotated_at as RotatedAt,
+                   revoked_at as RevokedAt,
+                   last_used_at as LastUsedAt
+            from vpn_device_credentials
+            where user_id = @UserId
+            order by created_at desc;
+            """;
+
         const string trustedIpsSql = """
             select id, user_id as UserId, device_id as DeviceId, ip_address::text as IpAddress,
                    status, first_seen_at as FirstSeenAt, last_seen_at as LastSeenAt, approved_at as ApprovedAt, revoked_at as RevokedAt
@@ -117,6 +133,23 @@ public sealed class PostgreSqlUserRepository(PostgreSqlConnectionFactory connect
         var devices = (await connection.QueryAsync<DeviceRow>(new CommandDefinition(devicesSql, new { UserId = userId }, cancellationToken: cancellationToken)))
             .Select(x => x.ToEntity())
             .ToArray();
+
+        var credentials = (await connection.QueryAsync<DeviceCredentialRow>(new CommandDefinition(credentialsSql, new { UserId = userId }, cancellationToken: cancellationToken)))
+            .Select(x => x.ToEntity())
+            .ToArray();
+
+        var activeCredentialLookup = credentials
+            .Where(x => x.Status == VpnDeviceCredentialStatus.Active)
+            .GroupBy(x => x.DeviceId)
+            .ToDictionary(x => x.Key, x => x.OrderByDescending(c => c.RotatedAt ?? c.CreatedAt).First());
+
+        foreach (var device in devices)
+        {
+            if (activeCredentialLookup.TryGetValue(device.Id, out var credential))
+            {
+                device.ActiveCredential = credential;
+            }
+        }
 
         var trustedIps = (await connection.QueryAsync<TrustedIpRow>(new CommandDefinition(trustedIpsSql, new { UserId = userId }, cancellationToken: cancellationToken)))
             .Select(x => x.ToEntity())
@@ -295,6 +328,26 @@ public sealed class PostgreSqlUserRepository(PostgreSqlConnectionFactory connect
                 Status = Enum.Parse<DeviceStatus>(Status, true),
                 FirstSeenAt = FirstSeenAt,
                 LastSeenAt = LastSeenAt
+            };
+        }
+    }
+
+    private sealed record DeviceCredentialRow(int Id, int UserId, int DeviceId, string VpnUsername, string PasswordHash, string Status, DateTimeOffset CreatedAt, DateTimeOffset? RotatedAt, DateTimeOffset? RevokedAt, DateTimeOffset? LastUsedAt)
+    {
+        public VpnDeviceCredential ToEntity()
+        {
+            return new VpnDeviceCredential
+            {
+                Id = Id,
+                UserId = UserId,
+                DeviceId = DeviceId,
+                VpnUsername = VpnUsername,
+                PasswordHash = PasswordHash,
+                Status = Enum.Parse<VpnDeviceCredentialStatus>(Status, true),
+                CreatedAt = CreatedAt,
+                RotatedAt = RotatedAt,
+                RevokedAt = RevokedAt,
+                LastUsedAt = LastUsedAt
             };
         }
     }

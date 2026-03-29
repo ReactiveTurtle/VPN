@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, of } from 'rxjs';
 import { PortalApiService } from '../core/portal-api.service';
-import { UserDashboard } from '../core/models';
+import { IssuedVpnDeviceCredential, UserDashboard } from '../core/models';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -60,12 +60,51 @@ import { UserDashboard } from '../core/models';
               <strong>{{ device.deviceName }}</strong>
               <span>{{ device.platform }} / {{ device.deviceType }}</span>
               <span>{{ device.status }}</span>
+              <span>{{ device.vpnUsername || 'VPN credential not issued yet' }}</span>
               @if (device.status !== 'revoked') {
-                <button type="button" class="button ghost compact" (click)="revokeDevice(device.id)">Revoke device</button>
+                <div class="action-row">
+                  @if (device.vpnUsername) {
+                    <button type="button" class="button secondary compact" (click)="rotateDeviceCredential(device.id)">Rotate VPN password</button>
+                  }
+                  <button type="button" class="button ghost compact" (click)="revokeDevice(device.id)">Revoke device</button>
+                </div>
               }
             </div>
           }
         </div>
+      </article>
+
+      <article class="panel data-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Device access</p>
+            <h2>Issue a VPN credential</h2>
+          </div>
+        </div>
+        <div class="request-form auth-form">
+          <label>
+            <span>Device name</span>
+            <input type="text" [(ngModel)]="newDeviceName" name="newDeviceName" placeholder="Alex iPhone" />
+          </label>
+          <label>
+            <span>Device type</span>
+            <input type="text" [(ngModel)]="newDeviceType" name="newDeviceType" placeholder="phone" />
+          </label>
+          <label>
+            <span>Platform</span>
+            <input type="text" [(ngModel)]="newDevicePlatform" name="newDevicePlatform" placeholder="ios" />
+          </label>
+          <button type="button" class="button primary" (click)="issueDeviceCredential()">Issue VPN credential</button>
+        </div>
+
+        @if (issuedCredential()) {
+          <div class="activation-link">
+            <code>{{ issuedCredential()?.vpnUsername }}</code>
+          </div>
+          <div class="activation-link">
+            <code>{{ issuedCredential()?.vpnPassword }}</code>
+          </div>
+        }
       </article>
 
       <article class="panel data-panel">
@@ -156,8 +195,12 @@ export class DashboardPage {
   protected readonly message = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly lastConfirmationLink = signal<string | null>(null);
+  protected readonly issuedCredential = signal<IssuedVpnDeviceCredential | null>(null);
   protected requestedIp = '';
   protected selectedDeviceId: number | null = null;
+  protected newDeviceName = '';
+  protected newDeviceType = '';
+  protected newDevicePlatform = '';
 
   constructor() {
     const token = this.route.snapshot.queryParamMap.get('confirmIpToken');
@@ -172,6 +215,40 @@ export class DashboardPage {
         this.message.set('Device revoked. Refresh the page to see updated policy state.');
       },
       error: () => this.error.set('Could not revoke device.')
+    });
+  }
+
+  protected issueDeviceCredential(): void {
+    if (!this.newDeviceName.trim() || !this.newDeviceType.trim() || !this.newDevicePlatform.trim()) {
+      this.error.set('Enter device name, type, and platform first.');
+      return;
+    }
+
+    this.api.issueDeviceCredential({
+      deviceName: this.newDeviceName.trim(),
+      deviceType: this.newDeviceType.trim(),
+      platform: this.newDevicePlatform.trim()
+    }).subscribe({
+      next: (result) => {
+        this.issuedCredential.set(result);
+        this.message.set(`${result.message} Refresh the page to see the new device in the dashboard.`);
+        this.error.set(null);
+        this.newDeviceName = '';
+        this.newDeviceType = '';
+        this.newDevicePlatform = '';
+      },
+      error: () => this.error.set('Could not issue a VPN device credential.')
+    });
+  }
+
+  protected rotateDeviceCredential(deviceId: number): void {
+    this.api.rotateDeviceCredential(deviceId).subscribe({
+      next: (result) => {
+        this.issuedCredential.set(result);
+        this.message.set(result.message + ' Refresh the page to see the updated credential state.');
+        this.error.set(null);
+      },
+      error: () => this.error.set('Could not rotate the VPN password for this device.')
     });
   }
 

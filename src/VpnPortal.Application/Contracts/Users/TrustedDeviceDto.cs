@@ -6,5 +6,8 @@ public sealed record TrustedDeviceDto(
     string DeviceType,
     string Platform,
     string Status,
+    string? VpnUsername,
+    string? CredentialStatus,
+    DateTimeOffset? CredentialRotatedAt,
     DateTimeOffset FirstSeenAt,
     DateTimeOffset? LastSeenAt);

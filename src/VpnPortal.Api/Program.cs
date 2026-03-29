@@ -25,6 +25,7 @@ if (string.Equals(databaseOptions.Provider, "PostgreSql", StringComparison.Ordin
     builder.Services.AddScoped<IAccountTokenRepository, PostgreSqlAccountTokenRepository>();
     builder.Services.AddScoped<ISuperAdminRepository, PostgreSqlSuperAdminRepository>();
     builder.Services.AddScoped<IDeviceRepository, PostgreSqlDeviceRepository>();
+    builder.Services.AddScoped<IDeviceCredentialRepository, PostgreSqlDeviceCredentialRepository>();
     builder.Services.AddScoped<ITrustedIpRepository, PostgreSqlTrustedIpRepository>();
     builder.Services.AddScoped<IIpChangeConfirmationRepository, PostgreSqlIpChangeConfirmationRepository>();
     builder.Services.AddScoped<IAuditLogRepository, PostgreSqlAuditLogRepository>();
@@ -38,6 +39,7 @@ else
     builder.Services.AddScoped<IAccountTokenRepository, InMemoryAccountTokenRepository>();
     builder.Services.AddScoped<ISuperAdminRepository, InMemorySuperAdminRepository>();
     builder.Services.AddScoped<IDeviceRepository, InMemoryDeviceRepository>();
+    builder.Services.AddScoped<IDeviceCredentialRepository, InMemoryDeviceCredentialRepository>();
     builder.Services.AddScoped<ITrustedIpRepository, InMemoryTrustedIpRepository>();
     builder.Services.AddScoped<IIpChangeConfirmationRepository, InMemoryIpChangeConfirmationRepository>();
     builder.Services.AddSingleton<IAuditLogRepository, InMemoryAuditLogRepository>();
