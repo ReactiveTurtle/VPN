@@ -34,6 +34,38 @@ Use `infrastructure/vpn-host/README.md` and the `bootstrap/*.sh` scripts to prep
 
 The portal application delivery assets under `deploy/` remain the source for packaging and release rollout, while `infrastructure/vpn-host/` covers host preparation and local service integration.
 
+Operational helper scripts that live on the VPN host should also be tracked under `infrastructure/vpn-host/tools/`. The current helper is `vpn-speed.py`, intended to be installed at `/usr/local/bin/vpn-speed.py`, updated from the packaged repository copy during each deploy, and run with `sudo /usr/local/bin/vpn-speed.py` for live VPN session throughput monitoring.
+
+## Current Runtime Contract
+
+The current target runtime flow on the host is:
+
+- `strongSwan` terminates IKEv2
+- `FreeRADIUS` validates password-based device credentials from PostgreSQL
+- `FreeRADIUS` forwards blocked new-IP events into `POST /api/internal/radius/auth-events`
+- `FreeRADIUS` forwards accounting events into `POST /api/internal/radius/accounting-events`
+- the portal updates `vpn_sessions` and `ip_change_confirmations`
+- admin disconnect can request best-effort runtime session teardown through `/usr/local/lib/vpnportal/disconnect-session.sh`
+
+## Host-Installed Runtime Helpers
+
+The bootstrap currently expects these host-local runtime helpers:
+
+- `/usr/local/lib/vpnportal/forward-auth-event.sh`
+- `/usr/local/lib/vpnportal/forward-accounting-event.sh`
+- `/usr/local/lib/vpnportal/disconnect-session.sh`
+- `/usr/local/bin/vpn-speed.py`
+
+These helpers are versioned in the repository and should be treated as part of the deployment contract for the VPN host.
+
+## Verification
+
+Use these assets after bootstrap and deploy:
+
+- `infrastructure/vpn-host/bootstrap/07-verify-stack.sh`
+- `infrastructure/vpn-host/bootstrap/08-smoke-test-portal.sh`
+- `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md`
+
 ## PostgreSQL Bootstrap
 
 The VPN host bootstrap explicitly installs and initializes `PostgreSQL` because the database is a shared dependency for:
@@ -51,3 +83,4 @@ See these references:
 
 - `deploy/README.md` for API and SPA deployment packaging
 - `infrastructure/vpn-host/README.md` for first-time host preparation
+- `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md` for end-to-end runtime validation

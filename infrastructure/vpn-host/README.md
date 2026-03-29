@@ -13,7 +13,15 @@ This directory contains bootstrap assets for a single-host `Ubuntu 24.04` deploy
 
 These scripts install and prepare the host, database roles, and service templates.
 
-They do not by themselves complete the final VPN authentication policy, because the application-side `per-device VPN credential` schema and API flow described in ADR `0006` and ADR `0007` still need to be implemented in code.
+They now include a concrete `FreeRADIUS` policy template that reads `vpn_device_credentials.radius_nt_hash` from PostgreSQL for password-based device credentials.
+
+They also include the current runtime helper layer for:
+
+- accounting event forwarding
+- blocked new-IP auth event forwarding
+- best-effort runtime session disconnect on the VPN host
+
+They still do not complete the full VPN integration by themselves, because runtime accounting, final device lifecycle enforcement, and production tuning still need to be validated on the target host.
 
 Use these assets to make the server bootstrap reproducible and to establish the target operational layout.
 
@@ -25,9 +33,11 @@ Use these assets to make the server bootstrap reproducible and to establish the 
 
 - `env/vpn-host.env.example` - example environment variables consumed by bootstrap scripts
 - `bootstrap/` - idempotent `bash` scripts for package installation and host setup
+- `runbooks/` - server-side verification guides for the current runtime flow
 - `postgresql/` - SQL assets for roles and manual superadmin seeding
 - `strongswan/` - template configuration files
 - `freeradius/` - template configuration files
+- `tools/` - host-side helper scripts that should also be versioned in this repository
 
 ## Script Order
 
@@ -40,6 +50,7 @@ Run the scripts in this order as `root`:
 5. `bootstrap/05-configure-freeradius.sh`
 6. `bootstrap/06-configure-portal-host.sh`
 7. `bootstrap/07-verify-stack.sh`
+8. `bootstrap/08-smoke-test-portal.sh`
 
 Each script accepts an optional path to the environment file. If omitted, it defaults to `/etc/vpnportal/vpn-host.env`.
 
@@ -66,6 +77,43 @@ Fill a real environment file before applying configurations:
 - `/opt/vpnportal/` - application deployment root
 - `/etc/strongswan.conf` and `/etc/ipsec.conf` - strongSwan configuration
 - `/etc/freeradius/3.0/` - FreeRADIUS configuration
+- `/usr/local/lib/vpnportal/forward-accounting-event.sh` - canonical accounting forwarder
+- `/usr/local/lib/vpnportal/forward-auth-event.sh` - canonical blocked new-IP forwarder
+- `/usr/local/lib/vpnportal/disconnect-session.sh` - best-effort runtime session disconnect helper
+- `/usr/local/bin/vpn-speed.py` - optional helper for live VPN session throughput monitoring
+
+## Current Runtime Flow
+
+1. The portal issues a per-device VPN credential.
+2. `strongSwan` passes IKEv2 password-based authentication to `FreeRADIUS`.
+3. `FreeRADIUS` validates device credentials, `active`, trusted IP, and `max_devices` policy against PostgreSQL.
+4. `FreeRADIUS` forwards blocked new-IP events into the internal portal API.
+5. `FreeRADIUS` forwards accounting events into the internal portal API.
+6. The portal updates `vpn_sessions` and `ip_change_confirmations`.
+7. Admin disconnect can request best-effort runtime termination through the host-side disconnect helper.
+
+## Operational Helpers
+
+The repository also tracks small server-side helper scripts that are useful during live operations.
+
+### `vpn-speed.py`
+
+- Source in repo: `infrastructure/vpn-host/tools/vpn-speed.py`
+- Target host path: `/usr/local/bin/vpn-speed.py`
+- Run as: `sudo /usr/local/bin/vpn-speed.py`
+- Deployment behavior: the standard remote deploy script replaces the host copy with the packaged repo version on each deploy.
+- Purpose: render active `strongSwan` IKEv2 sessions with client IP, VPN IP, ping, RX/TX rate, total traffic, and uptime.
+
+Example install on the server:
+
+```bash
+sudo install -m 0755 infrastructure/vpn-host/tools/vpn-speed.py /usr/local/bin/vpn-speed.py
+```
+
+## Validation Runbook
+
+- Non-destructive smoke check: `bootstrap/08-smoke-test-portal.sh`
+- End-to-end runtime validation: `runbooks/verify-vpn-runtime-flow.md`
 
 ## Verification
 
@@ -75,6 +123,7 @@ The final verification script checks:
 - PostgreSQL local connectivity
 - `strongSwan` status
 - `freeradius -CX` config validation
+- installed runtime helpers for accounting, auth forwarding, and disconnect
 - expected open sockets
 
 ## Security Notes
