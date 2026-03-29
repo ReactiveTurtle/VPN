@@ -36,6 +36,19 @@ Bootstrap assets under `infrastructure/vpn-host/postgresql/` cover:
 - schema application through `database/001_schema.sql`
 - manual superadmin seed example
 
+## Migration Model
+
+The repository now uses a lightweight SQL migration runner for PostgreSQL startup initialization.
+
+Current behavior:
+
+- `database/001_schema.sql` is treated as the initial schema migration
+- incremental migrations live under `database/migrations/`
+- applied migrations are tracked in `schema_migrations`
+- `database/002_seed_dev.sql` remains optional development/demo seed data
+
+This project is currently SQL-first and Dapper-based, so the migration runner is intentionally kept as raw SQL rather than introducing an Entity Framework migration model as a second schema source of truth.
+
 ## Operational Meaning
 
 - `vpn_users` stores portal-accessible VPN users

@@ -25,6 +25,12 @@
 - PostgreSQL-backed repositories when `Database:Provider = PostgreSql`
 - In-memory repositories as a fallback for local or simplified runs
 
+## Schema Evolution
+
+- PostgreSQL startup initialization now records applied SQL migrations in `schema_migrations`
+- `database/001_schema.sql` is the initial tracked schema
+- incremental schema changes belong in `database/migrations/*.sql`
+
 ## API Surface
 
 - Public request submission
