@@ -43,8 +43,10 @@ Recommended:
 6. Bootstrap the VPN host separately with `infrastructure/vpn-host/README.md` if this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL.
 7. Install `deploy/remote/deploy-package.sh` on the server, for example at `/opt/vpnportal/bin/deploy-package.sh`, and make it executable.
 8. Ensure `/usr/local/bin` is writable by `sudo install` from the deploy command if you want packaged operational tools refreshed automatically.
-9. Configure `DEPLOY_COMMAND`, for example `/opt/vpnportal/bin/deploy-package.sh`.
-10. Enable the correct systemd service.
+9. Run the schema migration program before the first API start: `dotnet run --project src/VpnPortal.Migrations`.
+10. Create the first `superadmin` manually using `docs/runbooks/create-first-superadmin.md`.
+11. Configure `DEPLOY_COMMAND`, for example `/opt/vpnportal/bin/deploy-package.sh`.
+12. Enable the correct systemd service.
 
 ## Workflow behavior
 
@@ -52,6 +54,7 @@ Recommended:
 - `deploy.yml` publishes the API, copies Angular build output to `wwwroot`, versions the package with a git tag or commit SHA, uploads a tarball to the server, and then calls your remote deployment command.
 - The remote command is responsible for unpacking the package, switching the current release, refreshing executable files from packaged `infrastructure/vpn-host/tools/` into `/usr/local/bin`, and restarting services.
 - Runtime helpers under `/usr/local/lib/vpnportal` are not refreshed by the remote deploy script; they are managed by the VPN host bootstrap scripts under `infrastructure/vpn-host/bootstrap/`.
+- Database schema changes are applied separately through `VpnPortal.Migrations`; the deploy script does not migrate the database automatically.
 
 ## Current Packaging Scope
 

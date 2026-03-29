@@ -18,7 +18,8 @@ The original brief allowed `Blazor/ASP.NET Core`, but the current repository imp
 - `src/VpnPortal.Api`: composition root, authentication setup, controllers, CORS, antiforgery, static asset hosting
 - `src/VpnPortal.Application`: service interfaces and DTO contracts
 - `src/VpnPortal.Domain`: domain entities and enums
-- `src/VpnPortal.Infrastructure`: persistence, hashing, token protection, email, workflow services
+- `src/VpnPortal.Infrastructure`: EF Core persistence, hashing, token protection, email, workflow services
+- `src/VpnPortal.Migrations`: standalone schema migration program
 - `src/VpnPortal.Web`: Angular application for public, user, and admin flows
 
 ## Major Runtime Flows
@@ -26,7 +27,7 @@ The original brief allowed `Blazor/ASP.NET Core`, but the current repository imp
 ### Request and activation
 
 1. Public request is submitted through API.
-2. Request is stored in PostgreSQL or in-memory storage.
+2. Request is stored in PostgreSQL through the EF Core persistence layer.
 3. Superadmin approves request.
 4. User record is created if needed.
 5. Activation token is generated and emailed.
@@ -74,3 +75,9 @@ This repository models the data and portal workflows required for strongSwan and
 - server bootstrap and configuration under `infrastructure/vpn-host/`
 - final `FreeRADIUS` SQL policy
 - runtime use of per-device VPN credentials by the VPN and AAA path
+
+## Schema Management
+
+PostgreSQL schema changes are managed only through `EF Core` migrations under `src/VpnPortal.Migrations/Migrations/`.
+
+The API does not create or migrate the schema on startup.

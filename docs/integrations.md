@@ -15,8 +15,9 @@
 ## PostgreSQL
 
 - Source of truth for portal state and VPN policy data.
-- Used by the application directly and expected to support VPN-side lookups.
+- Used by the application through the EF Core persistence layer and expected to support VPN-side lookups.
 - Host bootstrap scripts install PostgreSQL and create separate app and RADIUS roles.
+- Schema changes are applied by the separate `VpnPortal.Migrations` program.
 
 ## Email
 
