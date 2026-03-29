@@ -1,0 +1,15 @@
+[Unit]
+Description=VPN Portal API (Production)
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/vpnportal/current/api
+ExecStart=/usr/bin/dotnet /opt/vpnportal/current/api/VpnPortal.Api.dll
+Restart=always
+RestartSec=5
+SyslogIdentifier=vpnportal-api
+User=www-data
+EnvironmentFile=/etc/vpnportal/vpnportal.production.env
+
+[Install]
+WantedBy=multi-user.target

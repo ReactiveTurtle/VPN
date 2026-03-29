@@ -1,0 +1,21 @@
+<div class="app-shell">
+  <header class="topbar">
+    <a routerLink="/" class="brand">NorthGate VPN</a>
+    <nav>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Portal</a>
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/admin" routerLinkActive="active">Admin</a>
+      <a routerLink="/login" routerLinkActive="active">User Login</a>
+      <a routerLink="/admin/login" routerLinkActive="active">Admin Login</a>
+      <a routerLink="/activate/demo-token" routerLinkActive="active">Activation</a>
+      @if (currentUser(); as user) {
+        <span class="session-pill">{{ user.login }} / {{ user.role }}</span>
+        <button type="button" class="button ghost compact" (click)="logout()">Logout</button>
+      }
+    </nav>
+  </header>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

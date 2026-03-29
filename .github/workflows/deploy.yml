@@ -1,0 +1,149 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment target
+        required: true
+        default: production
+        type: choice
+        options:
+          - staging
+          - production
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+
+env:
+  PACKAGE_BASENAME: vpnportal-package
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ steps.meta.outputs.artifact_name }}
+      package-file: ${{ steps.meta.outputs.package_file }}
+      version: ${{ steps.meta.outputs.version }}
+      target: ${{ steps.meta.outputs.target }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute package metadata
+        id: meta
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME}"
+          else
+            VERSION="sha-${GITHUB_SHA::7}"
+          fi
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            TARGET="${{ github.event.inputs.target }}"
+          elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TARGET="production"
+          else
+            TARGET="staging"
+          fi
+
+          PACKAGE_FILE="${PACKAGE_BASENAME}-${TARGET}-${VERSION}.tar.gz"
+          ARTIFACT_NAME="${PACKAGE_BASENAME}-${TARGET}-${VERSION}"
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "target=${TARGET}" >> "$GITHUB_OUTPUT"
+          echo "package_file=${PACKAGE_FILE}" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=${ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/VpnPortal.Web/package-lock.json
+
+      - name: Restore backend
+        run: dotnet restore VpnPortal.slnx
+
+      - name: Publish API
+        run: dotnet publish src/VpnPortal.Api/VpnPortal.Api.csproj -c Release -o artifacts/publish/api
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: src/VpnPortal.Web
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: src/VpnPortal.Web
+
+      - name: Copy SPA into wwwroot
+        run: |
+          mkdir -p artifacts/publish/api/wwwroot
+          cp -R src/VpnPortal.Web/dist/VpnPortal.Web/browser/. artifacts/publish/api/wwwroot/
+
+      - name: Add deployment assets
+        run: |
+          mkdir -p artifacts/publish/deploy
+          cp deploy/systemd/vpnportal-api.production.service artifacts/publish/deploy/
+          cp deploy/systemd/vpnportal-api.staging.service artifacts/publish/deploy/
+          cp deploy/nginx/vpnportal.conf artifacts/publish/deploy/
+          cp deploy/env/vpnportal.production.env.example artifacts/publish/deploy/
+          cp deploy/env/vpnportal.staging.env.example artifacts/publish/deploy/
+          cp deploy/remote/deploy-package.sh artifacts/publish/deploy/
+
+      - name: Write package metadata
+        run: |
+          cat > artifacts/publish/VERSION <<EOF
+          ${{ steps.meta.outputs.version }}
+          EOF
+          cat > artifacts/publish/DEPLOY_TARGET <<EOF
+          ${{ steps.meta.outputs.target }}
+          EOF
+
+      - name: Archive package
+        run: tar -czf "${{ steps.meta.outputs.package_file }}" -C artifacts/publish .
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.artifact_name }}
+          path: ${{ steps.meta.outputs.package_file }}
+          if-no-files-found: error
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: package
+    environment: ${{ needs.package.outputs.target }}
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.package.outputs.artifact-name }}
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+
+      - name: Add target host to known_hosts
+        run: ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload package
+        run: |
+          scp -P "${{ secrets.DEPLOY_PORT }}" "${{ needs.package.outputs.package-file }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/${{ needs.package.outputs.package-file }}"
+
+      - name: Invoke remote deployment command
+        run: |
+          ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+          "${{ secrets.DEPLOY_COMMAND }} '${{ secrets.DEPLOY_PATH }}/${{ needs.package.outputs.package-file }}' '${{ needs.package.outputs.target }}' '${{ needs.package.outputs.version }}'"

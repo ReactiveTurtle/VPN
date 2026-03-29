@@ -1,0 +1,16 @@
+[Unit]
+Description=VPN Portal API
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/vpnportal/current/api
+ExecStart=/usr/bin/dotnet /opt/vpnportal/current/api/VpnPortal.Api.dll
+Restart=always
+RestartSec=5
+SyslogIdentifier=vpnportal-api
+User=www-data
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5000
+
+[Install]
+WantedBy=multi-user.target
