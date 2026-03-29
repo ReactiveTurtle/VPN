@@ -1,0 +1,18 @@
+charon {
+    load_modular = yes
+
+    plugins {
+        eap-radius {
+            accounting = yes
+            load = yes
+            servers {
+                local {
+                    address = ${RADIUS_CLIENT_ADDRESS}
+                    secret = ${RADIUS_SHARED_SECRET}
+                }
+            }
+        }
+    }
+}
+
+include strongswan.d/*.conf

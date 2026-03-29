@@ -1,0 +1,28 @@
+config setup
+    charondebug="ike 1, knl 1, cfg 0"
+    uniqueids=no
+
+conn ikev2-vpn
+    auto=add
+    compress=no
+    type=tunnel
+    keyexchange=ikev2
+    fragmentation=yes
+    forceencaps=yes
+    dpdaction=clear
+    dpddelay=300s
+    rekey=no
+    left=%any
+    leftid=${STRONGSWAN_SERVER_ID}
+    leftcert=${STRONGSWAN_CERT_PATH}
+    leftsendcert=always
+    leftsubnet=0.0.0.0/0
+    right=%any
+    rightid=%any
+    rightauth=eap-radius
+    rightsendcert=never
+    eap_identity=%identity
+    rightsourceip=${STRONGSWAN_RIGHT_SOURCE_IP}
+    rightdns=${STRONGSWAN_DNS}
+    ike=aes256-sha256-modp2048,aes128-sha1-modp1024!
+    esp=aes256-sha256,aes128-sha1!

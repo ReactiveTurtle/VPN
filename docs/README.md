@@ -15,6 +15,8 @@ This directory contains project documentation and architecture decision records 
 - `roadmap.md` - implemented vs missing capabilities relative to the brief
 - `adr/` - architecture decision records
 
+Repository-level infrastructure bootstrap assets for the VPN host live under `infrastructure/vpn-host/`.
+
 ## Documentation Rules
 
 - Document the current repository state first.

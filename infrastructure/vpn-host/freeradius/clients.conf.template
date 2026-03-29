@@ -1,0 +1,5 @@
+client strongswan {
+    ipaddr = ${RADIUS_CLIENT_ADDRESS}
+    secret = ${RADIUS_SHARED_SECRET}
+    shortname = strongswan-local
+}

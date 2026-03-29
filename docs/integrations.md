@@ -4,16 +4,19 @@
 
 - Intended as the IKEv2 VPN endpoint.
 - Expected to delegate authentication and accounting to FreeRADIUS.
+- Bootstrap templates for the Ubuntu host live under `infrastructure/vpn-host/strongswan/`.
 
 ## FreeRADIUS
 
 - Intended as the AAA layer.
 - Expected to validate credentials and enforce trust/device policy through PostgreSQL-backed data.
+- Bootstrap templates for the Ubuntu host live under `infrastructure/vpn-host/freeradius/`.
 
 ## PostgreSQL
 
 - Source of truth for portal state and VPN policy data.
 - Used by the application directly and expected to support VPN-side lookups.
+- Host bootstrap scripts install PostgreSQL and create separate app and RADIUS roles.
 
 ## Email
 
@@ -23,4 +26,14 @@
 ## Integration Status
 
 - Portal-side persistence and workflow logic are present.
-- External VPN and AAA server configuration is still an operational integration concern outside this codebase.
+- External VPN and AAA server configuration is now represented operationally in this repository under `infrastructure/vpn-host/`.
+- Final FreeRADIUS SQL policy is still pending application-side implementation of per-device VPN credentials.
+
+## Target Runtime Flow
+
+1. User requests and activates access through the portal.
+2. User signs in to the portal with the portal password.
+3. User receives or rotates a VPN device credential for a specific device.
+4. `strongSwan` accepts the IKEv2 connection and delegates AAA to `FreeRADIUS`.
+5. `FreeRADIUS` validates the device credential against PostgreSQL-backed policy data.
+6. Accounting and session data flow back into PostgreSQL for portal visibility.

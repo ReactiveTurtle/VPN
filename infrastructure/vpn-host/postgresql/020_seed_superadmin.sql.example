@@ -1,0 +1,7 @@
+-- Replace the values below and run this file manually after schema creation.
+-- The password hash should be generated with the repository's Argon2 tool.
+
+INSERT INTO superadmins (username, password_hash)
+VALUES ('replace-me', 'replace-with-generated-argon2id-hash')
+ON CONFLICT (username) DO UPDATE
+SET password_hash = EXCLUDED.password_hash;

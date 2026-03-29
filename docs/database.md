@@ -24,6 +24,17 @@ The main schema lives in `database/001_schema.sql`.
 - audit events are stored explicitly
 - request processing is linked to admin records
 
+## Bootstrap Responsibilities
+
+`PostgreSQL` is part of the VPN host bootstrap because it is a shared runtime dependency of the portal and the target AAA policy layer.
+
+Bootstrap assets under `infrastructure/vpn-host/postgresql/` cover:
+
+- database role creation
+- database creation
+- schema application through `database/001_schema.sql`
+- manual superadmin seed example
+
 ## Operational Meaning
 
 - `vpn_users` stores portal-accessible VPN users
@@ -34,3 +45,9 @@ The main schema lives in `database/001_schema.sql`.
 - `vpn_sessions` tracks active and historical sessions
 - `ip_change_confirmations` supports approval flow for new IPs
 - `audit_log` provides security and operations traceability
+
+## Planned Schema Evolution
+
+ADR `0006` and ADR `0007` define a target model where portal passwords remain separate from per-device VPN credentials.
+
+That target model requires additional schema work that is not yet present in `database/001_schema.sql`, including a dedicated representation for issued VPN device credentials.

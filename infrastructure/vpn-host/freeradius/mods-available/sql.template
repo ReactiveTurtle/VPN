@@ -1,0 +1,17 @@
+sql {
+    driver = "rlm_sql_postgresql"
+    dialect = "postgresql"
+
+    server = "127.0.0.1"
+    port = 5432
+    login = "${POSTGRES_RADIUS_USER}"
+    password = "${POSTGRES_RADIUS_PASSWORD}"
+    radius_db = "${POSTGRES_DB}"
+
+    read_clients = no
+
+    # This file establishes SQL connectivity and service bootstrapping.
+    # Final authorize and accounting queries must be updated after the
+    # per-device VPN credential schema from ADR 0006 and ADR 0007 is
+    # implemented in the application schema.
+}

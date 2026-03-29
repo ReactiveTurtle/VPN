@@ -33,4 +33,5 @@
 ## Current Gaps
 
 - No end-to-end RADIUS callback/control path is implemented in the API itself.
+- No per-device VPN credential lifecycle exists in the application yet.
 - VPN config generation and platform-specific onboarding artifacts are not yet fully implemented.

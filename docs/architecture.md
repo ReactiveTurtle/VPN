@@ -44,6 +44,33 @@ The original brief allowed `Blazor/ASP.NET Core`, but the current repository imp
 2. Admin screens expose requests, users, sessions, and audit data.
 3. Superadmin can change `max_devices`, activate or deactivate users, and disconnect sessions.
 
+## Target Deployment Topology
+
+The current target operational topology is a single `Ubuntu 24.04` host that runs:
+
+- `strongSwan`
+- `FreeRADIUS`
+- `PostgreSQL`
+- `VpnPortal.Api`
+- static Angular SPA assets
+- `nginx`
+
+Bootstrap assets for that host live under `infrastructure/vpn-host/`.
+
+## Target Credential Model
+
+The current codebase stores one password per user for portal authentication.
+
+The target VPN access model is different:
+
+- portal authentication keeps one `Argon2id` password per user
+- VPN access uses separate issued credentials per device
+- device lifecycle is modeled by issued VPN credentials, not by inferred hardware identity alone
+
 ## Integration Boundary
 
-This repository models the data and portal workflows required for strongSwan and FreeRADIUS integration, but full runtime enforcement on the VPN side depends on external server configuration and accounting/auth wiring.
+This repository models the data and portal workflows required for strongSwan and FreeRADIUS integration, but full runtime enforcement on the VPN side still depends on:
+
+- server bootstrap and configuration under `infrastructure/vpn-host/`
+- final `FreeRADIUS` SQL policy
+- application-side implementation of per-device VPN credentials

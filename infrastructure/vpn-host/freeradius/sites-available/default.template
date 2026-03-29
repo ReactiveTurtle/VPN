@@ -1,0 +1,36 @@
+server default {
+    authorize {
+        preprocess
+        chap
+        mschap
+        suffix
+        eap
+        sql
+
+        # Replace this placeholder policy once vpn_device_credentials exists.
+        reject
+    }
+
+    authenticate {
+        Auth-Type MS-CHAP {
+            mschap
+        }
+
+        eap
+    }
+
+    accounting {
+        detail
+        sql
+    }
+
+    session {
+        sql
+    }
+
+    post-auth {
+        Post-Auth-Type REJECT {
+            attr_filter.access_reject
+        }
+    }
+}
