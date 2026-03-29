@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SESSION_ID="${1:-}"
+VPN_USERNAME="${2:-}"
+SOURCE_IP="${3:-}"
+ASSIGNED_VPN_IP="${4:-}"
+NAS_IDENTIFIER="${5:-}"
+
+if [[ -z "${VPN_USERNAME}" && -z "${SESSION_ID}" ]]; then
+    printf 'Usage: %s <session_id> <vpn_username> [source_ip] [assigned_vpn_ip] [nas_identifier]\n' "$0" >&2
+    exit 1
+fi
+
+if ! command -v swanctl >/dev/null 2>&1; then
+    printf 'swanctl is not available on this host.\n' >&2
+    exit 1
+fi
+
+raw_output="$(swanctl --list-sas --raw 2>/dev/null || true)"
+if [[ -z "${raw_output}" ]]; then
+    printf 'No active IKE SAs found.\n' >&2
+    exit 1
+fi
+
+unique_id="$(printf '%s\n' "${raw_output}" | awk -v username="${VPN_USERNAME}" -v source_ip="${SOURCE_IP}" -v assigned_vpn_ip="${ASSIGNED_VPN_IP}" '
+    BEGIN {
+        current_unique=""
+        current_user=""
+        current_remote=""
+        current_vip=""
+    }
+    /^uniqueid=/ {
+        current_unique=substr($0, 10)
+    }
+    /^remote-eap-id=/ {
+        current_user=substr($0, 15)
+    }
+    /^remote-host=/ {
+        current_remote=substr($0, 13)
+    }
+    /^remote-vips=/ {
+        current_vip=substr($0, 13)
+    }
+    /^$/ {
+        if (current_unique != "" && current_user == username) {
+            if ((source_ip == "" || current_remote == source_ip) && (assigned_vpn_ip == "" || current_vip == assigned_vpn_ip)) {
+                print current_unique
+                exit
+            }
+        }
+        current_unique=""
+        current_user=""
+        current_remote=""
+        current_vip=""
+    }
+    END {
+        if (current_unique != "" && current_user == username) {
+            if ((source_ip == "" || current_remote == source_ip) && (assigned_vpn_ip == "" || current_vip == assigned_vpn_ip)) {
+                print current_unique
+            }
+        }
+    }
+' | head -n 1)"
+
+if [[ -z "${unique_id}" ]]; then
+    printf 'Could not match an active IKE SA for username=%s source_ip=%s assigned_vpn_ip=%s nas_identifier=%s\n' "${VPN_USERNAME}" "${SOURCE_IP}" "${ASSIGNED_VPN_IP}" "${NAS_IDENTIFIER}" >&2
+    exit 1
+fi
+
+swanctl --terminate --ike-id "${unique_id}"

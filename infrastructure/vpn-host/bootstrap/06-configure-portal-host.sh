@@ -27,6 +27,7 @@ Email__FromName=${SMTP_FROM_NAME}
 Email__PublicBaseUrl=${PORTAL_PUBLIC_URL}
 InternalApi__SharedSecret=${INTERNAL_API_SHARED_SECRET}
 VpnAccess__ServerAddress=${VPN_ACCESS_SERVER_ADDRESS}
+VpnRuntime__DisconnectScriptPath=${VPN_RUNTIME_DISCONNECT_SCRIPT_PATH}
 EOF
 
 chmod 0640 "${PORTAL_ENV_FILE}"

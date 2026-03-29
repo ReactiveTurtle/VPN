@@ -18,6 +18,7 @@
 - `VpnAccountingService`: internal session accounting intake for VPN-side events
 - `VpnAuthEventService`: internal intake for blocked new-IP events coming from the VPN and AAA path
 - `VpnOnboardingInstructionService`: platform-specific manual onboarding instructions for issued device credentials
+- `VpnRuntimeControlService`: best-effort host-side runtime disconnect requests for active VPN sessions
 
 ## Persistence Modes
 
@@ -35,6 +36,7 @@
 - Internal accounting event intake for VPN-side session updates
 - Internal auth event intake for VPN-side blocked new-IP events
 - Platform-specific onboarding instructions for `iOS`, `Android`, `Windows`, and `macOS`
+- Best-effort runtime disconnect requests from admin session actions
 
 ## Current Gaps
 
@@ -46,3 +48,4 @@
 - The canonical FreeRADIUS wiring for that sender is `infrastructure/vpn-host/freeradius/mods-available/exec-accounting.template`.
 - The canonical host-side sender for blocked new-IP events is `infrastructure/vpn-host/freeradius/scripts/forward-auth-event.sh.template`.
 - The canonical FreeRADIUS wiring for blocked new-IP events is `infrastructure/vpn-host/freeradius/mods-available/exec-auth.template`.
+- Runtime admin disconnect currently depends on the host helper `infrastructure/vpn-host/strongswan/scripts/disconnect-session.sh.template` and still needs production validation against live `strongSwan` SAs.

@@ -5,6 +5,32 @@ namespace VpnPortal.Infrastructure.Persistence.InMemory;
 
 public sealed class InMemorySessionRepository(InMemoryPortalStore store) : ISessionRepository
 {
+    public Task<VpnSession?> GetByIdAsync(int sessionId, CancellationToken cancellationToken)
+    {
+        var session = store.Users
+            .SelectMany(x => x.Sessions.Select(s => new VpnSession
+            {
+                Id = s.Id,
+                UserId = s.UserId,
+                DeviceId = s.DeviceId,
+                Device = x.Devices.FirstOrDefault(d => d.Id == s.DeviceId),
+                SourceIp = s.SourceIp,
+                AssignedVpnIp = s.AssignedVpnIp,
+                NasIdentifier = s.NasIdentifier,
+                SessionId = s.SessionId,
+                StartedAt = s.StartedAt,
+                LastSeenAt = s.LastSeenAt,
+                EndedAt = s.EndedAt,
+                TerminationReason = s.TerminationReason,
+                Active = s.Active,
+                Authorized = s.Authorized,
+                User = x
+            }))
+            .FirstOrDefault(x => x.Id == sessionId);
+
+        return Task.FromResult(session);
+    }
+
     public Task<IReadOnlyCollection<VpnSession>> GetRecentAsync(CancellationToken cancellationToken)
     {
         var sessions = store.Users
@@ -16,10 +42,12 @@ public sealed class InMemorySessionRepository(InMemoryPortalStore store) : ISess
                 Device = x.Devices.FirstOrDefault(d => d.Id == s.DeviceId),
                 SourceIp = s.SourceIp,
                 AssignedVpnIp = s.AssignedVpnIp,
+                NasIdentifier = s.NasIdentifier,
                 SessionId = s.SessionId,
                 StartedAt = s.StartedAt,
                 LastSeenAt = s.LastSeenAt,
                 EndedAt = s.EndedAt,
+                TerminationReason = s.TerminationReason,
                 Active = s.Active,
                 Authorized = s.Authorized,
                 User = x

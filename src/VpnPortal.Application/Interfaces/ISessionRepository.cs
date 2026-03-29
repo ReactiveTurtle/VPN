@@ -4,6 +4,7 @@ namespace VpnPortal.Application.Interfaces;
 
 public interface ISessionRepository
 {
+    Task<VpnSession?> GetByIdAsync(int sessionId, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<VpnSession>> GetRecentAsync(CancellationToken cancellationToken);
     Task RecordAuthorizedAsync(VpnSession session, CancellationToken cancellationToken);
     Task<bool> CloseBySessionIdAsync(int userId, string sessionId, DateTimeOffset endedAt, string? terminationReason, CancellationToken cancellationToken);

@@ -6,11 +6,31 @@ namespace VpnPortal.Infrastructure.Persistence.PostgreSql;
 
 public sealed class PostgreSqlSessionRepository(PostgreSqlConnectionFactory connectionFactory) : ISessionRepository
 {
+    public async Task<VpnSession?> GetByIdAsync(int sessionId, CancellationToken cancellationToken)
+    {
+        const string sql = """
+            select s.id, s.user_id as UserId, s.device_id as DeviceId, s.source_ip::text as SourceIp, s.assigned_vpn_ip::text as AssignedVpnIp,
+                   s.nas_identifier as NasIdentifier, s.session_id as SessionId, s.started_at as StartedAt, s.last_seen_at as LastSeenAt, s.ended_at as EndedAt,
+                   s.termination_reason as TerminationReason, s.active, s.authorized,
+                   d.id as DeviceId2, d.device_name as DeviceName, u.id as UserId2, u.username as Username
+            from vpn_sessions s
+            join vpn_users u on u.id = s.user_id
+            left join trusted_devices d on d.id = s.device_id
+            where s.id = @SessionId
+            limit 1;
+            """;
+
+        using var connection = connectionFactory.Create();
+        var row = await connection.QuerySingleOrDefaultAsync<SessionRow>(new CommandDefinition(sql, new { SessionId = sessionId }, cancellationToken: cancellationToken));
+        return row?.ToEntity();
+    }
+
     public async Task<IReadOnlyCollection<VpnSession>> GetRecentAsync(CancellationToken cancellationToken)
     {
         const string sql = """
             select s.id, s.user_id as UserId, s.device_id as DeviceId, s.source_ip::text as SourceIp, s.assigned_vpn_ip::text as AssignedVpnIp,
-                   s.session_id as SessionId, s.started_at as StartedAt, s.last_seen_at as LastSeenAt, s.ended_at as EndedAt, s.active, s.authorized,
+                   s.nas_identifier as NasIdentifier, s.session_id as SessionId, s.started_at as StartedAt, s.last_seen_at as LastSeenAt, s.ended_at as EndedAt,
+                   s.termination_reason as TerminationReason, s.active, s.authorized,
                    d.id as DeviceId2, d.device_name as DeviceName, u.id as UserId2, u.username as Username
             from vpn_sessions s
             join vpn_users u on u.id = s.user_id
@@ -95,7 +115,7 @@ public sealed class PostgreSqlSessionRepository(PostgreSqlConnectionFactory conn
         return affected > 0;
     }
 
-    private sealed record SessionRow(int Id, int UserId, int? DeviceId, string SourceIp, string? AssignedVpnIp, string? SessionId, DateTimeOffset StartedAt, DateTimeOffset? LastSeenAt, DateTimeOffset? EndedAt, bool Active, bool Authorized, int? DeviceId2, string? DeviceName, int UserId2, string Username)
+    private sealed record SessionRow(int Id, int UserId, int? DeviceId, string SourceIp, string? AssignedVpnIp, string? NasIdentifier, string? SessionId, DateTimeOffset StartedAt, DateTimeOffset? LastSeenAt, DateTimeOffset? EndedAt, string? TerminationReason, bool Active, bool Authorized, int? DeviceId2, string? DeviceName, int UserId2, string Username)
     {
         public VpnSession ToEntity() => new()
         {
@@ -104,10 +124,12 @@ public sealed class PostgreSqlSessionRepository(PostgreSqlConnectionFactory conn
             DeviceId = DeviceId,
             SourceIp = SourceIp,
             AssignedVpnIp = AssignedVpnIp,
+            NasIdentifier = NasIdentifier,
             SessionId = SessionId,
             StartedAt = StartedAt,
             LastSeenAt = LastSeenAt,
             EndedAt = EndedAt,
+            TerminationReason = TerminationReason,
             Active = Active,
             Authorized = Authorized,
             Device = DeviceId2 is null ? null : new TrustedDevice { Id = DeviceId2.Value, DeviceName = DeviceName ?? "Unknown device" },

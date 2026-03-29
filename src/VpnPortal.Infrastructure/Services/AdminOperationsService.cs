@@ -3,7 +3,7 @@ using VpnPortal.Application.Interfaces;
 
 namespace VpnPortal.Infrastructure.Services;
 
-public sealed class AdminOperationsService(IUserRepository userRepository, ISessionRepository sessionRepository, IAuditLogRepository auditLogRepository, IAuditService auditService) : IAdminOperationsService
+public sealed class AdminOperationsService(IUserRepository userRepository, ISessionRepository sessionRepository, IAuditLogRepository auditLogRepository, IAuditService auditService, IVpnRuntimeControlService vpnRuntimeControlService) : IAdminOperationsService
 {
     public async Task<IReadOnlyCollection<AdminUserDto>> GetUsersAsync(CancellationToken cancellationToken)
     {
@@ -55,10 +55,17 @@ public sealed class AdminOperationsService(IUserRepository userRepository, ISess
 
     public async Task<bool> DisconnectSessionAsync(int sessionId, long? actorId, string? ipAddress, CancellationToken cancellationToken)
     {
+        var session = await sessionRepository.GetByIdAsync(sessionId, cancellationToken);
+        if (session is null)
+        {
+            return false;
+        }
+
+        var runtimeDisconnectRequested = await vpnRuntimeControlService.RequestDisconnectAsync(session, cancellationToken);
         var disconnected = await sessionRepository.DisconnectAsync(sessionId, cancellationToken);
         if (disconnected)
         {
-            await auditService.WriteAsync("superadmin", actorId, "session_disconnected", "vpn_session", sessionId.ToString(), ipAddress, new { sessionId }, cancellationToken);
+            await auditService.WriteAsync("superadmin", actorId, "session_disconnected", "vpn_session", sessionId.ToString(), ipAddress, new { sessionId, runtimeDisconnectRequested }, cancellationToken);
         }
 
         return disconnected;

@@ -39,6 +39,7 @@
 - FreeRADIUS bootstrap now also enables an `exec-auth` module that forwards blocked new-IP attempts into the portal confirmation flow.
 - Session accounting is keyed by `session_id`, which is expected to be unique when present.
 - The portal now serves platform-specific manual onboarding instructions for `iOS`, `Android`, `Windows`, and `macOS` based on `VpnAccess:ServerAddress`.
+- Admin disconnect now has a best-effort host-side runtime path through a local `strongSwan` helper script.
 - End-to-end production validation of the AAA path is still pending.
 
 ## Target Runtime Flow
@@ -50,6 +51,7 @@
 5. `FreeRADIUS` validates the device credential against PostgreSQL-backed policy data, including `active`, trusted IP, and `max_devices` checks.
 6. If a known device attempts to connect from a new IP, `FreeRADIUS` rejects the attempt and forwards an auth event into the portal, which creates an IP confirmation request and sends email.
 7. `FreeRADIUS` accounting hooks invoke the canonical host-side forwarder, which posts `Start`, `Interim-Update`, and `Stop` events into the internal API to update `vpn_sessions`.
+8. Admin disconnect can request a host-side `strongSwan` teardown through the configured runtime helper script.
 
 ## Current Operational Contract
 
@@ -61,6 +63,7 @@
 - Canonical host-side auth helper: `/usr/local/lib/vpnportal/forward-auth-event.sh`
 - Canonical FreeRADIUS module file: `/etc/freeradius/3.0/mods-available/exec-accounting`
 - Canonical FreeRADIUS auth module file: `/etc/freeradius/3.0/mods-available/exec-auth`
+- Canonical strongSwan runtime disconnect helper: `/usr/local/lib/vpnportal/disconnect-session.sh`
 
 ## Verification Runbook
 

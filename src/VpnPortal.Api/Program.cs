@@ -14,6 +14,7 @@ builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection(Dat
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
 builder.Services.Configure<InternalApiOptions>(builder.Configuration.GetSection(InternalApiOptions.SectionName));
 builder.Services.Configure<VpnAccessOptions>(builder.Configuration.GetSection(VpnAccessOptions.SectionName));
+builder.Services.Configure<VpnRuntimeOptions>(builder.Configuration.GetSection(VpnRuntimeOptions.SectionName));
 
 var databaseOptions = builder.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
 
@@ -56,6 +57,7 @@ builder.Services.AddScoped<IAdminOperationsService, AdminOperationsService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IVpnAccountingService, VpnAccountingService>();
 builder.Services.AddScoped<IVpnAuthEventService, VpnAuthEventService>();
+builder.Services.AddSingleton<IVpnRuntimeControlService, VpnRuntimeControlService>();
 builder.Services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
 builder.Services.AddSingleton<IVpnOnboardingInstructionService, VpnOnboardingInstructionService>();
 builder.Services.AddSingleton<IVpnPasswordMaterialService, VpnPasswordMaterialService>();
