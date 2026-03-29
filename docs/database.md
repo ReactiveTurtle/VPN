@@ -47,6 +47,7 @@ Bootstrap assets under `infrastructure/vpn-host/postgresql/` cover:
 - `vpn_sessions` tracks active and historical sessions
 - `ip_change_confirmations` supports approval flow for new IPs
 - `audit_log` provides security and operations traceability
+- `vpn_sessions.session_id` is the stable accounting key used to update and close VPN sessions from internal accounting events
 
 ## Current Constraint
 

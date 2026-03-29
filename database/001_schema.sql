@@ -121,6 +121,7 @@ CREATE TABLE IF NOT EXISTS vpn_sessions (
 
 CREATE INDEX IF NOT EXISTS ix_vpn_sessions_user_id_started_at ON vpn_sessions(user_id, started_at DESC);
 CREATE INDEX IF NOT EXISTS ix_vpn_sessions_active ON vpn_sessions(active) WHERE active = TRUE;
+CREATE UNIQUE INDEX IF NOT EXISTS ux_vpn_sessions_session_id ON vpn_sessions(session_id) WHERE session_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS ip_change_confirmations (
     id BIGSERIAL PRIMARY KEY,
