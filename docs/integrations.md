@@ -33,6 +33,7 @@
 - The current `max_devices` check counts other active devices for the same user, so reconnecting the same device does not consume an extra slot by itself.
 - The API now exposes an internal accounting endpoint for VPN-side session updates.
 - The VPN host bootstrap now installs `/usr/local/lib/vpnportal/forward-accounting-event.sh` as the canonical helper for forwarding accounting events to the internal API.
+- FreeRADIUS bootstrap now enables an `exec-accounting` module that invokes the canonical forwarder on `Start`, `Interim-Update`, and `Stop` accounting events.
 - Session accounting is keyed by `session_id`, which is expected to be unique when present.
 - End-to-end production validation of the AAA path is still pending.
 
@@ -43,7 +44,7 @@
 3. User receives or rotates a VPN device credential for a specific device.
 4. `strongSwan` accepts the IKEv2 connection and delegates AAA to `FreeRADIUS`.
 5. `FreeRADIUS` validates the device credential against PostgreSQL-backed policy data, including `active` state and `max_devices` checks.
-6. VPN-side accounting events can be forwarded to the portal internal endpoint to update `vpn_sessions` for portal visibility.
+6. `FreeRADIUS` accounting hooks invoke the canonical host-side forwarder, which posts `Start`, `Interim-Update`, and `Stop` events into the internal API to update `vpn_sessions`.
 
 ## Current Operational Contract
 
@@ -51,3 +52,4 @@
 - Internal endpoint: `POST /api/internal/radius/accounting-events`
 - Auth header: `X-Internal-Api-Key: <InternalApi:SharedSecret>`
 - Canonical host-side helper: `/usr/local/lib/vpnportal/forward-accounting-event.sh`
+- Canonical FreeRADIUS module file: `/etc/freeradius/3.0/mods-available/exec-accounting`

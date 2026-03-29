@@ -1,0 +1,23 @@
+exec forward_accounting_event_start {
+    wait = yes
+    input_pairs = request
+    output_pairs = none
+    shell_escape = yes
+    program = "/usr/local/lib/vpnportal/forward-accounting-event.sh start '%{User-Name}' '%{Acct-Session-Id}' '%{Packet-Src-IP-Address}' '%{%{Framed-IP-Address}:-}' '%{%{NAS-Identifier}:-}'"
+}
+
+exec forward_accounting_event_interim {
+    wait = yes
+    input_pairs = request
+    output_pairs = none
+    shell_escape = yes
+    program = "/usr/local/lib/vpnportal/forward-accounting-event.sh interim '%{User-Name}' '%{Acct-Session-Id}' '%{Packet-Src-IP-Address}' '%{%{Framed-IP-Address}:-}' '%{%{NAS-Identifier}:-}'"
+}
+
+exec forward_accounting_event_stop {
+    wait = yes
+    input_pairs = request
+    output_pairs = none
+    shell_escape = yes
+    program = "/usr/local/lib/vpnportal/forward-accounting-event.sh stop '%{User-Name}' '%{Acct-Session-Id}' '%{Packet-Src-IP-Address}' '%{%{Framed-IP-Address}:-}' '%{%{NAS-Identifier}:-}' '%{%{Acct-Terminate-Cause}:-}'"
+}

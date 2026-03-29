@@ -38,6 +38,18 @@ server default {
     accounting {
         detail
         sql
+
+        if (&Acct-Status-Type == Start) {
+            forward_accounting_event_start
+        }
+
+        if (&Acct-Status-Type == Interim-Update) {
+            forward_accounting_event_interim
+        }
+
+        if (&Acct-Status-Type == Stop) {
+            forward_accounting_event_stop
+        }
     }
 
     session {

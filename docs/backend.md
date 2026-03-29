@@ -38,3 +38,4 @@
 - VPN config generation and platform-specific onboarding artifacts are not yet fully implemented.
 - The `max_devices` gate currently lives in the FreeRADIUS template policy, uses active device-aware session counting, and still needs live validation against real VPN accounting traffic.
 - The canonical host-side sender for accounting intake is `infrastructure/vpn-host/freeradius/scripts/forward-accounting-event.sh.template`.
+- The canonical FreeRADIUS wiring for that sender is `infrastructure/vpn-host/freeradius/mods-available/exec-accounting.template`.
