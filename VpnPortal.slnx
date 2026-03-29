@@ -4,5 +4,6 @@
     <Project Path="src/VpnPortal.Application/VpnPortal.Application.csproj" />
     <Project Path="src/VpnPortal.Domain/VpnPortal.Domain.csproj" />
     <Project Path="src/VpnPortal.Infrastructure/VpnPortal.Infrastructure.csproj" />
+    <Project Path="src/VpnPortal.Migrations/VpnPortal.Migrations.csproj" />
   </Folder>
 </Solution>
