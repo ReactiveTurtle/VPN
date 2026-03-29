@@ -61,3 +61,8 @@
 - Canonical host-side auth helper: `/usr/local/lib/vpnportal/forward-auth-event.sh`
 - Canonical FreeRADIUS module file: `/etc/freeradius/3.0/mods-available/exec-accounting`
 - Canonical FreeRADIUS auth module file: `/etc/freeradius/3.0/mods-available/exec-auth`
+
+## Verification Runbook
+
+- Non-destructive smoke check: `infrastructure/vpn-host/bootstrap/08-smoke-test-portal.sh`
+- End-to-end server validation guide: `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md`
