@@ -94,12 +94,14 @@ jobs:
       - name: Add deployment assets
         run: |
           mkdir -p artifacts/publish/deploy
+          mkdir -p artifacts/publish/infrastructure/vpn-host/tools
           cp deploy/systemd/vpnportal-api.production.service artifacts/publish/deploy/
           cp deploy/systemd/vpnportal-api.staging.service artifacts/publish/deploy/
           cp deploy/nginx/vpnportal.conf artifacts/publish/deploy/
           cp deploy/env/vpnportal.production.env.example artifacts/publish/deploy/
           cp deploy/env/vpnportal.staging.env.example artifacts/publish/deploy/
           cp deploy/remote/deploy-package.sh artifacts/publish/deploy/
+          cp -R infrastructure/vpn-host/tools/. artifacts/publish/infrastructure/vpn-host/tools/
 
       - name: Write package metadata
         run: |

@@ -23,11 +23,19 @@ esac
 RELEASE_ROOT="$APP_ROOT/releases"
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 TARGET_DIR="$RELEASE_ROOT/${TIMESTAMP}-${PACKAGE_VERSION}"
+TOOLS_SOURCE_DIR="$TARGET_DIR/infrastructure/vpn-host/tools"
+TOOLS_TARGET_DIR="/usr/local/bin"
 
 mkdir -p "$TARGET_DIR"
 tar -xzf "$PACKAGE_PATH" -C "$TARGET_DIR"
 
 ln -sfn "$TARGET_DIR" "$APP_ROOT/current"
+
+if [[ -d "$TOOLS_SOURCE_DIR" ]]; then
+  while IFS= read -r -d '' tool_path; do
+    sudo install -m 0755 "$tool_path" "$TOOLS_TARGET_DIR/$(basename "$tool_path")"
+  done < <(find "$TOOLS_SOURCE_DIR" -maxdepth 1 -type f -print0)
+fi
 
 sudo systemctl daemon-reload
 sudo systemctl restart "$SERVICE_NAME"
