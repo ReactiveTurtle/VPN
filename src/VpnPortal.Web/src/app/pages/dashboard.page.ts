@@ -2,7 +2,7 @@ import { AsyncPipe, DatePipe, NgIf } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, of } from 'rxjs';
+import { BehaviorSubject, catchError, of, switchMap } from 'rxjs';
 import { PortalApiService } from '../core/portal-api.service';
 import { IssuedVpnDeviceCredential, UserDashboard } from '../core/models';
 
@@ -61,6 +61,9 @@ import { IssuedVpnDeviceCredential, UserDashboard } from '../core/models';
               <span>{{ device.platform }} / {{ device.deviceType }}</span>
               <span>{{ device.status }}</span>
               <span>{{ device.vpnUsername || 'VPN credential not issued yet' }}</span>
+              @if (device.credentialRotatedAt) {
+                <span>Rotated {{ device.credentialRotatedAt | date: 'medium' }}</span>
+              }
               @if (device.status !== 'revoked') {
                 <div class="action-row">
                   @if (device.vpnUsername) {
@@ -190,8 +193,12 @@ import { IssuedVpnDeviceCredential, UserDashboard } from '../core/models';
 export class DashboardPage {
   private readonly api = inject(PortalApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
 
-  protected readonly dashboard$ = this.api.getDashboard().pipe(catchError(() => of(null)));
+  protected readonly dashboard$ = this.refresh$.pipe(
+    switchMap(() => this.api.getDashboard()),
+    catchError(() => of(null))
+  );
   protected readonly message = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly lastConfirmationLink = signal<string | null>(null);
@@ -212,7 +219,8 @@ export class DashboardPage {
   protected revokeDevice(deviceId: number): void {
     this.api.revokeDevice(deviceId).subscribe({
       next: () => {
-        this.message.set('Device revoked. Refresh the page to see updated policy state.');
+        this.reloadDashboard();
+        this.message.set('Device revoked. Policy state updated.');
       },
       error: () => this.error.set('Could not revoke device.')
     });
@@ -231,7 +239,8 @@ export class DashboardPage {
     }).subscribe({
       next: (result) => {
         this.issuedCredential.set(result);
-        this.message.set(`${result.message} Refresh the page to see the new device in the dashboard.`);
+        this.reloadDashboard();
+        this.message.set(result.message);
         this.error.set(null);
         this.newDeviceName = '';
         this.newDeviceType = '';
@@ -245,7 +254,8 @@ export class DashboardPage {
     this.api.rotateDeviceCredential(deviceId).subscribe({
       next: (result) => {
         this.issuedCredential.set(result);
-        this.message.set(result.message + ' Refresh the page to see the updated credential state.');
+        this.reloadDashboard();
+        this.message.set(result.message);
         this.error.set(null);
       },
       error: () => this.error.set('Could not rotate the VPN password for this device.')
@@ -269,8 +279,15 @@ export class DashboardPage {
 
   private confirmIp(token: string): void {
     this.api.confirmIp(token).subscribe({
-      next: () => this.message.set('IP address confirmed. Refresh the page to see it in the trusted list.'),
+      next: () => {
+        this.reloadDashboard();
+        this.message.set('IP address confirmed. Trusted IP list updated.');
+      },
       error: () => this.error.set('Could not confirm IP address from this token.')
     });
+  }
+
+  private reloadDashboard(): void {
+    this.refresh$.next();
   }
 }
