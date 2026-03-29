@@ -37,6 +37,64 @@ public sealed class PostgreSqlSessionRepository(PostgreSqlConnectionFactory conn
         return affected > 0;
     }
 
+    public async Task RecordAuthorizedAsync(VpnSession session, CancellationToken cancellationToken)
+    {
+        const string updateSql = """
+            update vpn_sessions
+            set source_ip = cast(@SourceIp as inet),
+                assigned_vpn_ip = cast(@AssignedVpnIp as inet),
+                nas_identifier = @NasIdentifier,
+                last_seen_at = @LastSeenAt,
+                active = @Active,
+                authorized = @Authorized,
+                termination_reason = null,
+                ended_at = null
+            where user_id = @UserId and session_id = @SessionId;
+            """;
+
+        const string insertSql = """
+            insert into vpn_sessions (user_id, device_id, source_ip, assigned_vpn_ip, nas_identifier, session_id, started_at, last_seen_at, active, authorized)
+            values (@UserId, @DeviceId, cast(@SourceIp as inet), cast(@AssignedVpnIp as inet), @NasIdentifier, @SessionId, @StartedAt, @LastSeenAt, @Active, @Authorized);
+            """;
+
+        using var connection = connectionFactory.Create();
+        var parameters = new
+        {
+            session.UserId,
+            session.DeviceId,
+            session.SourceIp,
+            session.AssignedVpnIp,
+            session.NasIdentifier,
+            session.SessionId,
+            session.StartedAt,
+            session.LastSeenAt,
+            session.Active,
+            session.Authorized
+        };
+
+        var affected = await connection.ExecuteAsync(new CommandDefinition(updateSql, parameters, cancellationToken: cancellationToken));
+        if (affected == 0)
+        {
+            await connection.ExecuteAsync(new CommandDefinition(insertSql, parameters, cancellationToken: cancellationToken));
+        }
+    }
+
+    public async Task<bool> CloseBySessionIdAsync(int userId, string sessionId, DateTimeOffset endedAt, string? terminationReason, CancellationToken cancellationToken)
+    {
+        const string sql = """
+            update vpn_sessions
+            set active = false,
+                ended_at = @EndedAt,
+                last_seen_at = @EndedAt,
+                termination_reason = @TerminationReason
+            where user_id = @UserId and session_id = @SessionId and active = true;
+            """;
+
+        using var connection = connectionFactory.Create();
+        var affected = await connection.ExecuteAsync(new CommandDefinition(sql, new { UserId = userId, SessionId = sessionId, EndedAt = endedAt, TerminationReason = terminationReason }, cancellationToken: cancellationToken));
+        return affected > 0;
+    }
+
     private sealed record SessionRow(int Id, int UserId, int? DeviceId, string SourceIp, string? AssignedVpnIp, string? SessionId, DateTimeOffset StartedAt, DateTimeOffset? LastSeenAt, DateTimeOffset? EndedAt, bool Active, bool Authorized, int? DeviceId2, string? DeviceName, int UserId2, string Username)
     {
         public VpnSession ToEntity() => new()

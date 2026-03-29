@@ -10,6 +10,7 @@ public sealed class InMemoryPortalStore
     private int nextUserId = 2;
     private int nextDeviceId = 2;
     private int nextDeviceCredentialId = 2;
+    private int nextSessionId = 2;
     private int nextTokenId = 2;
     private int nextTrustedIpId = 2;
     private int nextIpConfirmationId = 2;
@@ -182,6 +183,14 @@ public sealed class InMemoryPortalStore
         lock (sync)
         {
             return nextDeviceCredentialId++;
+        }
+    }
+
+    public int AllocateSessionId()
+    {
+        lock (sync)
+        {
+            return nextSessionId++;
         }
     }
 

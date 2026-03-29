@@ -9,10 +9,12 @@ public sealed class VpnSession
     public TrustedDevice? Device { get; set; }
     public string SourceIp { get; set; } = string.Empty;
     public string? AssignedVpnIp { get; set; }
+    public string? NasIdentifier { get; set; }
     public string? SessionId { get; set; }
     public DateTimeOffset StartedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? LastSeenAt { get; set; }
     public DateTimeOffset? EndedAt { get; set; }
+    public string? TerminationReason { get; set; }
     public bool Active { get; set; } = true;
     public bool Authorized { get; set; } = true;
 }

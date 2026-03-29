@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection(DatabaseOptions.SectionName));
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.Configure<InternalApiOptions>(builder.Configuration.GetSection(InternalApiOptions.SectionName));
 
 var databaseOptions = builder.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
 
@@ -52,6 +53,7 @@ builder.Services.AddScoped<IAccountActivationService, AccountActivationService>(
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminOperationsService, AdminOperationsService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IVpnAccountingService, VpnAccountingService>();
 builder.Services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
 builder.Services.AddSingleton<IVpnPasswordMaterialService, VpnPasswordMaterialService>();
 builder.Services.AddSingleton<ITokenProtector, Sha256TokenProtector>();

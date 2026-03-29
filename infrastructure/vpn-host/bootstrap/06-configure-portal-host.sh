@@ -25,6 +25,7 @@ Email__Password=${SMTP_PASSWORD}
 Email__FromEmail=${SMTP_FROM_EMAIL}
 Email__FromName=${SMTP_FROM_NAME}
 Email__PublicBaseUrl=${PORTAL_PUBLIC_URL}
+InternalApi__SharedSecret=${INTERNAL_API_SHARED_SECRET}
 EOF
 
 chmod 0640 "${PORTAL_ENV_FILE}"

@@ -7,6 +7,30 @@ namespace VpnPortal.Infrastructure.Persistence.PostgreSql;
 
 public sealed class PostgreSqlDeviceCredentialRepository(PostgreSqlConnectionFactory connectionFactory) : IDeviceCredentialRepository
 {
+    public async Task<VpnDeviceCredential?> GetActiveByVpnUsernameAsync(string vpnUsername, CancellationToken cancellationToken)
+    {
+        const string sql = """
+            select id,
+                   user_id as UserId,
+                   device_id as DeviceId,
+                   vpn_username as VpnUsername,
+                   password_hash as PasswordHash,
+                   radius_nt_hash as RadiusNtHash,
+                   status,
+                   created_at as CreatedAt,
+                   rotated_at as RotatedAt,
+                   revoked_at as RevokedAt,
+                   last_used_at as LastUsedAt
+            from vpn_device_credentials
+            where lower(vpn_username) = lower(@VpnUsername) and status = 'active'
+            limit 1;
+            """;
+
+        using var connection = connectionFactory.Create();
+        var row = await connection.QuerySingleOrDefaultAsync<Row>(new CommandDefinition(sql, new { VpnUsername = vpnUsername }, cancellationToken: cancellationToken));
+        return row?.ToEntity();
+    }
+
     public async Task<VpnDeviceCredential?> GetActiveByDeviceIdAsync(int deviceId, CancellationToken cancellationToken)
     {
         const string sql = """

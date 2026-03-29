@@ -6,6 +6,14 @@ namespace VpnPortal.Infrastructure.Persistence.InMemory;
 
 public sealed class InMemoryDeviceCredentialRepository(InMemoryPortalStore store) : IDeviceCredentialRepository
 {
+    public Task<VpnDeviceCredential?> GetActiveByVpnUsernameAsync(string vpnUsername, CancellationToken cancellationToken)
+    {
+        var credential = store.DeviceCredentials
+            .FirstOrDefault(x => string.Equals(x.VpnUsername, vpnUsername, StringComparison.OrdinalIgnoreCase) && x.Status == VpnDeviceCredentialStatus.Active);
+
+        return Task.FromResult(credential is null ? null : Clone(credential));
+    }
+
     public Task<VpnDeviceCredential?> GetActiveByDeviceIdAsync(int deviceId, CancellationToken cancellationToken)
     {
         var credential = store.DeviceCredentials

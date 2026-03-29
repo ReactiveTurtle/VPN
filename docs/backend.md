@@ -15,6 +15,7 @@
 - `UserPortalService`: dashboard, device credential issuance and rotation, device revocation, IP confirmation workflow
 - `AdminOperationsService`: user management, session management, audit access
 - `AuditService`: audit writes
+- `VpnAccountingService`: internal session accounting intake for VPN-side events
 
 ## Persistence Modes
 
@@ -29,6 +30,7 @@
 - User dashboard and device credential/IP operations
 - Admin request moderation
 - Admin user/session/audit operations
+- Internal accounting event intake for VPN-side session updates
 
 ## Current Gaps
 
