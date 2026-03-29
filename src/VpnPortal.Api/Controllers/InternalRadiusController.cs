@@ -10,6 +10,7 @@ namespace VpnPortal.Api.Controllers;
 [Route("api/internal/radius")]
 public sealed class InternalRadiusController(
     IVpnAccountingService vpnAccountingService,
+    IVpnAuthEventService vpnAuthEventService,
     IOptions<InternalApiOptions> internalApiOptions) : ControllerBase
 {
     [IgnoreAntiforgeryToken]
@@ -22,6 +23,19 @@ public sealed class InternalRadiusController(
         }
 
         var recorded = await vpnAccountingService.RecordAsync(command, cancellationToken);
+        return recorded ? Ok() : BadRequest();
+    }
+
+    [IgnoreAntiforgeryToken]
+    [HttpPost("auth-events")]
+    public async Task<IActionResult> RecordAuthEvent([FromBody] VpnAuthEventCommand command, CancellationToken cancellationToken)
+    {
+        if (!IsAuthorizedRequest())
+        {
+            return Unauthorized();
+        }
+
+        var recorded = await vpnAuthEventService.RecordAsync(command, cancellationToken);
         return recorded ? Ok() : BadRequest();
     }
 

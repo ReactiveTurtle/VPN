@@ -16,6 +16,7 @@
 - `AdminOperationsService`: user management, session management, audit access
 - `AuditService`: audit writes
 - `VpnAccountingService`: internal session accounting intake for VPN-side events
+- `VpnAuthEventService`: internal intake for blocked new-IP events coming from the VPN and AAA path
 - `VpnOnboardingInstructionService`: platform-specific manual onboarding instructions for issued device credentials
 
 ## Persistence Modes
@@ -32,6 +33,7 @@
 - Admin request moderation
 - Admin user/session/audit operations
 - Internal accounting event intake for VPN-side session updates
+- Internal auth event intake for VPN-side blocked new-IP events
 - Platform-specific onboarding instructions for `iOS`, `Android`, `Windows`, and `macOS`
 
 ## Current Gaps
@@ -42,3 +44,5 @@
 - Current onboarding is manual instruction-based; `.mobileconfig`, QR, and managed client artifacts are still future work.
 - The canonical host-side sender for accounting intake is `infrastructure/vpn-host/freeradius/scripts/forward-accounting-event.sh.template`.
 - The canonical FreeRADIUS wiring for that sender is `infrastructure/vpn-host/freeradius/mods-available/exec-accounting.template`.
+- The canonical host-side sender for blocked new-IP events is `infrastructure/vpn-host/freeradius/scripts/forward-auth-event.sh.template`.
+- The canonical FreeRADIUS wiring for blocked new-IP events is `infrastructure/vpn-host/freeradius/mods-available/exec-auth.template`.

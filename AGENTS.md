@@ -25,9 +25,12 @@ This repository contains a VPN access portal and supporting infrastructure.
 - The schema now includes `vpn_device_credentials` for password-based per-device VPN access.
 - VPN device credentials store both an application-side password hash and a `radius_nt_hash` for `MSCHAPv2`/`FreeRADIUS` validation.
 - The API now exposes `POST /api/internal/radius/accounting-events` protected by `InternalApi:SharedSecret` for VPN-side session accounting intake.
+- The API now exposes `POST /api/internal/radius/auth-events` protected by `InternalApi:SharedSecret` for VPN-side blocked new-IP/security event intake.
 - `infrastructure/vpn-host/freeradius/sites-available/default.template` is the current source of truth for FreeRADIUS policy checks, including `active` and `max_devices` gating.
+- `infrastructure/vpn-host/freeradius/mods-available/exec-auth.template` is the current source of truth for how FreeRADIUS forwards blocked new-IP events into the portal.
 - `infrastructure/vpn-host/freeradius/mods-available/exec-accounting.template` is the current source of truth for how FreeRADIUS forwards accounting events into the internal API.
 - `infrastructure/vpn-host/freeradius/scripts/forward-accounting-event.sh.template` is the canonical host-side helper for forwarding accounting events into the internal API.
+- `infrastructure/vpn-host/freeradius/scripts/forward-auth-event.sh.template` is the canonical host-side helper for forwarding blocked new-IP events into the internal API.
 - The current `max_devices` gate is device-aware and counts other active device sessions, so reconnecting the same device should not consume an additional slot by itself.
 - `vpn_sessions.session_id` is treated as the stable accounting key for runtime session updates and is unique when present.
 - The portal now returns platform-specific manual onboarding instructions from backend code; this is the current source of truth for user VPN setup guidance until `.mobileconfig`/QR artifacts are implemented.

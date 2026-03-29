@@ -55,6 +55,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminOperationsService, AdminOperationsService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IVpnAccountingService, VpnAccountingService>();
+builder.Services.AddScoped<IVpnAuthEventService, VpnAuthEventService>();
 builder.Services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
 builder.Services.AddSingleton<IVpnOnboardingInstructionService, VpnOnboardingInstructionService>();
 builder.Services.AddSingleton<IVpnPasswordMaterialService, VpnPasswordMaterialService>();

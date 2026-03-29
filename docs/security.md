@@ -25,6 +25,7 @@
 - VPN host secrets should be stored under locked-down files in `/etc/vpnportal/` or equivalent restricted paths.
 - `FreeRADIUS` should reject inactive users and new sessions beyond `max_devices` before VPN tunnel establishment.
 - The current `max_devices` policy is device-aware: it counts other active device sessions rather than blindly rejecting a reconnect from the same device credential.
+- The current trusted-IP policy is also enforced in FreeRADIUS: once a device has active trusted IPs, a new source IP is rejected until it is confirmed through the portal flow.
 
 ## Current Risks / Gaps
 
@@ -32,3 +33,4 @@
 - Platform-specific device identity quality may differ across VPN clients.
 - Session disconnect in the portal is currently a repository-level state change, not guaranteed real-time VPN teardown.
 - The per-device VPN credential model now exists in the application, but the VPN and AAA runtime path still needs production validation and accounting integration.
+- The blocked new-IP flow is now wired end-to-end in templates and API shape, but still needs production validation with live FreeRADIUS traffic.
