@@ -23,6 +23,7 @@
 - strongSwan and FreeRADIUS should enforce network-side policy using shared data from PostgreSQL.
 - Separate database roles should exist for the portal application and FreeRADIUS.
 - VPN host secrets should be stored under locked-down files in `/etc/vpnportal/` or equivalent restricted paths.
+- `FreeRADIUS` should reject inactive users and new sessions beyond `max_devices` before VPN tunnel establishment.
 
 ## Current Risks / Gaps
 

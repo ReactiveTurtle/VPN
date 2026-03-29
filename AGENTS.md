@@ -22,6 +22,10 @@ This repository contains a VPN access portal and supporting infrastructure.
 - The current frontend in the repository is `Angular`, not `Blazor`.
 - The backend already includes request submission, account activation, auth, audit, user/admin operations, device/IP trust records, and session views.
 - `database/001_schema.sql` is more complete than the original simplified schema from the product brief.
+- The schema now includes `vpn_device_credentials` for password-based per-device VPN access.
+- VPN device credentials store both an application-side password hash and a `radius_nt_hash` for `MSCHAPv2`/`FreeRADIUS` validation.
+- The API now exposes `POST /api/internal/radius/accounting-events` protected by `InternalApi:SharedSecret` for VPN-side session accounting intake.
+- `infrastructure/vpn-host/freeradius/sites-available/default.template` is the current source of truth for FreeRADIUS policy checks, including `active` and `max_devices` gating.
 
 ## Key Paths
 
@@ -33,6 +37,7 @@ This repository contains a VPN access portal and supporting infrastructure.
 - `database/` - schema and seed data
 - `deploy/` - deployment assets
 - `docs/` - project documentation and ADRs
+- `infrastructure/vpn-host/` - VPN host bootstrap, FreeRADIUS templates, and server-side operational assets
 
 ## Working Rules
 

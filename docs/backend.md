@@ -36,3 +36,4 @@
 
 - No end-to-end RADIUS callback/control path is implemented in the API itself.
 - VPN config generation and platform-specific onboarding artifacts are not yet fully implemented.
+- The `max_devices` gate currently lives in the FreeRADIUS template policy and still needs live validation against real VPN accounting traffic.
