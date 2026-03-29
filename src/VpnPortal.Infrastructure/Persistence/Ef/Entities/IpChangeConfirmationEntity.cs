@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace VpnPortal.Infrastructure.Persistence.Ef.Entities;
 
 public sealed class IpChangeConfirmationEntity
@@ -7,7 +9,7 @@ public sealed class IpChangeConfirmationEntity
     public VpnUserEntity User { get; set; } = null!;
     public long? DeviceId { get; set; }
     public TrustedDeviceEntity? Device { get; set; }
-    public string RequestedIp { get; set; } = string.Empty;
+    public IPAddress RequestedIp { get; set; } = IPAddress.None;
     public string TokenHash { get; set; } = string.Empty;
     public string Status { get; set; } = "pending";
     public DateTimeOffset ExpiresAt { get; set; }

@@ -34,7 +34,7 @@ Use these assets to make the server bootstrap reproducible and to establish the 
 - `env/vpn-host.env.example` - example environment variables consumed by bootstrap scripts
 - `bootstrap/` - idempotent `bash` scripts for package installation and host setup
 - `runbooks/` - server-side verification guides for the current runtime flow
-- `postgresql/` - SQL assets for roles and manual superadmin seeding
+- `postgresql/` - SQL assets for roles and manual superadmin creation example
 - `strongswan/` - template configuration files
 - `freeradius/` - template configuration files
 - `tools/` - host-side helper scripts that should also be versioned in this repository
@@ -91,6 +91,12 @@ Fill a real environment file before applying configurations:
 5. `FreeRADIUS` forwards accounting events into the internal portal API.
 6. The portal updates `vpn_sessions` and `ip_change_confirmations`.
 7. Admin disconnect can request best-effort runtime termination through the host-side disconnect helper.
+
+## Schema And Admin Bootstrap
+
+1. `bootstrap/03-install-and-init-postgres.sh` creates roles and the database only.
+2. Apply the schema with `dotnet run --project src/VpnPortal.Migrations`.
+3. Create the first `superadmin` manually using `docs/runbooks/create-first-superadmin.md`.
 
 ## Operational Helpers
 

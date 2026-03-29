@@ -66,6 +66,16 @@ Use these assets after bootstrap and deploy:
 - `infrastructure/vpn-host/bootstrap/08-smoke-test-portal.sh`
 - `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md`
 
+## Schema Application
+
+The API does not apply database schema changes on startup.
+
+Apply schema changes explicitly by running the separate migration program before starting or upgrading the API:
+
+- `dotnet run --project src/VpnPortal.Migrations`
+
+After the schema exists, create the first `superadmin` manually using `docs/runbooks/create-first-superadmin.md`.
+
 ## PostgreSQL Bootstrap
 
 The VPN host bootstrap explicitly installs and initializes `PostgreSQL` because the database is a shared dependency for:
@@ -75,7 +85,7 @@ The VPN host bootstrap explicitly installs and initializes `PostgreSQL` because 
 - target FreeRADIUS policy data
 - target VPN session/accounting data
 
-The bootstrap creates separate database roles for the portal application and FreeRADIUS.
+The bootstrap creates separate database roles for the portal application and FreeRADIUS, but schema creation itself is performed by the migration program rather than the API or bootstrap shell script.
 
 ## Reference
 
@@ -84,3 +94,4 @@ See these references:
 - `deploy/README.md` for API and SPA deployment packaging
 - `infrastructure/vpn-host/README.md` for first-time host preparation
 - `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md` for end-to-end runtime validation
+- `docs/runbooks/create-first-superadmin.md` for first admin creation

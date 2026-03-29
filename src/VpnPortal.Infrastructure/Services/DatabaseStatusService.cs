@@ -10,11 +10,6 @@ public sealed class DatabaseStatusService(IOptions<DatabaseOptions> options)
 
     public async Task<bool> CanConnectAsync(CancellationToken cancellationToken)
     {
-        if (!string.Equals(options.Value.Provider, "PostgreSql", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
         if (!IsConfigured)
         {
             return false;

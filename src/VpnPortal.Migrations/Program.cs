@@ -18,7 +18,7 @@ if (string.IsNullOrWhiteSpace(databaseOptions.ConnectionString))
     throw new InvalidOperationException("Database:ConnectionString must be configured for migrations.");
 }
 
-builder.Services.AddDbContext<VpnPortalDbContext>(options => options.UseNpgsql(databaseOptions.ConnectionString));
+builder.Services.AddDbContext<VpnPortalDbContext>(options => options.UseNpgsql(databaseOptions.ConnectionString, npgsql => npgsql.MigrationsAssembly("VpnPortal.Migrations")));
 
 using var host = builder.Build();
 await using var scope = host.Services.CreateAsyncScope();

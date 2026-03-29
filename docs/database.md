@@ -2,7 +2,7 @@
 
 ## Primary Schema
 
-The main schema lives in `database/001_schema.sql`.
+The primary schema lives in `src/VpnPortal.Migrations/Migrations/` as `EF Core` migrations.
 
 ## Core Tables
 
@@ -33,21 +33,20 @@ Bootstrap assets under `infrastructure/vpn-host/postgresql/` cover:
 
 - database role creation
 - database creation
-- schema application through `database/001_schema.sql`
-- manual superadmin seed example
+- a manual superadmin SQL example for trusted administrative use after migrations are applied
 
 ## Migration Model
 
-The repository now uses a lightweight SQL migration runner for PostgreSQL startup initialization.
+The repository now uses `EF Core` migrations as the only schema evolution mechanism.
 
 Current behavior:
 
-- `database/001_schema.sql` is treated as the initial schema migration
-- incremental migrations live under `database/migrations/`
-- applied migrations are tracked in `schema_migrations`
-- `database/002_seed_dev.sql` remains optional development/demo seed data
+- migrations are stored under `src/VpnPortal.Migrations/Migrations/`
+- schema changes are applied by the separate `VpnPortal.Migrations` program
+- the API itself does not apply migrations at startup
+- first `superadmin` creation is manual and documented separately
 
-This project is currently SQL-first and Dapper-based, so the migration runner is intentionally kept as raw SQL rather than introducing an Entity Framework migration model as a second schema source of truth.
+This project now treats `EF Core` migrations as the single source of truth for the PostgreSQL schema.
 
 ## Operational Meaning
 

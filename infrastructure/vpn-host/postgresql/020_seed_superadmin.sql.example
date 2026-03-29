@@ -1,5 +1,5 @@
--- Replace the values below and run this file manually after schema creation.
--- The password hash should be generated with the repository's Argon2 tool.
+-- Replace the values below and run this file manually after EF migrations are applied.
+-- The password hash must be an Argon2id hash compatible with Argon2PasswordHasher.
 
 INSERT INTO superadmins (username, password_hash)
 VALUES ('replace-me', 'replace-with-generated-argon2id-hash')

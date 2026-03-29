@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace VpnPortal.Infrastructure.Persistence.Ef.Entities;
 
 public sealed class AuditLogEntity
@@ -8,7 +10,7 @@ public sealed class AuditLogEntity
     public string Action { get; set; } = string.Empty;
     public string EntityType { get; set; } = string.Empty;
     public string EntityId { get; set; } = string.Empty;
-    public string? IpAddress { get; set; }
+    public IPAddress? IpAddress { get; set; }
     public string? DetailsJson { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }

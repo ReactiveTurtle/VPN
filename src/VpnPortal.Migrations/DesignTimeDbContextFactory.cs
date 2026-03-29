@@ -25,7 +25,7 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Vpn
         }
 
         var optionsBuilder = new DbContextOptionsBuilder<VpnPortalDbContext>();
-        optionsBuilder.UseNpgsql(databaseOptions.ConnectionString);
+        optionsBuilder.UseNpgsql(databaseOptions.ConnectionString, npgsql => npgsql.MigrationsAssembly("VpnPortal.Migrations"));
         return new VpnPortalDbContext(optionsBuilder.Options);
     }
 }

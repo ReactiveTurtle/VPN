@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using VpnPortal.Application.Interfaces;
 using VpnPortal.Infrastructure.Options;
-using VpnPortal.Infrastructure.Persistence.InMemory;
-using VpnPortal.Infrastructure.Persistence.PostgreSql;
+using VpnPortal.Infrastructure.Persistence.Ef;
+using VpnPortal.Infrastructure.Persistence.Ef.Repositories;
 using VpnPortal.Infrastructure.Security;
 using VpnPortal.Infrastructure.Services;
 
@@ -18,36 +19,23 @@ builder.Services.Configure<VpnRuntimeOptions>(builder.Configuration.GetSection(V
 
 var databaseOptions = builder.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
 
-if (string.Equals(databaseOptions.Provider, "PostgreSql", StringComparison.OrdinalIgnoreCase))
+if (string.IsNullOrWhiteSpace(databaseOptions.ConnectionString))
 {
-    builder.Services.AddSingleton(databaseOptions);
-    builder.Services.AddSingleton<PostgreSqlConnectionFactory>();
-    builder.Services.AddSingleton<PostgreSqlDatabaseBootstrapper>();
-    builder.Services.AddScoped<IRequestRepository, PostgreSqlRequestRepository>();
-    builder.Services.AddScoped<IUserRepository, PostgreSqlUserRepository>();
-    builder.Services.AddScoped<IAccountTokenRepository, PostgreSqlAccountTokenRepository>();
-    builder.Services.AddScoped<ISuperAdminRepository, PostgreSqlSuperAdminRepository>();
-    builder.Services.AddScoped<IDeviceRepository, PostgreSqlDeviceRepository>();
-    builder.Services.AddScoped<IDeviceCredentialRepository, PostgreSqlDeviceCredentialRepository>();
-    builder.Services.AddScoped<ITrustedIpRepository, PostgreSqlTrustedIpRepository>();
-    builder.Services.AddScoped<IIpChangeConfirmationRepository, PostgreSqlIpChangeConfirmationRepository>();
-    builder.Services.AddScoped<IAuditLogRepository, PostgreSqlAuditLogRepository>();
-    builder.Services.AddScoped<ISessionRepository, PostgreSqlSessionRepository>();
+    throw new InvalidOperationException("Database:ConnectionString must be configured.");
 }
-else
-{
-    builder.Services.AddSingleton<InMemoryPortalStore>();
-    builder.Services.AddScoped<IRequestRepository, InMemoryRequestRepository>();
-    builder.Services.AddScoped<IUserRepository, InMemoryUserRepository>();
-    builder.Services.AddScoped<IAccountTokenRepository, InMemoryAccountTokenRepository>();
-    builder.Services.AddScoped<ISuperAdminRepository, InMemorySuperAdminRepository>();
-    builder.Services.AddScoped<IDeviceRepository, InMemoryDeviceRepository>();
-    builder.Services.AddScoped<IDeviceCredentialRepository, InMemoryDeviceCredentialRepository>();
-    builder.Services.AddScoped<ITrustedIpRepository, InMemoryTrustedIpRepository>();
-    builder.Services.AddScoped<IIpChangeConfirmationRepository, InMemoryIpChangeConfirmationRepository>();
-    builder.Services.AddSingleton<IAuditLogRepository, InMemoryAuditLogRepository>();
-    builder.Services.AddScoped<ISessionRepository, InMemorySessionRepository>();
-}
+
+builder.Services.AddSingleton(databaseOptions);
+builder.Services.AddDbContext<VpnPortalDbContext>(options => options.UseNpgsql(databaseOptions.ConnectionString, npgsql => npgsql.MigrationsAssembly("VpnPortal.Migrations")));
+builder.Services.AddScoped<IRequestRepository, EfRequestRepository>();
+builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<IAccountTokenRepository, EfAccountTokenRepository>();
+builder.Services.AddScoped<ISuperAdminRepository, EfSuperAdminRepository>();
+builder.Services.AddScoped<IDeviceRepository, EfDeviceRepository>();
+builder.Services.AddScoped<IDeviceCredentialRepository, EfDeviceCredentialRepository>();
+builder.Services.AddScoped<ITrustedIpRepository, EfTrustedIpRepository>();
+builder.Services.AddScoped<IIpChangeConfirmationRepository, EfIpChangeConfirmationRepository>();
+builder.Services.AddScoped<IAuditLogRepository, EfAuditLogRepository>();
+builder.Services.AddScoped<ISessionRepository, EfSessionRepository>();
 
 builder.Services.AddScoped<IRequestService, RequestService>();
 builder.Services.AddScoped<IUserPortalService, UserPortalService>();
@@ -122,13 +110,6 @@ builder.Services.AddControllers(options =>
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
-
-if (string.Equals(databaseOptions.Provider, "PostgreSql", StringComparison.OrdinalIgnoreCase))
-{
-    using var scope = app.Services.CreateScope();
-    var bootstrapper = scope.ServiceProvider.GetRequiredService<PostgreSqlDatabaseBootstrapper>();
-    await bootstrapper.InitializeAsync(CancellationToken.None);
-}
 
 if (app.Environment.IsDevelopment())
 {

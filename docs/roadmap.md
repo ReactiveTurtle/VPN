@@ -9,6 +9,7 @@
 - user dashboard for devices, issued device credentials, trusted IPs, confirmations, and sessions
 - admin operations for users, sessions, and audit log
 - PostgreSQL schema for policy and audit data
+- EF Core persistence foundation and migration program
 - Argon2 password hashing
 - Ubuntu single-host bootstrap assets for VPN, AAA, and PostgreSQL preparation
 - per-device VPN credential schema and user-side issue/rotate lifecycle

@@ -21,7 +21,6 @@ This repository contains a VPN access portal and supporting infrastructure.
 
 - The current frontend in the repository is `Angular`, not `Blazor`.
 - The backend already includes request submission, account activation, auth, audit, user/admin operations, device/IP trust records, and session views.
-- `database/001_schema.sql` is more complete than the original simplified schema from the product brief.
 - The schema now includes `vpn_device_credentials` for password-based per-device VPN access.
 - VPN device credentials store both an application-side password hash and a `radius_nt_hash` for `MSCHAPv2`/`FreeRADIUS` validation.
 - The API now exposes `POST /api/internal/radius/accounting-events` protected by `InternalApi:SharedSecret` for VPN-side session accounting intake.
@@ -36,7 +35,8 @@ This repository contains a VPN access portal and supporting infrastructure.
 - `vpn_sessions.session_id` is treated as the stable accounting key for runtime session updates and is unique when present.
 - The portal now returns platform-specific manual onboarding instructions from backend code; this is the current source of truth for user VPN setup guidance until `.mobileconfig`/QR artifacts are implemented.
 - `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md` is the current source of truth for validating the end-to-end server-side VPN flow.
-- PostgreSQL startup initialization now tracks applied SQL migrations in `schema_migrations`; `database/001_schema.sql` is the initial tracked schema and incremental changes belong under `database/migrations/`.
+- PostgreSQL persistence is `EF Core`-based; schema changes live under `src/VpnPortal.Migrations/Migrations/` and are applied by the separate `VpnPortal.Migrations` program.
+- The first `superadmin` should be created manually after migrations are applied; `docs/runbooks/create-first-superadmin.md` is the current source of truth for that procedure.
 
 ## Key Paths
 
@@ -44,8 +44,8 @@ This repository contains a VPN access portal and supporting infrastructure.
 - `src/VpnPortal.Application/` - contracts and interfaces
 - `src/VpnPortal.Domain/` - domain entities and enums
 - `src/VpnPortal.Infrastructure/` - repositories, security, services
+- `src/VpnPortal.Migrations/` - EF migration program and schema history
 - `src/VpnPortal.Web/` - Angular frontend
-- `database/` - schema and seed data
 - `deploy/` - deployment assets
 - `docs/` - project documentation and ADRs
 - `infrastructure/vpn-host/` - VPN host bootstrap, FreeRADIUS templates, and server-side operational assets

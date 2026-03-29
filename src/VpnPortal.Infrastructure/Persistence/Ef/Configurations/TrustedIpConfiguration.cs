@@ -14,7 +14,6 @@ public sealed class TrustedIpConfiguration : IEntityTypeConfiguration<TrustedIpE
         builder.Property(x => x.IpAddress).HasColumnType("inet").IsRequired();
         builder.Property(x => x.Status).HasMaxLength(20).IsRequired();
         builder.Property(x => x.FirstSeenAt).IsRequired();
-        builder.HasIndex(x => new { x.UserId, x.IpAddress }).IsUnique();
         builder.HasIndex(x => new { x.UserId, x.Status }).HasDatabaseName("ix_trusted_ips_user_id_status");
         builder.HasOne(x => x.User).WithMany(x => x.TrustedIps).HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.Device).WithMany(x => x.TrustedIps).HasForeignKey(x => x.DeviceId).OnDelete(DeleteBehavior.SetNull);

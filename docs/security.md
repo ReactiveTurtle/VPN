@@ -19,6 +19,7 @@
 
 - PostgreSQL should only be reachable from approved hosts.
 - Superadmin accounts should be created manually and managed outside self-service flows.
+- The first superadmin should be created only after EF migrations are applied, using the documented manual procedure.
 - HTTPS termination should be enforced in deployment.
 - strongSwan and FreeRADIUS should enforce network-side policy using shared data from PostgreSQL.
 - Separate database roles should exist for the portal application and FreeRADIUS.
@@ -36,3 +37,7 @@
 - The per-device VPN credential model now exists in the application, but the VPN and AAA runtime path still needs production validation and accounting integration.
 - The blocked new-IP flow is now wired end-to-end in templates and API shape, but still needs production validation with live FreeRADIUS traffic.
 - Admin disconnect now has a host-side runtime path, but it still needs production validation against live `swanctl --list-sas --raw` output on the target host.
+
+## First Superadmin
+
+Use `docs/runbooks/create-first-superadmin.md` to create the first `superadmin` manually on a trusted server.
