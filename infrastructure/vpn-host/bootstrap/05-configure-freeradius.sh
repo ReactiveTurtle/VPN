@@ -13,6 +13,9 @@ log_step "Rendering FreeRADIUS configuration"
 render_template "${VPN_HOST_ROOT}/freeradius/clients.conf.template" /etc/freeradius/3.0/clients.conf
 render_template "${VPN_HOST_ROOT}/freeradius/mods-available/sql.template" /etc/freeradius/3.0/mods-available/sql
 render_template "${VPN_HOST_ROOT}/freeradius/sites-available/default.template" /etc/freeradius/3.0/sites-available/default
+ensure_directory /usr/local/lib/vpnportal root:root 0755
+render_template "${VPN_HOST_ROOT}/freeradius/scripts/forward-accounting-event.sh.template" /usr/local/lib/vpnportal/forward-accounting-event.sh
+chmod 0755 /usr/local/lib/vpnportal/forward-accounting-event.sh
 
 ln -sf /etc/freeradius/3.0/mods-available/sql /etc/freeradius/3.0/mods-enabled/sql
 

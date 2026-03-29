@@ -21,6 +21,9 @@ freeradius -CX
 log_step "Checking strongSwan status"
 ipsec statusall || true
 
+log_step "Checking accounting forwarder helper"
+test -x /usr/local/lib/vpnportal/forward-accounting-event.sh
+
 log_step "Listing listening sockets"
 ss -lntup
 

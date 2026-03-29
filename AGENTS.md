@@ -26,6 +26,7 @@ This repository contains a VPN access portal and supporting infrastructure.
 - VPN device credentials store both an application-side password hash and a `radius_nt_hash` for `MSCHAPv2`/`FreeRADIUS` validation.
 - The API now exposes `POST /api/internal/radius/accounting-events` protected by `InternalApi:SharedSecret` for VPN-side session accounting intake.
 - `infrastructure/vpn-host/freeradius/sites-available/default.template` is the current source of truth for FreeRADIUS policy checks, including `active` and `max_devices` gating.
+- `infrastructure/vpn-host/freeradius/scripts/forward-accounting-event.sh.template` is the canonical host-side helper for forwarding accounting events into the internal API.
 
 ## Key Paths
 

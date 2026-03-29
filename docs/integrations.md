@@ -31,6 +31,7 @@
 - FreeRADIUS bootstrap templates now resolve `NT-Password` from `vpn_device_credentials` for password-based device credentials.
 - FreeRADIUS bootstrap templates now also gate access by user `active` state and `max_devices` using PostgreSQL-backed policy checks.
 - The API now exposes an internal accounting endpoint for VPN-side session updates.
+- The VPN host bootstrap now installs `/usr/local/lib/vpnportal/forward-accounting-event.sh` as the canonical helper for forwarding accounting events to the internal API.
 - End-to-end production validation of the AAA path is still pending.
 
 ## Target Runtime Flow
@@ -41,3 +42,10 @@
 4. `strongSwan` accepts the IKEv2 connection and delegates AAA to `FreeRADIUS`.
 5. `FreeRADIUS` validates the device credential against PostgreSQL-backed policy data, including `active` state and `max_devices` checks.
 6. VPN-side accounting events can be forwarded to the portal internal endpoint to update `vpn_sessions` for portal visibility.
+
+## Current Operational Contract
+
+- Host env file: `/etc/vpnportal/vpn-host.env`
+- Internal endpoint: `POST /api/internal/radius/accounting-events`
+- Auth header: `X-Internal-Api-Key: <InternalApi:SharedSecret>`
+- Canonical host-side helper: `/usr/local/lib/vpnportal/forward-accounting-event.sh`

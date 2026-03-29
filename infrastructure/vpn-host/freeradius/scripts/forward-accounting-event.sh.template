@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ENV_FILE="${VPN_HOST_ENV_FILE:-/etc/vpnportal/vpn-host.env}"
+
+if [[ ! -f "${ENV_FILE}" ]]; then
+    printf 'VPN host env file not found: %s\n' "${ENV_FILE}" >&2
+    exit 1
+fi
+
+set -a
+# shellcheck disable=SC1090
+source "${ENV_FILE}"
+set +a
+
+EVENT_TYPE="${1:-}"
+VPN_USERNAME="${2:-}"
+SESSION_ID="${3:-}"
+SOURCE_IP="${4:-}"
+ASSIGNED_VPN_IP="${5:-}"
+NAS_IDENTIFIER="${6:-}"
+TERMINATION_REASON="${7:-}"
+
+if [[ -z "${EVENT_TYPE}" || -z "${VPN_USERNAME}" || -z "${SESSION_ID}" || -z "${SOURCE_IP}" ]]; then
+    printf 'Usage: %s <event_type> <vpn_username> <session_id> <source_ip> [assigned_vpn_ip] [nas_identifier] [termination_reason]\n' "$0" >&2
+    exit 1
+fi
+
+json_string_or_null() {
+    local value="${1:-}"
+
+    if [[ -z "${value}" ]]; then
+        printf 'null'
+        return
+    fi
+
+    value=${value//\\/\\\\}
+    value=${value//\"/\\\"}
+    printf '"%s"' "${value}"
+}
+
+payload=$(cat <<EOF
+{
+  "eventType": "${EVENT_TYPE}",
+  "vpnUsername": "${VPN_USERNAME}",
+  "sessionId": "${SESSION_ID}",
+  "sourceIp": "${SOURCE_IP}",
+  "assignedVpnIp": $(json_string_or_null "${ASSIGNED_VPN_IP}"),
+  "nasIdentifier": $(json_string_or_null "${NAS_IDENTIFIER}"),
+  "occurredAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "terminationReason": $(json_string_or_null "${TERMINATION_REASON}")
+}
+EOF
+)
+
+curl --fail --silent --show-error \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -H "X-Internal-Api-Key: ${INTERNAL_API_SHARED_SECRET}" \
+    --data "${payload}" \
+    "${INTERNAL_API_BASE_URL%/}/api/internal/radius/accounting-events"
