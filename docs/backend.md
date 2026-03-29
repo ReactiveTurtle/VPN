@@ -16,6 +16,7 @@
 - `AdminOperationsService`: user management, session management, audit access
 - `AuditService`: audit writes
 - `VpnAccountingService`: internal session accounting intake for VPN-side events
+- `VpnOnboardingInstructionService`: platform-specific manual onboarding instructions for issued device credentials
 
 ## Persistence Modes
 
@@ -31,11 +32,13 @@
 - Admin request moderation
 - Admin user/session/audit operations
 - Internal accounting event intake for VPN-side session updates
+- Platform-specific onboarding instructions for `iOS`, `Android`, `Windows`, and `macOS`
 
 ## Current Gaps
 
 - No end-to-end RADIUS callback/control path is implemented in the API itself.
 - VPN config generation and platform-specific onboarding artifacts are not yet fully implemented.
 - The `max_devices` gate currently lives in the FreeRADIUS template policy, uses active device-aware session counting, and still needs live validation against real VPN accounting traffic.
+- Current onboarding is manual instruction-based; `.mobileconfig`, QR, and managed client artifacts are still future work.
 - The canonical host-side sender for accounting intake is `infrastructure/vpn-host/freeradius/scripts/forward-accounting-event.sh.template`.
 - The canonical FreeRADIUS wiring for that sender is `infrastructure/vpn-host/freeradius/mods-available/exec-accounting.template`.

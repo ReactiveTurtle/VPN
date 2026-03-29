@@ -45,10 +45,19 @@ export interface UserDashboard {
   username: string;
   active: boolean;
   maxDevices: number;
+  platformGuides: VpnOnboardingInstruction[];
   devices: TrustedDevice[];
   trustedIps: TrustedIp[];
   pendingIpConfirmations: IpChangeConfirmation[];
   sessions: VpnSession[];
+}
+
+export interface VpnOnboardingInstruction {
+  platform: string;
+  title: string;
+  summary: string;
+  steps: string[];
+  credentialLabel: string;
 }
 
 export interface TrustedDevice {
@@ -60,6 +69,7 @@ export interface TrustedDevice {
   vpnUsername: string | null;
   credentialStatus: string | null;
   credentialRotatedAt: string | null;
+  onboarding: VpnOnboardingInstruction | null;
   firstSeenAt: string;
   lastSeenAt: string | null;
 }
@@ -69,6 +79,7 @@ export interface IssuedVpnDeviceCredential {
   deviceName: string;
   vpnUsername: string;
   vpnPassword: string;
+  onboarding: VpnOnboardingInstruction;
   message: string;
 }
 

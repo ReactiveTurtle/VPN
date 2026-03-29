@@ -9,5 +9,6 @@ public sealed record TrustedDeviceDto(
     string? VpnUsername,
     string? CredentialStatus,
     DateTimeOffset? CredentialRotatedAt,
+    VpnOnboardingInstructionDto? Onboarding,
     DateTimeOffset FirstSeenAt,
     DateTimeOffset? LastSeenAt);

@@ -12,6 +12,7 @@
 - Argon2 password hashing
 - Ubuntu single-host bootstrap assets for VPN, AAA, and PostgreSQL preparation
 - per-device VPN credential schema and user-side issue/rotate lifecycle
+- manual platform onboarding instructions for `iOS`, `Android`, `Windows`, and `macOS`
 
 ## Partially Implemented / Modeled
 

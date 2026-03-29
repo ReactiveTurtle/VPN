@@ -5,4 +5,5 @@ public sealed record IssuedVpnDeviceCredentialDto(
     string DeviceName,
     string VpnUsername,
     string VpnPassword,
+    VpnOnboardingInstructionDto Onboarding,
     string Message);

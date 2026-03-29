@@ -35,6 +35,7 @@
 - The VPN host bootstrap now installs `/usr/local/lib/vpnportal/forward-accounting-event.sh` as the canonical helper for forwarding accounting events to the internal API.
 - FreeRADIUS bootstrap now enables an `exec-accounting` module that invokes the canonical forwarder on `Start`, `Interim-Update`, and `Stop` accounting events.
 - Session accounting is keyed by `session_id`, which is expected to be unique when present.
+- The portal now serves platform-specific manual onboarding instructions for `iOS`, `Android`, `Windows`, and `macOS` based on `VpnAccess:ServerAddress`.
 - End-to-end production validation of the AAA path is still pending.
 
 ## Target Runtime Flow

@@ -6,6 +6,7 @@ public sealed record UserDashboardDto(
     string Username,
     bool Active,
     int MaxDevices,
+    IReadOnlyCollection<VpnOnboardingInstructionDto> PlatformGuides,
     IReadOnlyCollection<TrustedDeviceDto> Devices,
     IReadOnlyCollection<TrustedIpDto> TrustedIps,
     IReadOnlyCollection<IpChangeConfirmationDto> PendingIpConfirmations,

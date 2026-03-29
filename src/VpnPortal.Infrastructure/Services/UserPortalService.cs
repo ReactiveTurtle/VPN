@@ -13,6 +13,7 @@ public sealed class UserPortalService(
     IIpChangeConfirmationRepository ipChangeConfirmationRepository,
     ITokenProtector tokenProtector,
     IVpnPasswordMaterialService vpnPasswordMaterialService,
+    IVpnOnboardingInstructionService vpnOnboardingInstructionService,
     IEmailService emailService,
     IAuditService auditService) : IUserPortalService
 {
@@ -36,9 +37,12 @@ public sealed class UserPortalService(
                 x.ActiveCredential?.VpnUsername,
                 x.ActiveCredential?.Status.ToString().ToLowerInvariant(),
                 x.ActiveCredential?.RotatedAt,
+                x.ActiveCredential is null ? null : vpnOnboardingInstructionService.Create(x.Platform, x.ActiveCredential.VpnUsername),
                 x.FirstSeenAt,
                 x.LastSeenAt))
             .ToArray();
+
+        var platformGuides = vpnOnboardingInstructionService.CreateCatalog();
 
         var trustedIps = user.TrustedIps
             .OrderByDescending(x => x.LastSeenAt ?? x.FirstSeenAt)
@@ -77,7 +81,7 @@ public sealed class UserPortalService(
                 x.Authorized))
             .ToArray();
 
-        return new UserDashboardDto(user.Id, user.Email, user.Username, user.Active, user.MaxDevices, devices, trustedIps, pendingConfirmations, sessions);
+        return new UserDashboardDto(user.Id, user.Email, user.Username, user.Active, user.MaxDevices, platformGuides, devices, trustedIps, pendingConfirmations, sessions);
     }
 
     public async Task<IssuedVpnDeviceCredentialDto?> IssueDeviceCredentialAsync(int userId, IssueVpnDeviceCredentialCommand command, CancellationToken cancellationToken)
@@ -129,7 +133,7 @@ public sealed class UserPortalService(
         }, cancellationToken);
 
         await auditService.WriteAsync("user", userId, "device_credential_issued", "vpn_device_credential", credential.Id.ToString(), null, new { device.Id, credential.VpnUsername }, cancellationToken);
-        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, "VPN credential issued. Save this password now because it will not be shown again.");
+        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, vpnOnboardingInstructionService.Create(device.Platform, credential.VpnUsername), "VPN credential issued. Save this password now because it will not be shown again.");
     }
 
     public async Task<IssuedVpnDeviceCredentialDto?> RotateDeviceCredentialAsync(int userId, int deviceId, CancellationToken cancellationToken)
@@ -154,7 +158,7 @@ public sealed class UserPortalService(
         await deviceCredentialRepository.UpdateAsync(credential, cancellationToken);
         await auditService.WriteAsync("user", userId, "device_credential_rotated", "vpn_device_credential", credential.Id.ToString(), null, new { deviceId, credential.VpnUsername }, cancellationToken);
 
-        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, "VPN credential rotated. Save the new password now because it will not be shown again.");
+        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, vpnOnboardingInstructionService.Create(device.Platform, credential.VpnUsername), "VPN credential rotated. Save the new password now because it will not be shown again.");
     }
 
     public Task<bool> RevokeDeviceAsync(int userId, int deviceId, CancellationToken cancellationToken)

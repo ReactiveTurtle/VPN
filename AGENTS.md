@@ -30,6 +30,7 @@ This repository contains a VPN access portal and supporting infrastructure.
 - `infrastructure/vpn-host/freeradius/scripts/forward-accounting-event.sh.template` is the canonical host-side helper for forwarding accounting events into the internal API.
 - The current `max_devices` gate is device-aware and counts other active device sessions, so reconnecting the same device should not consume an additional slot by itself.
 - `vpn_sessions.session_id` is treated as the stable accounting key for runtime session updates and is unique when present.
+- The portal now returns platform-specific manual onboarding instructions from backend code; this is the current source of truth for user VPN setup guidance until `.mobileconfig`/QR artifacts are implemented.
 
 ## Key Paths
 

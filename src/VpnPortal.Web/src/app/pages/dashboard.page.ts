@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, catchError, of, switchMap } from 'rxjs';
 import { PortalApiService } from '../core/portal-api.service';
-import { IssuedVpnDeviceCredential, UserDashboard } from '../core/models';
+import { IssuedVpnDeviceCredential, UserDashboard, VpnOnboardingInstruction } from '../core/models';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -72,6 +72,14 @@ import { IssuedVpnDeviceCredential, UserDashboard } from '../core/models';
                   <button type="button" class="button ghost compact" (click)="revokeDevice(device.id)">Revoke device</button>
                 </div>
               }
+              @if (device.onboarding) {
+                <div class="stack-list pending-block">
+                  <div class="stack-item">
+                    <strong>{{ device.onboarding.title }}</strong>
+                    <span>{{ device.onboarding.summary }}</span>
+                  </div>
+                </div>
+              }
             </div>
           }
         </div>
@@ -107,7 +115,42 @@ import { IssuedVpnDeviceCredential, UserDashboard } from '../core/models';
           <div class="activation-link">
             <code>{{ issuedCredential()?.vpnPassword }}</code>
           </div>
+          <div class="stack-list pending-block">
+            <div class="stack-item">
+              <strong>{{ issuedCredential()?.onboarding?.title }}</strong>
+              <span>{{ issuedCredential()?.onboarding?.summary }}</span>
+            </div>
+            @for (step of issuedCredential()?.onboarding?.steps ?? []; track step) {
+              <div class="stack-item">
+                <span>{{ step }}</span>
+              </div>
+            }
+          </div>
         }
+      </article>
+
+      <article class="panel data-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Platform guides</p>
+            <h2>How to connect</h2>
+          </div>
+        </div>
+        <div class="stack-list">
+          @for (guide of dashboard.platformGuides; track guide.platform) {
+            <div class="stack-item">
+              <strong>{{ guide.title }}</strong>
+              <span>{{ guide.summary }}</span>
+              <div class="stack-list pending-block">
+                @for (step of guide.steps; track step) {
+                  <div class="stack-item">
+                    <span>{{ step }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
       </article>
 
       <article class="panel data-panel">
