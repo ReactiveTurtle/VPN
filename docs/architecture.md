@@ -16,9 +16,9 @@ The original brief allowed `Blazor/ASP.NET Core`, but the current repository imp
 ## Repository Architecture
 
 - `src/VpnPortal.Api`: composition root, authentication setup, controllers, CORS, antiforgery, static asset hosting
-- `src/VpnPortal.Application`: service interfaces and DTO contracts
-- `src/VpnPortal.Domain`: domain entities and enums
-- `src/VpnPortal.Infrastructure`: EF Core persistence, hashing, token protection, email, workflow services
+- `src/VpnPortal.Application`: use-case services, service interfaces, and DTO contracts
+- `src/VpnPortal.Domain`: domain entities, enums, and core state transitions
+- `src/VpnPortal.Infrastructure`: EF Core persistence, hashing, token protection, email, runtime adapters, and operational integrations
 - `src/VpnPortal.Migrations`: standalone schema migration program
 - `src/VpnPortal.Web`: Angular application for public, user, and admin flows
 

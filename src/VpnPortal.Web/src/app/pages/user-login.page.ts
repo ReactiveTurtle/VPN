@@ -9,28 +9,54 @@ import { AuthService } from '../core/auth.service';
   standalone: true,
   imports: [ReactiveFormsModule, NgIf, RouterLink],
   template: `
-    <section class="panel page-header narrow auth-card">
-      <p class="eyebrow">User sign in</p>
-      <h1>Access your VPN workspace</h1>
-      <p>Use your portal username or email and the password created from the activation link.</p>
+    <section class="auth-shell">
+      <div class="auth-layout">
+        <article class="auth-panel auth-side">
+          <p class="eyebrow">User sign in</p>
+          <h1>Open your VPN workspace</h1>
+          <p class="lead">Use the portal credentials created through the activation link. VPN device passwords are managed separately inside the workspace after sign-in.</p>
 
-      <form [formGroup]="form" (ngSubmit)="submit()" class="request-form auth-form">
-        <label>
-          <span>Username or email</span>
-          <input type="text" formControlName="login" placeholder="alex or alex@example.com" />
-        </label>
+          <div class="feature-list pending-block">
+            <div>
+              <strong>Device-aware access</strong>
+              <p class="detail-copy">Issue or rotate VPN credentials per device instead of sharing one static secret.</p>
+            </div>
+            <div>
+              <strong>Source IP confirmation</strong>
+              <p class="detail-copy">Unexpected connection origins can be reviewed and approved without leaving the portal.</p>
+            </div>
+          </div>
+        </article>
 
-        <label>
-          <span>Password</span>
-          <input type="password" formControlName="password" placeholder="Your password" />
-        </label>
+        <article class="auth-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Credentials</p>
+              <h2>Sign in</h2>
+            </div>
+          </div>
 
-        <button class="button primary" type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Signing in...' : 'Sign in' }}</button>
-      </form>
+          <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+            <label>
+              <span>Username or email</span>
+              <input type="text" formControlName="login" placeholder="alex or alex@example.com" />
+            </label>
 
-      <div *ngIf="error() as error" class="feedback error">{{ error }}</div>
-      <p class="muted-note demo-note">Demo user: <code>alex</code> / <code>TestPassword123!</code></p>
-      <a routerLink="/activate/demo-token" class="button ghost">Open activation demo</a>
+            <label>
+              <span>Password</span>
+              <input type="password" formControlName="password" placeholder="Your portal password" />
+            </label>
+
+            <button class="button primary" type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Signing in...' : 'Continue to workspace' }}</button>
+          </form>
+
+          <div *ngIf="error() as error" class="feedback error">{{ error }}</div>
+
+          <div class="inline-actions pending-block">
+            <a routerLink="/" fragment="request-access" class="button ghost compact">Request new access</a>
+          </div>
+        </article>
+      </div>
     </section>
   `
 })

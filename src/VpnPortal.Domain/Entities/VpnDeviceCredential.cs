@@ -16,4 +16,12 @@ public sealed class VpnDeviceCredential
     public DateTimeOffset? RotatedAt { get; set; }
     public DateTimeOffset? RevokedAt { get; set; }
     public DateTimeOffset? LastUsedAt { get; set; }
+
+    public void Rotate(string passwordHash, string radiusNtHash, DateTimeOffset rotatedAt)
+    {
+        PasswordHash = passwordHash;
+        RadiusNtHash = radiusNtHash;
+        RotatedAt = rotatedAt;
+        Status = VpnDeviceCredentialStatus.Active;
+    }
 }

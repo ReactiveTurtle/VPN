@@ -7,4 +7,9 @@ public sealed class SuperAdmin
     public string PasswordHash { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? LastLoginAt { get; set; }
+
+    public void MarkLogin(DateTimeOffset occurredAt)
+    {
+        LastLoginAt = occurredAt;
+    }
 }

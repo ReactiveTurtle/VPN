@@ -14,4 +14,31 @@ public sealed class VpnUser
     public ICollection<TrustedDevice> Devices { get; set; } = new List<TrustedDevice>();
     public ICollection<TrustedIp> TrustedIps { get; set; } = new List<TrustedIp>();
     public ICollection<VpnSession> Sessions { get; set; } = new List<VpnSession>();
+
+    public void ActivateAccount(string passwordHash)
+    {
+        PasswordHash = passwordHash;
+        EmailConfirmed = true;
+        Active = true;
+    }
+
+    public void SetMaxDevices(int maxDevices)
+    {
+        if (maxDevices < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxDevices));
+        }
+
+        MaxDevices = maxDevices;
+    }
+
+    public void SetActive(bool active)
+    {
+        Active = active;
+    }
+
+    public void MarkLogin(DateTimeOffset occurredAt)
+    {
+        LastLoginAt = occurredAt;
+    }
 }

@@ -1,7 +1,8 @@
 using VpnPortal.Application.Contracts.Admin;
 using VpnPortal.Application.Interfaces;
+using VpnPortal.Domain.Entities;
 
-namespace VpnPortal.Infrastructure.Services;
+namespace VpnPortal.Application.Services;
 
 public sealed class AdminOperationsService(IUserRepository userRepository, ISessionRepository sessionRepository, IAuditLogRepository auditLogRepository, IAuditService auditService, IVpnRuntimeControlService vpnRuntimeControlService) : IAdminOperationsService
 {
@@ -27,7 +28,7 @@ public sealed class AdminOperationsService(IUserRepository userRepository, ISess
             return null;
         }
 
-        user.MaxDevices = maxDevices;
+        user.SetMaxDevices(maxDevices);
         await userRepository.UpdateAsync(user, cancellationToken);
         await auditService.WriteAsync("superadmin", actorId, "user_max_devices_changed", "vpn_user", userId.ToString(), ipAddress, new { maxDevices }, cancellationToken);
         return MapUser(user);
@@ -41,7 +42,7 @@ public sealed class AdminOperationsService(IUserRepository userRepository, ISess
             return null;
         }
 
-        user.Active = active;
+        user.SetActive(active);
         await userRepository.UpdateAsync(user, cancellationToken);
         await auditService.WriteAsync("superadmin", actorId, active ? "user_activated" : "user_deactivated", "vpn_user", userId.ToString(), ipAddress, new { active }, cancellationToken);
         return MapUser(user);
@@ -77,7 +78,7 @@ public sealed class AdminOperationsService(IUserRepository userRepository, ISess
         return entries.Select(x => new AuditLogDto(x.Id, x.ActorType, x.ActorId, x.Action, x.EntityType, x.EntityId, x.IpAddress, x.DetailsJson, x.CreatedAt)).ToArray();
     }
 
-    private static AdminUserDto MapUser(VpnPortal.Domain.Entities.VpnUser user)
+    private static AdminUserDto MapUser(VpnUser user)
     {
         return new AdminUserDto(user.Id, user.Email, user.Username, user.Active, user.EmailConfirmed, user.MaxDevices, user.Devices.Count, user.CreatedAt, user.LastLoginAt);
     }

@@ -1,7 +1,7 @@
 using VpnPortal.Application.Contracts.Auth;
 using VpnPortal.Application.Interfaces;
 
-namespace VpnPortal.Infrastructure.Services;
+namespace VpnPortal.Application.Services;
 
 public sealed class AuthService(
     IUserRepository userRepository,
@@ -22,7 +22,7 @@ public sealed class AuthService(
             return null;
         }
 
-        user.LastLoginAt = DateTimeOffset.UtcNow;
+        user.MarkLogin(DateTimeOffset.UtcNow);
         await userRepository.UpdateAsync(user, cancellationToken);
         await auditService.WriteAsync("user", user.Id, "user_login", "vpn_user", user.Id.ToString(), null, new { user.Username }, cancellationToken);
         return new SessionUserDto(user.Id, user.Username, "User", user.Email);
@@ -41,7 +41,7 @@ public sealed class AuthService(
             return null;
         }
 
-        admin.LastLoginAt = DateTimeOffset.UtcNow;
+        admin.MarkLogin(DateTimeOffset.UtcNow);
         await superAdminRepository.UpdateAsync(admin, cancellationToken);
         await auditService.WriteAsync("superadmin", admin.Id, "superadmin_login", "superadmin", admin.Id.ToString(), null, new { admin.Username }, cancellationToken);
         return new SessionUserDto(admin.Id, admin.Username, "SuperAdmin", null);

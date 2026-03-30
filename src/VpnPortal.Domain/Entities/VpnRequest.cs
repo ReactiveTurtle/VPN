@@ -12,4 +12,18 @@ public sealed class VpnRequest
     public string? AdminComment { get; set; }
     public DateTimeOffset SubmittedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? ProcessedAt { get; set; }
+
+    public void Approve(string? adminComment, DateTimeOffset processedAt)
+    {
+        Status = RequestStatus.Approved;
+        AdminComment = string.IsNullOrWhiteSpace(adminComment) ? "Approved" : adminComment.Trim();
+        ProcessedAt = processedAt;
+    }
+
+    public void Reject(string? adminComment, DateTimeOffset processedAt)
+    {
+        Status = RequestStatus.Rejected;
+        AdminComment = string.IsNullOrWhiteSpace(adminComment) ? "Rejected" : adminComment.Trim();
+        ProcessedAt = processedAt;
+    }
 }

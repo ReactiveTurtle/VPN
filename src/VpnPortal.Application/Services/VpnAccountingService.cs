@@ -2,7 +2,7 @@ using VpnPortal.Application.Contracts.Internal;
 using VpnPortal.Application.Interfaces;
 using VpnPortal.Domain.Entities;
 
-namespace VpnPortal.Infrastructure.Services;
+namespace VpnPortal.Application.Services;
 
 public sealed class VpnAccountingService(
     IDeviceCredentialRepository deviceCredentialRepository,

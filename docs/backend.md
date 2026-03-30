@@ -3,12 +3,13 @@
 ## Layers
 
 - `VpnPortal.Api`: HTTP entrypoints and app configuration
-- `VpnPortal.Application`: DTOs and interfaces
-- `VpnPortal.Domain`: core entities
-- `VpnPortal.Infrastructure`: repositories and business services
+- `VpnPortal.Application`: use-case services, DTOs, and interfaces
+- `VpnPortal.Domain`: core entities and domain state transitions
+- `VpnPortal.Infrastructure`: EF repositories, security/email implementations, runtime adapters, and integration plumbing
 
 ## Key Services
 
+- Application-layer use cases now live under `src/VpnPortal.Application/Services`.
 - `RequestService`: request submission and approval flow
 - `AccountActivationService`: token validation and password setup
 - `AuthService`: user and superadmin authentication

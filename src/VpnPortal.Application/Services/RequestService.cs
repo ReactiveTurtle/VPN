@@ -1,9 +1,9 @@
 using VpnPortal.Application.Contracts.Requests;
 using VpnPortal.Application.Interfaces;
-using VpnPortal.Domain.Enums;
 using VpnPortal.Domain.Entities;
+using VpnPortal.Domain.Enums;
 
-namespace VpnPortal.Infrastructure.Services;
+namespace VpnPortal.Application.Services;
 
 public sealed class RequestService(
     IRequestRepository requestRepository,
@@ -50,9 +50,7 @@ public sealed class RequestService(
             return null;
         }
 
-        entity.Status = RequestStatus.Approved;
-        entity.AdminComment = string.IsNullOrWhiteSpace(adminComment) ? "Approved" : adminComment.Trim();
-        entity.ProcessedAt = DateTimeOffset.UtcNow;
+        entity.Approve(adminComment, DateTimeOffset.UtcNow);
         await requestRepository.UpdateAsync(entity, cancellationToken);
 
         var user = await userRepository.GetByEmailAsync(entity.Email, cancellationToken);
@@ -87,21 +85,16 @@ public sealed class RequestService(
         var activationLink = $"/activate/{rawToken}";
         await emailService.SendActivationLinkAsync(entity.Email, activationLink, accountToken.ExpiresAt, cancellationToken);
         await auditService.WriteAsync("superadmin", null, "request_approved", "vpn_request", entity.Id.ToString(), null, new { entity.Email, activationLink }, cancellationToken);
-        return Map(entity);
-
-        VpnRequestDto Map(VpnRequest request)
-        {
-            return new VpnRequestDto(
-                request.Id,
-                request.Email,
-                request.Name,
-                request.Status.ToString().ToLowerInvariant(),
-                request.AdminComment,
-                request.SubmittedAt,
-                request.ProcessedAt,
-                accountToken.ExpiresAt,
-                activationLink);
-        }
+        return new VpnRequestDto(
+            entity.Id,
+            entity.Email,
+            entity.Name,
+            entity.Status.ToString().ToLowerInvariant(),
+            entity.AdminComment,
+            entity.SubmittedAt,
+            entity.ProcessedAt,
+            accountToken.ExpiresAt,
+            activationLink);
     }
 
     public async Task<VpnRequestDto?> RejectAsync(int requestId, string? adminComment, CancellationToken cancellationToken)
@@ -112,9 +105,7 @@ public sealed class RequestService(
             return null;
         }
 
-        entity.Status = RequestStatus.Rejected;
-        entity.AdminComment = string.IsNullOrWhiteSpace(adminComment) ? "Rejected" : adminComment.Trim();
-        entity.ProcessedAt = DateTimeOffset.UtcNow;
+        entity.Reject(adminComment, DateTimeOffset.UtcNow);
         await requestRepository.UpdateAsync(entity, cancellationToken);
         await auditService.WriteAsync("superadmin", null, "request_rejected", "vpn_request", entity.Id.ToString(), null, new { entity.Email }, cancellationToken);
         return Map(entity);

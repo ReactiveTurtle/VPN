@@ -9,10 +9,54 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
   standalone: true,
   imports: [DatePipe, NgIf, FormsModule],
   template: `
-    <section class="panel page-header">
-      <p class="eyebrow">Admin queue</p>
-      <h1>VPN access moderation</h1>
-      <p>Approve or reject requests directly from the queue and get the activation link back immediately.</p>
+    <section class="hero">
+      <div class="hero-main">
+        <p class="eyebrow">Admin operations</p>
+        <h1>Moderate access and supervise runtime state</h1>
+        <p class="lead">This view combines request moderation, user policy controls, recent sessions, and audit visibility for superadmin operators.</p>
+
+        <div class="summary-grid section-block">
+          <article class="summary-card">
+            <span class="metric-label">Pending requests</span>
+            <strong>{{ pendingRequestCount() }}</strong>
+            <p class="detail-copy">Requests still waiting for moderation.</p>
+          </article>
+          <article class="summary-card">
+            <span class="metric-label">Tracked users</span>
+            <strong>{{ users().length }}</strong>
+            <p class="detail-copy">Provisioned users currently visible to admin operations.</p>
+          </article>
+          <article class="summary-card">
+            <span class="metric-label">Recent sessions</span>
+            <strong>{{ sessions().length }}</strong>
+            <p class="detail-copy">Active and recently observed VPN connection records.</p>
+          </article>
+        </div>
+      </div>
+
+      <aside class="hero-side">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Operational focus</p>
+            <h2>What to watch now</h2>
+          </div>
+        </div>
+
+        <div class="feature-list">
+          <div>
+            <strong>Moderation queue</strong>
+            <p class="detail-copy">Approve pending requests and deliver activation links immediately.</p>
+          </div>
+          <div>
+            <strong>Session control</strong>
+            <p class="detail-copy">Disconnect suspicious live sessions when runtime integration is available.</p>
+          </div>
+          <div>
+            <strong>Audit review</strong>
+            <p class="detail-copy">Track high-value account, credential, and session events in one stream.</p>
+          </div>
+        </div>
+      </aside>
     </section>
 
     <section class="panel request-panel" *ngIf="message() as message">
@@ -24,71 +68,70 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
     </section>
 
     <section class="panel data-panel">
-      <table *ngIf="requests().length; else emptyState">
-        <thead>
-          <tr>
-            <th>Applicant</th>
-            <th>Status</th>
-            <th>Submitted</th>
-            <th>Comment</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (request of requests(); track request.id) {
-            <tr>
-              <td>
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Moderation queue</p>
+          <h2>Review access requests</h2>
+        </div>
+      </div>
+
+      <div class="stack-list" *ngIf="requests().length; else emptyState">
+        @for (request of requests(); track request.id) {
+          <article class="stack-item">
+            <div class="panel-heading">
+              <div>
                 <strong>{{ request.name || 'Unknown user' }}</strong>
-                <div>{{ request.email }}</div>
-              </td>
-              <td><span class="badge">{{ request.status }}</span></td>
-              <td>{{ request.submittedAt | date: 'medium' }}</td>
-              <td>
-                {{ request.adminComment || 'Waiting for review' }}
-                @if (request.activationLink) {
-                  <div class="activation-link"><code>{{ request.activationLink }}</code></div>
-                }
-              </td>
-              <td>
-                @if (request.status === 'pending') {
-                  <div class="moderation-actions">
-                    <textarea
-                      [(ngModel)]="comments[request.id]"
-                      [name]="'comment-' + request.id"
-                      rows="3"
-                      placeholder="Optional admin comment"></textarea>
-                    <div class="action-row">
-                      <button
-                        type="button"
-                        class="button primary"
-                        [disabled]="busyRequestId() === request.id"
-                        (click)="approve(request)">
-                        {{ busyRequestId() === request.id ? 'Saving...' : 'Approve' }}
-                      </button>
-                      <button
-                        type="button"
-                        class="button danger"
-                        [disabled]="busyRequestId() === request.id"
-                        (click)="reject(request)">
-                        Reject
-                      </button>
-                    </div>
-                  </div>
-                } @else {
-                  <span class="muted-note">Already processed</span>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+                <p>{{ request.email }}</p>
+              </div>
+              <span class="badge">{{ request.status }}</span>
+            </div>
+
+            <div class="feature-list">
+              <div>
+                <strong>Submitted</strong>
+                <p class="detail-copy">{{ request.submittedAt | date: 'medium' }}</p>
+              </div>
+              <div>
+                <strong>Review note</strong>
+                <p class="detail-copy">{{ request.adminComment || 'Waiting for review' }}</p>
+              </div>
+            </div>
+
+            @if (request.activationLink) {
+              <div class="activation-link"><code>{{ request.activationLink }}</code></div>
+            }
+
+            @if (request.status === 'pending') {
+              <div class="pending-block auth-form">
+                <label>
+                  <span>Admin comment</span>
+                  <textarea [(ngModel)]="comments[request.id]" [name]="'comment-' + request.id" rows="3" placeholder="Optional admin comment"></textarea>
+                </label>
+                <div class="action-row">
+                  <button type="button" class="button primary" [disabled]="busyRequestId() === request.id" (click)="approve(request)">
+                    {{ busyRequestId() === request.id ? 'Saving...' : 'Approve' }}
+                  </button>
+                  <button type="button" class="button danger" [disabled]="busyRequestId() === request.id" (click)="reject(request)">Reject</button>
+                </div>
+              </div>
+            } @else {
+              <div class="chip-row pending-block">
+                <span class="session-pill">Already processed</span>
+              </div>
+            }
+          </article>
+        }
+      </div>
 
       <ng-template #emptyState>
-        <p class="muted-note">No requests in the moderation queue yet.</p>
+        <div class="empty-state">
+          <h3>No requests in queue</h3>
+          <p class="muted-note">Public intake has not produced any moderation items yet.</p>
+        </div>
       </ng-template>
     </section>
 
-    <section class="split-layout admin-ops-grid">
+    <section class="operations-grid admin-ops-grid">
       <article class="panel data-panel">
         <div class="panel-heading">
           <div>
@@ -96,13 +139,13 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
             <h2>Account control</h2>
           </div>
         </div>
-        <div class="stack-list">
+        <div class="stack-list" *ngIf="users().length; else emptyUsersState">
           @for (user of users(); track user.id) {
             <div class="stack-item">
               <strong>{{ user.username }}</strong>
               <span>{{ user.email }}</span>
               <span>{{ user.active ? 'active' : 'inactive' }} / max devices: {{ user.maxDevices }} / bound: {{ user.deviceCount }}</span>
-              <div class="moderation-actions compact-grid">
+              <div class="auth-form pending-block">
                 <label>
                   <span>Max devices</span>
                   <input type="number" min="1" [(ngModel)]="userLimits[user.id]" [name]="'limit-' + user.id" />
@@ -117,6 +160,12 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
             </div>
           }
         </div>
+        <ng-template #emptyUsersState>
+          <div class="empty-state">
+            <h3>No managed users yet</h3>
+            <p class="muted-note">Approved access requests will create portal users that can be managed here.</p>
+          </div>
+        </ng-template>
       </article>
 
       <article class="panel data-panel">
@@ -126,7 +175,7 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
             <h2>Active and recent connections</h2>
           </div>
         </div>
-        <div class="stack-list">
+        <div class="stack-list" *ngIf="sessions().length; else emptySessionsState">
           @for (session of sessions(); track session.id) {
             <div class="stack-item">
               <strong>{{ session.username }}</strong>
@@ -138,6 +187,12 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
             </div>
           }
         </div>
+        <ng-template #emptySessionsState>
+          <div class="empty-state">
+            <h3>No recent sessions</h3>
+            <p class="muted-note">Session activity will appear here after VPN accounting events reach the portal.</p>
+          </div>
+        </ng-template>
       </article>
 
       <article class="panel data-panel">
@@ -147,7 +202,7 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
             <h2>Recent security events</h2>
           </div>
         </div>
-        <div class="stack-list">
+        <div class="stack-list" *ngIf="auditLog().length; else emptyAuditState">
           @for (entry of auditLog(); track entry.id) {
             <div class="stack-item">
               <strong>{{ entry.action }}</strong>
@@ -156,6 +211,12 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
             </div>
           }
         </div>
+        <ng-template #emptyAuditState>
+          <div class="empty-state">
+            <h3>No audit entries yet</h3>
+            <p class="muted-note">Security-relevant actions will accumulate here as users and admins interact with the portal.</p>
+          </div>
+        </ng-template>
       </article>
     </section>
   `
@@ -174,6 +235,7 @@ export class AdminRequestsPage {
   protected readonly busyUserId = signal<number | null>(null);
   protected readonly comments: Record<number, string> = {};
   protected readonly userLimits: Record<number, number> = {};
+  protected readonly pendingRequestCount = () => this.requests().filter((request) => request.status === 'pending').length;
 
   constructor() {
     this.loadRequests();

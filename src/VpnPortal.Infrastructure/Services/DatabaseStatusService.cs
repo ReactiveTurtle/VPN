@@ -1,24 +1,33 @@
+using VpnPortal.Application.Contracts.System;
+using VpnPortal.Application.Interfaces;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using VpnPortal.Infrastructure.Options;
 
 namespace VpnPortal.Infrastructure.Services;
 
-public sealed class DatabaseStatusService(IOptions<DatabaseOptions> options)
+public sealed class DatabaseStatusService(IOptions<DatabaseOptions> options) : ISystemStatusService
 {
-    public bool IsConfigured => !string.IsNullOrWhiteSpace(options.Value.ConnectionString);
+    public bool IsDatabaseConfigured => !string.IsNullOrWhiteSpace(options.Value.ConnectionString);
 
-    public async Task<bool> CanConnectAsync(CancellationToken cancellationToken)
+    public async Task<DatabaseStatusDto> GetDatabaseStatusAsync(CancellationToken cancellationToken)
     {
-        if (!IsConfigured)
+        if (!IsDatabaseConfigured)
         {
-            return false;
+            return new DatabaseStatusDto(false, false, null);
         }
 
-        await using var connection = new NpgsqlConnection(options.Value.ConnectionString);
-        await connection.OpenAsync(cancellationToken);
-        await using var command = new NpgsqlCommand("select 1", connection);
-        await command.ExecuteScalarAsync(cancellationToken);
-        return true;
+        try
+        {
+            await using var connection = new NpgsqlConnection(options.Value.ConnectionString);
+            await connection.OpenAsync(cancellationToken);
+            await using var command = new NpgsqlCommand("select 1", connection);
+            await command.ExecuteScalarAsync(cancellationToken);
+            return new DatabaseStatusDto(true, true, null);
+        }
+        catch (Exception exception)
+        {
+            return new DatabaseStatusDto(true, false, exception.Message);
+        }
     }
 }

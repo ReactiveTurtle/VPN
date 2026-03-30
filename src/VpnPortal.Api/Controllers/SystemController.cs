@@ -1,14 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using VpnPortal.Application.Contracts.System;
-using VpnPortal.Infrastructure.Options;
-using VpnPortal.Infrastructure.Services;
+using VpnPortal.Application.Interfaces;
 
 namespace VpnPortal.Api.Controllers;
 
 [ApiController]
 [Route("api/system")]
-public sealed class SystemController(IOptions<DatabaseOptions> databaseOptions, DatabaseStatusService databaseStatusService, IWebHostEnvironment environment) : ControllerBase
+public sealed class SystemController(ISystemStatusService systemStatusService, IWebHostEnvironment environment) : ControllerBase
 {
     [HttpGet("status")]
     [ProducesResponseType<AppStatusDto>(StatusCodes.Status200OK)]
@@ -17,23 +15,17 @@ public sealed class SystemController(IOptions<DatabaseOptions> databaseOptions, 
         var result = new AppStatusDto(
             "VpnPortal.Api",
             typeof(Program).Assembly.GetName().Version?.ToString() ?? "1.0.0",
-            !string.IsNullOrWhiteSpace(databaseOptions.Value.ConnectionString),
+            systemStatusService.IsDatabaseConfigured,
             environment.IsDevelopment());
 
         return Ok(result);
     }
 
     [HttpGet("database")]
-    public async Task<IActionResult> GetDatabaseStatus(CancellationToken cancellationToken)
+    [ProducesResponseType<DatabaseStatusDto>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<DatabaseStatusDto>> GetDatabaseStatus(CancellationToken cancellationToken)
     {
-        try
-        {
-            var canConnect = await databaseStatusService.CanConnectAsync(cancellationToken);
-            return Ok(new { configured = databaseStatusService.IsConfigured, canConnect });
-        }
-        catch (Exception exception)
-        {
-            return Ok(new { configured = databaseStatusService.IsConfigured, canConnect = false, error = exception.Message });
-        }
+        var result = await systemStatusService.GetDatabaseStatusAsync(cancellationToken);
+        return Ok(result);
     }
 }

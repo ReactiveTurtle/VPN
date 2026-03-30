@@ -2,7 +2,7 @@ using System.Text.Json;
 using VpnPortal.Application.Interfaces;
 using VpnPortal.Domain.Entities;
 
-namespace VpnPortal.Infrastructure.Services;
+namespace VpnPortal.Application.Services;
 
 public sealed class AuditService(IAuditLogRepository repository) : IAuditService
 {

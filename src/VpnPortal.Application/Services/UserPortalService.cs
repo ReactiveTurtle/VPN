@@ -3,7 +3,7 @@ using VpnPortal.Application.Interfaces;
 using VpnPortal.Domain.Entities;
 using VpnPortal.Domain.Enums;
 
-namespace VpnPortal.Infrastructure.Services;
+namespace VpnPortal.Application.Services;
 
 public sealed class UserPortalService(
     IUserRepository userRepository,
@@ -152,9 +152,7 @@ public sealed class UserPortalService(
 
         var vpnPassword = tokenProtector.GenerateRawToken(24);
         var passwordMaterial = vpnPasswordMaterialService.Create(vpnPassword);
-        credential.PasswordHash = passwordMaterial.PasswordHash;
-        credential.RadiusNtHash = passwordMaterial.RadiusNtHash;
-        credential.RotatedAt = DateTimeOffset.UtcNow;
+        credential.Rotate(passwordMaterial.PasswordHash, passwordMaterial.RadiusNtHash, DateTimeOffset.UtcNow);
         await deviceCredentialRepository.UpdateAsync(credential, cancellationToken);
         await auditService.WriteAsync("user", userId, "device_credential_rotated", "vpn_device_credential", credential.Id.ToString(), null, new { deviceId, credential.VpnUsername }, cancellationToken);
 
@@ -186,7 +184,7 @@ public sealed class UserPortalService(
         var existing = await trustedIpRepository.GetByUserAndIpAsync(userId, command.RequestedIp, cancellationToken);
         if (existing is not null && existing.Status == TrustedIpStatus.Active)
         {
-            return new IpConfirmationRequestResultDto(existing.Id, existing.IpAddress, existing.ApprovedAt ?? DateTimeOffset.UtcNow, $"/confirm-ip/already-approved", "IP address is already approved.");
+            return new IpConfirmationRequestResultDto(existing.Id, existing.IpAddress, existing.ApprovedAt ?? DateTimeOffset.UtcNow, "/confirm-ip/already-approved", "IP address is already approved.");
         }
 
         var rawToken = tokenProtector.GenerateRawToken();
@@ -236,15 +234,11 @@ public sealed class UserPortalService(
         }
         else
         {
-            trustedIp.Status = TrustedIpStatus.Active;
-            trustedIp.LastSeenAt = DateTimeOffset.UtcNow;
-            trustedIp.ApprovedAt = DateTimeOffset.UtcNow;
-            trustedIp.DeviceId = confirmation.DeviceId;
+            trustedIp.Activate(DateTimeOffset.UtcNow, confirmation.DeviceId);
             await trustedIpRepository.UpdateAsync(trustedIp, cancellationToken);
         }
 
-        confirmation.Status = IpChangeConfirmationStatus.Confirmed;
-        confirmation.ConfirmedAt = DateTimeOffset.UtcNow;
+        confirmation.Confirm(DateTimeOffset.UtcNow);
         await ipChangeConfirmationRepository.UpdateAsync(confirmation, cancellationToken);
         await auditService.WriteAsync("user", userId, "ip_confirmed", "trusted_ip", confirmation.RequestedIp, null, new { confirmation.RequestedIp }, cancellationToken);
         return true;

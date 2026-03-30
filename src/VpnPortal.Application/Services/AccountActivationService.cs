@@ -2,7 +2,7 @@ using VpnPortal.Application.Contracts.Account;
 using VpnPortal.Application.Interfaces;
 using VpnPortal.Domain.Enums;
 
-namespace VpnPortal.Infrastructure.Services;
+namespace VpnPortal.Application.Services;
 
 public sealed class AccountActivationService(
     IAccountTokenRepository accountTokenRepository,
@@ -64,9 +64,7 @@ public sealed class AccountActivationService(
             return null;
         }
 
-        user.PasswordHash = passwordHasher.Hash(command.Password);
-        user.EmailConfirmed = true;
-        user.Active = true;
+        user.ActivateAccount(passwordHasher.Hash(command.Password));
         await userRepository.UpdateAsync(user, cancellationToken);
 
         accountToken.Used = true;

@@ -10,29 +10,55 @@ import { PortalApiService } from '../core/portal-api.service';
   standalone: true,
   imports: [ReactiveFormsModule, AsyncPipe, DatePipe, NgIf],
   template: `
-    <section class="panel page-header narrow" *ngIf="status$ | async as status">
-      <p class="eyebrow">Account activation</p>
-      <h1>{{ status.valid ? 'Create your VPN password' : 'Activation link unavailable' }}</h1>
-      <p>{{ status.message }}</p>
-      <p *ngIf="status.email"><strong>{{ status.email }}</strong></p>
-      <p *ngIf="status.expiresAt">Expires: {{ status.expiresAt | date: 'medium' }}</p>
+    <section class="auth-shell" *ngIf="status$ | async as status">
+      <div class="auth-layout">
+        <article class="auth-panel auth-side">
+          <p class="eyebrow">Account activation</p>
+          <h1>{{ status.valid ? 'Finish account setup' : 'Activation link unavailable' }}</h1>
+          <p class="lead">Create the portal password used for sign-in. Device-specific VPN passwords are issued later from the user workspace.</p>
 
-      <form *ngIf="status.valid" [formGroup]="form" (ngSubmit)="submit()" class="request-form">
-        <label>
-          <span>Password</span>
-          <input type="password" formControlName="password" placeholder="Minimum 10 characters" />
-        </label>
+          <div class="feature-list pending-block">
+            <div>
+              <strong>Status</strong>
+              <p class="detail-copy">{{ status.message }}</p>
+            </div>
+            <div *ngIf="status.email">
+              <strong>Account</strong>
+              <p class="detail-copy">{{ status.email }}</p>
+            </div>
+            <div *ngIf="status.expiresAt">
+              <strong>Expires</strong>
+              <p class="detail-copy">{{ status.expiresAt | date: 'medium' }}</p>
+            </div>
+          </div>
+        </article>
 
-        <label>
-          <span>Confirm password</span>
-          <input type="password" formControlName="confirmPassword" placeholder="Repeat password" />
-        </label>
+        <article class="auth-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Portal password</p>
+              <h2>{{ status.valid ? 'Create password' : 'Token check' }}</h2>
+            </div>
+          </div>
 
-        <button type="submit" class="button primary" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Activating...' : 'Activate account' }}</button>
-      </form>
+          <form *ngIf="status.valid" [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+            <label>
+              <span>Password</span>
+              <input type="password" formControlName="password" placeholder="Minimum 10 characters" />
+            </label>
 
-      <div *ngIf="message() as message" class="feedback success">{{ message }}</div>
-      <div *ngIf="error() as error" class="feedback error">{{ error }}</div>
+            <label>
+              <span>Confirm password</span>
+              <input type="password" formControlName="confirmPassword" placeholder="Repeat password" />
+            </label>
+
+            <button type="submit" class="button primary" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Activating...' : 'Activate account' }}</button>
+          </form>
+
+          <div *ngIf="message() as message" class="feedback success">{{ message }}</div>
+          <div *ngIf="error() as error" class="feedback error">{{ error }}</div>
+        </article>
+      </div>
     </section>
   `
 })

@@ -15,4 +15,9 @@ public sealed class TrustedDevice
     public DateTimeOffset FirstSeenAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? LastSeenAt { get; set; }
     public VpnDeviceCredential? ActiveCredential { get; set; }
+
+    public void Revoke()
+    {
+        Status = DeviceStatus.Revoked;
+    }
 }

@@ -1,18 +1,36 @@
 <div class="app-shell">
   <header class="topbar">
-    <a routerLink="/" class="brand">NorthGate VPN</a>
-    <nav>
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Portal</a>
-      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-      <a routerLink="/admin" routerLinkActive="active">Admin</a>
-      <a routerLink="/login" routerLinkActive="active">User Login</a>
-      <a routerLink="/admin/login" routerLinkActive="active">Admin Login</a>
-      <a routerLink="/activate/demo-token" routerLinkActive="active">Activation</a>
-      @if (currentUser(); as user) {
-        <span class="session-pill">{{ user.login }} / {{ user.role }}</span>
-        <button type="button" class="button ghost compact" (click)="logout()">Logout</button>
-      }
-    </nav>
+    <div class="topbar-inner">
+      <a routerLink="/" class="brand-block">
+        <span class="brand-kicker">Secure Access</span>
+        <span class="brand">NorthGate VPN Portal</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Primary">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+
+        @if (isUser()) {
+          <a routerLink="/dashboard" routerLinkActive="active">Workspace</a>
+        } @else if (isAdmin()) {
+          <a routerLink="/admin" routerLinkActive="active">Operations</a>
+        } @else {
+          <a routerLink="/login" routerLinkActive="active">User Sign In</a>
+          <a routerLink="/admin/login" routerLinkActive="active">Admin Sign In</a>
+        }
+      </nav>
+
+      <div class="session-area">
+        @if (currentUser(); as user) {
+          <div class="session-summary">
+            <span class="session-role">{{ user.role === 'SuperAdmin' ? 'Superadmin session' : 'User workspace' }}</span>
+            <strong>{{ user.login }}</strong>
+          </div>
+          <button type="button" class="button ghost compact" (click)="logout()">Logout</button>
+        } @else {
+          <a routerLink="/" fragment="request-access" class="button secondary compact">Request access</a>
+        }
+      </div>
+    </div>
   </header>
 
   <main class="content">

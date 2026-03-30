@@ -13,4 +13,10 @@ public sealed class IpChangeConfirmation
     public DateTimeOffset ExpiresAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? ConfirmedAt { get; set; }
+
+    public void Confirm(DateTimeOffset confirmedAt)
+    {
+        Status = IpChangeConfirmationStatus.Confirmed;
+        ConfirmedAt = confirmedAt;
+    }
 }

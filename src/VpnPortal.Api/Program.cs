@@ -3,11 +3,16 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using VpnPortal.Application.Interfaces;
+using VpnPortal.Application.Services;
 using VpnPortal.Infrastructure.Options;
 using VpnPortal.Infrastructure.Persistence.Ef;
 using VpnPortal.Infrastructure.Persistence.Ef.Repositories;
 using VpnPortal.Infrastructure.Security;
-using VpnPortal.Infrastructure.Services;
+using ConsoleEmailService = VpnPortal.Infrastructure.Services.ConsoleEmailService;
+using DatabaseStatusService = VpnPortal.Infrastructure.Services.DatabaseStatusService;
+using SmtpEmailService = VpnPortal.Infrastructure.Services.SmtpEmailService;
+using VpnOnboardingInstructionService = VpnPortal.Infrastructure.Services.VpnOnboardingInstructionService;
+using VpnRuntimeControlService = VpnPortal.Infrastructure.Services.VpnRuntimeControlService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,7 +55,7 @@ builder.Services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
 builder.Services.AddSingleton<IVpnOnboardingInstructionService, VpnOnboardingInstructionService>();
 builder.Services.AddSingleton<IVpnPasswordMaterialService, VpnPasswordMaterialService>();
 builder.Services.AddSingleton<ITokenProtector, Sha256TokenProtector>();
-builder.Services.AddSingleton<DatabaseStatusService>();
+builder.Services.AddSingleton<ISystemStatusService, DatabaseStatusService>();
 
 var emailOptions = builder.Configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
 if (emailOptions.Enabled && string.Equals(emailOptions.Provider, "Smtp", StringComparison.OrdinalIgnoreCase))

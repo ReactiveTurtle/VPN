@@ -13,4 +13,12 @@ public sealed class TrustedIp
     public DateTimeOffset? LastSeenAt { get; set; }
     public DateTimeOffset? ApprovedAt { get; set; }
     public DateTimeOffset? RevokedAt { get; set; }
+
+    public void Activate(DateTimeOffset approvedAt, int? deviceId)
+    {
+        Status = TrustedIpStatus.Active;
+        DeviceId = deviceId;
+        LastSeenAt = approvedAt;
+        ApprovedAt = approvedAt;
+    }
 }

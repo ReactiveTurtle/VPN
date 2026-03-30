@@ -3,7 +3,7 @@ using VpnPortal.Application.Interfaces;
 using VpnPortal.Domain.Entities;
 using VpnPortal.Domain.Enums;
 
-namespace VpnPortal.Infrastructure.Services;
+namespace VpnPortal.Application.Services;
 
 public sealed class VpnAuthEventService(
     IUserRepository userRepository,

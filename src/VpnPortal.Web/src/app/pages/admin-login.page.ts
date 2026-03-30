@@ -9,27 +9,50 @@ import { AuthService } from '../core/auth.service';
   standalone: true,
   imports: [ReactiveFormsModule, NgIf],
   template: `
-    <section class="panel page-header narrow auth-card">
-      <p class="eyebrow">Superadmin sign in</p>
-      <h1>Moderation and VPN operations</h1>
-      <p>Only manually provisioned superadmins can access the admin queue.</p>
+    <section class="auth-shell">
+      <div class="auth-layout">
+        <article class="auth-panel auth-side">
+          <p class="eyebrow">Superadmin sign in</p>
+          <h1>Moderation and runtime operations</h1>
+          <p class="lead">Only manually provisioned superadmins can review requests, manage user limits, inspect audit events, and disconnect live VPN sessions.</p>
 
-      <form [formGroup]="form" (ngSubmit)="submit()" class="request-form auth-form">
-        <label>
-          <span>Username</span>
-          <input type="text" formControlName="login" placeholder="rootadmin" />
-        </label>
+          <div class="feature-list pending-block">
+            <div>
+              <strong>Request queue</strong>
+              <p class="detail-copy">Approve pending requests and deliver activation links immediately.</p>
+            </div>
+            <div>
+              <strong>Operational controls</strong>
+              <p class="detail-copy">Inspect recent sessions, enforce account state, and review recent security-sensitive audit actions.</p>
+            </div>
+          </div>
+        </article>
 
-        <label>
-          <span>Password</span>
-          <input type="password" formControlName="password" placeholder="Admin password" />
-        </label>
+        <article class="auth-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Restricted access</p>
+              <h2>Admin sign in</h2>
+            </div>
+          </div>
 
-        <button class="button primary" type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Signing in...' : 'Sign in as superadmin' }}</button>
-      </form>
+          <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+            <label>
+              <span>Username</span>
+              <input type="text" formControlName="login" placeholder="rootadmin" />
+            </label>
 
-      <div *ngIf="error() as error" class="feedback error">{{ error }}</div>
-      <p class="muted-note demo-note">Demo admin: <code>rootadmin</code> / <code>TestPassword123!</code></p>
+            <label>
+              <span>Password</span>
+              <input type="password" formControlName="password" placeholder="Admin password" />
+            </label>
+
+            <button class="button primary" type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Signing in...' : 'Open operations console' }}</button>
+          </form>
+
+          <div *ngIf="error() as error" class="feedback error">{{ error }}</div>
+        </article>
+      </div>
     </section>
   `
 })
