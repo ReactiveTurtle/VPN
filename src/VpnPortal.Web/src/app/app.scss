@@ -10,14 +10,12 @@
 }
 
 .topbar {
-  backdrop-filter: blur(18px);
-  background:
-    linear-gradient(90deg, rgba(141, 221, 196, 0.04), transparent 30%, rgba(134, 174, 252, 0.06)),
-    rgba(7, 13, 26, 0.82);
-  border-bottom: 1px solid rgba(138, 162, 193, 0.14);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.82);
+  border-bottom: 1px solid rgba(128, 146, 174, 0.14);
+  box-shadow: 0 8px 18px rgba(28, 42, 64, 0.06);
   left: 0;
-  padding: 1rem 1.5rem 1.15rem;
+  padding: 0.9rem 1.25rem 1rem;
   position: sticky;
   right: 0;
   top: 0;
@@ -34,24 +32,23 @@
 }
 
 .brand-block {
-  color: #f5f8ff;
+  color: #172133;
   display: grid;
   gap: 0.25rem;
   text-decoration: none;
 }
 
 .brand-kicker {
-  color: rgba(141, 221, 196, 0.82);
+  color: rgba(77, 123, 255, 0.8);
   font-size: 0.74rem;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .brand {
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .main-nav {
@@ -64,18 +61,17 @@
 .main-nav a {
   border: 1px solid transparent;
   border-radius: 999px;
-  color: rgba(224, 232, 244, 0.82);
-  padding: 0.65rem 0.95rem;
+  color: rgba(23, 33, 51, 0.78);
+  padding: 0.55rem 0.85rem;
   text-decoration: none;
   transition: 140ms ease;
 }
 
 .main-nav a.active,
 .main-nav a:hover {
-  background: linear-gradient(135deg, rgba(141, 221, 196, 0.12), rgba(134, 174, 252, 0.12));
-  border-color: rgba(141, 221, 196, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  color: #ffffff;
+  background: rgba(77, 123, 255, 0.07);
+  border-color: rgba(77, 123, 255, 0.12);
+  color: #2148b4;
 }
 
 .session-area {
@@ -92,7 +88,7 @@
 }
 
 .session-role {
-  color: rgba(169, 183, 204, 0.82);
+  color: rgba(92, 105, 128, 0.9);
   font-size: 0.78rem;
 }
 
@@ -103,13 +99,13 @@
 }
 
 .content::before {
-  background: linear-gradient(90deg, rgba(141, 221, 196, 0.14), rgba(134, 174, 252, 0.14));
+  background: rgba(128, 146, 174, 0.14);
   border-radius: 999px;
   content: '';
   display: block;
   height: 1px;
   margin-bottom: 1.5rem;
-  opacity: 0.55;
+  opacity: 0.8;
 }
 
 @media (max-width: 980px) {

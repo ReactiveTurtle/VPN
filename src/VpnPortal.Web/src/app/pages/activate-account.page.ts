@@ -14,8 +14,8 @@ import { PortalApiService } from '../core/portal-api.service';
       <div class="auth-layout">
         <article class="auth-panel auth-side">
           <p class="eyebrow">Активация учетной записи</p>
-          <h1>{{ status.valid ? 'Завершите настройку учетной записи' : 'Ссылка активации недоступна' }}</h1>
-          <p class="lead">Создайте пароль для входа в портал. Отдельные VPN-пароли для устройств выдаются позже в кабинете пользователя.</p>
+          <h1>{{ status.valid ? 'Создайте пароль' : 'Ссылка недоступна' }}</h1>
+          <p class="lead">После активации можно будет войти в портал и настроить устройства.</p>
 
           <div class="feature-list pending-block">
             <div>
@@ -34,7 +34,7 @@ import { PortalApiService } from '../core/portal-api.service';
         </article>
 
         <article class="auth-panel">
-          <div class="panel-heading">
+          <div class="content-section-header">
             <div>
               <p class="eyebrow">Пароль портала</p>
               <h2>{{ status.valid ? 'Создать пароль' : 'Проверка токена' }}</h2>

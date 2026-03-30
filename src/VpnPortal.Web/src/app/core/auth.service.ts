@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, switchMap, tap } from 'rxjs';
+import { Observable, map, switchMap, tap } from 'rxjs';
 import { SessionUser } from './models';
 import { PortalApiService } from './portal-api.service';
 import { CsrfService } from './csrf.service';
@@ -14,14 +14,22 @@ export class AuthService {
   loginUser(login: string, password: string): Observable<SessionUser> {
     return this.csrf.ensureToken().pipe(
       switchMap(() => this.api.loginUser({ login, password })),
-      tap((user) => this.currentUser.set(user))
+      tap((user) => this.currentUser.set(user)),
+      switchMap((user) => {
+        this.csrf.reset();
+        return this.csrf.ensureToken().pipe(map(() => user));
+      })
     );
   }
 
   loginAdmin(login: string, password: string): Observable<SessionUser> {
     return this.csrf.ensureToken().pipe(
       switchMap(() => this.api.loginAdmin({ login, password })),
-      tap((user) => this.currentUser.set(user))
+      tap((user) => this.currentUser.set(user)),
+      switchMap((user) => {
+        this.csrf.reset();
+        return this.csrf.ensureToken().pipe(map(() => user));
+      })
     );
   }
 

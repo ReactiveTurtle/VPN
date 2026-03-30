@@ -1,4 +1,4 @@
-import { NgIf } from '@angular/common';
+import { NgClass, NgIf } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -7,53 +7,31 @@ import { AuthService } from '../core/auth.service';
 @Component({
   selector: 'app-user-login-page',
   standalone: true,
-  imports: [ReactiveFormsModule, NgIf, RouterLink],
+  imports: [ReactiveFormsModule, NgClass, NgIf, RouterLink],
   template: `
     <section class="auth-shell">
-      <div class="auth-layout">
-        <article class="auth-panel auth-side">
-          <p class="eyebrow">Вход пользователя</p>
-          <h1>Откройте свой VPN-кабинет</h1>
-          <p class="lead">Используйте учетные данные портала, созданные через ссылку активации. VPN-пароли устройств управляются отдельно внутри кабинета после входа.</p>
-
-          <div class="feature-list pending-block">
-            <div>
-              <strong>Доступ с учетом устройства</strong>
-              <p class="detail-copy">Выдавайте и меняйте VPN-учетные данные для каждого устройства отдельно, без общего статического секрета.</p>
-            </div>
-            <div>
-              <strong>Подтверждение IP-адреса</strong>
-              <p class="detail-copy">Неожиданные адреса подключения можно проверить и подтвердить прямо в портале.</p>
-            </div>
-          </div>
-        </article>
-
-        <article class="auth-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Учетные данные</p>
-              <h2>Войти</h2>
-            </div>
-          </div>
+      <div class="auth-layout auth-layout-single">
+        <article class="auth-panel auth-panel-centered auth-login-panel">
+          <h1 class="auth-title-smaller">Вход в личный кабинет</h1>
 
           <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
             <label>
               <span>Имя пользователя или email</span>
-              <input type="text" formControlName="login" placeholder="alex или alex@example.com" />
+              <input type="text" formControlName="login" placeholder="alex или alex@example.com" [ngClass]="{ 'field-invalid': isInvalid('login') }" />
             </label>
 
             <label>
               <span>Пароль</span>
-              <input type="password" formControlName="password" placeholder="Ваш пароль от портала" />
+              <input type="password" formControlName="password" placeholder="Ваш пароль от портала" [ngClass]="{ 'field-invalid': isInvalid('password') }" />
             </label>
 
-            <button class="button primary" type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Вход...' : 'Перейти в кабинет' }}</button>
+            <button class="button primary" type="submit" [disabled]="submitting()">{{ submitting() ? 'Вход...' : 'Войти' }}</button>
           </form>
 
-          <div *ngIf="error() as error" class="feedback error">{{ error }}</div>
+          <div *ngIf="error() as error" class="feedback error auth-error">{{ error }}</div>
 
-          <div class="inline-actions pending-block">
-            <a routerLink="/" fragment="request-access" class="button ghost compact">Запросить новый доступ</a>
+          <div class="inline-actions pending-block auth-links-row">
+            <a routerLink="/">Забыли пароль?</a>
           </div>
         </article>
       </div>
@@ -75,6 +53,7 @@ export class UserLoginPage {
 
   protected submit(): void {
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
 
@@ -91,5 +70,10 @@ export class UserLoginPage {
         this.error.set('Неверные учетные данные или неактивная учетная запись.');
       }
     });
+  }
+
+  protected isInvalid(controlName: 'login' | 'password'): boolean {
+    const control = this.form.controls[controlName];
+    return control.invalid && (control.touched || control.dirty);
   }
 }

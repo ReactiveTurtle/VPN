@@ -22,18 +22,18 @@ public sealed class AdminRequestsController(IRequestService requestService) : Co
     [HttpPost("{requestId:int}/approve")]
     [ProducesResponseType<VpnRequestDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Approve(int requestId, [FromBody] AdminProcessRequestInput input, CancellationToken cancellationToken)
+    public async Task<IActionResult> Approve(int requestId, [FromBody] AdminProcessRequestInput? input, CancellationToken cancellationToken)
     {
-        var result = await requestService.ApproveAsync(requestId, input.Comment, cancellationToken);
+        var result = await requestService.ApproveAsync(requestId, input?.Comment, cancellationToken);
         return result is null ? NotFound() : Ok(result);
     }
 
     [HttpPost("{requestId:int}/reject")]
     [ProducesResponseType<VpnRequestDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Reject(int requestId, [FromBody] AdminProcessRequestInput input, CancellationToken cancellationToken)
+    public async Task<IActionResult> Reject(int requestId, [FromBody] AdminProcessRequestInput? input, CancellationToken cancellationToken)
     {
-        var result = await requestService.RejectAsync(requestId, input.Comment, cancellationToken);
+        var result = await requestService.RejectAsync(requestId, input?.Comment, cancellationToken);
         return result is null ? NotFound() : Ok(result);
     }
 }

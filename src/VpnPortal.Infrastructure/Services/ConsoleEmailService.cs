@@ -40,7 +40,12 @@ public sealed class ConsoleEmailService(IOptions<EmailOptions> options, ILogger<
             return baseUrl;
         }
 
-        return Uri.TryCreate(new Uri(AppendTrailingSlash(baseUrl)), activationLink.TrimStart('/'), out var uri)
+        if (string.IsNullOrWhiteSpace(baseUrl) || !Uri.TryCreate(AppendTrailingSlash(baseUrl), UriKind.Absolute, out var baseUri))
+        {
+            return activationLink;
+        }
+
+        return Uri.TryCreate(baseUri, activationLink.TrimStart('/'), out var uri)
             ? uri.ToString()
             : activationLink;
     }

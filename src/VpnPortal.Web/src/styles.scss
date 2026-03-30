@@ -669,6 +669,10 @@ select.field-invalid {
   margin-bottom: 1.25rem;
 }
 
+.content-section[id] {
+  scroll-margin-top: 1rem;
+}
+
 .content-section-header {
   align-items: end;
   display: grid;
@@ -794,6 +798,13 @@ th {
 .device-meta-grid strong {
   display: block;
   margin-bottom: 0.35rem;
+}
+
+.credential-panel-inline {
+  background: rgba(77, 123, 255, 0.05);
+  border: 1px solid rgba(77, 123, 255, 0.14);
+  border-radius: var(--radius-md);
+  padding: 1rem;
 }
 
 .device-card {
