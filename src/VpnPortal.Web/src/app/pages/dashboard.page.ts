@@ -13,25 +13,25 @@ import { IssuedVpnDeviceCredential } from '../core/models';
   template: `
     <section class="hero" *ngIf="dashboard$ | async as dashboard">
       <div class="hero-main">
-        <p class="eyebrow">User workspace</p>
-        <h1>{{ dashboard.username }}'s VPN control surface</h1>
-        <p class="lead">Manage device-bound VPN credentials, inspect recent sessions, and approve source IP changes without leaving the portal.</p>
+        <p class="eyebrow">Кабинет пользователя</p>
+        <h1>VPN-кабинет пользователя {{ dashboard.username }}</h1>
+        <p class="lead">Управляйте VPN-учетными данными устройств, просматривайте недавние сессии и подтверждайте смену IP-адресов прямо в портале.</p>
 
         <div class="summary-grid section-block">
           <article class="summary-card">
-            <span class="metric-label">Account</span>
-            <strong>{{ dashboard.active ? 'Active' : 'Inactive' }}</strong>
-            <p class="detail-copy">Portal sign-in and VPN onboarding are enabled only while the account stays active.</p>
+            <span class="metric-label">Учетная запись</span>
+            <strong>{{ dashboard.active ? 'Активна' : 'Неактивна' }}</strong>
+            <p class="detail-copy">Вход в портал и подключение VPN доступны только пока учетная запись активна.</p>
           </article>
           <article class="summary-card">
-            <span class="metric-label">Device policy</span>
+            <span class="metric-label">Политика устройств</span>
             <strong>{{ dashboard.devices.length }} / {{ dashboard.maxDevices }}</strong>
-            <p class="detail-copy">Registered active devices versus the current device allowance.</p>
+            <p class="detail-copy">Количество активных зарегистрированных устройств относительно текущего лимита.</p>
           </article>
           <article class="summary-card">
-            <span class="metric-label">Observed activity</span>
-            <strong>{{ dashboard.sessions.length }} sessions</strong>
-            <p class="detail-copy">Recent session records and trusted IP approvals stay visible from this workspace.</p>
+            <span class="metric-label">Активность</span>
+            <strong>{{ dashboard.sessions.length }} сессий</strong>
+            <p class="detail-copy">Здесь видны недавние сессии и подтвержденные доверенные IP-адреса.</p>
           </article>
         </div>
       </div>
@@ -39,22 +39,22 @@ import { IssuedVpnDeviceCredential } from '../core/models';
       <aside class="hero-side">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">At a glance</p>
-            <h2>Security posture</h2>
+            <p class="eyebrow">Кратко</p>
+            <h2>Состояние безопасности</h2>
           </div>
         </div>
 
         <div class="status-grid">
           <article class="stat-card">
-            <span class="metric-label">Devices</span>
+            <span class="metric-label">Устройства</span>
             <span class="metric-value">{{ dashboard.devices.length }}</span>
           </article>
           <article class="stat-card">
-            <span class="metric-label">Trusted IPs</span>
+            <span class="metric-label">Доверенные IP</span>
             <span class="metric-value">{{ dashboard.trustedIps.length }}</span>
           </article>
           <article class="stat-card">
-            <span class="metric-label">Pending IP approvals</span>
+            <span class="metric-label">Ожидают подтверждения</span>
             <span class="metric-value">{{ dashboard.pendingIpConfirmations.length }}</span>
           </article>
         </div>
@@ -73,8 +73,8 @@ import { IssuedVpnDeviceCredential } from '../core/models';
       <article class="panel data-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Trusted devices</p>
-            <h2>Bound hardware</h2>
+            <p class="eyebrow">Доверенные устройства</p>
+            <h2>Привязанные устройства</h2>
           </div>
         </div>
 
@@ -83,17 +83,17 @@ import { IssuedVpnDeviceCredential } from '../core/models';
             <div class="stack-item">
               <strong>{{ device.deviceName }}</strong>
               <span>{{ device.platform }} / {{ device.deviceType }}</span>
-              <span>State: {{ device.status }}</span>
-              <span>{{ device.vpnUsername || 'VPN credential has not been issued yet.' }}</span>
+              <span>Статус: {{ deviceStatusLabel(device.status) }}</span>
+              <span>{{ device.vpnUsername || 'VPN-учетные данные для устройства еще не выданы.' }}</span>
               @if (device.credentialRotatedAt) {
-                <span>Rotated {{ device.credentialRotatedAt | date: 'medium' }}</span>
+                <span>Изменено {{ device.credentialRotatedAt | date: 'medium' }}</span>
               }
               @if (device.status !== 'revoked') {
                 <div class="action-row">
                   @if (device.vpnUsername) {
-                    <button type="button" class="button secondary compact" (click)="rotateDeviceCredential(device.id)">Rotate VPN password</button>
+                    <button type="button" class="button secondary compact" (click)="rotateDeviceCredential(device.id)">Сменить VPN-пароль</button>
                   }
-                  <button type="button" class="button ghost compact" (click)="revokeDevice(device.id)">Revoke device</button>
+                  <button type="button" class="button ghost compact" (click)="revokeDevice(device.id)">Отозвать устройство</button>
                 </div>
               }
               @if (device.onboarding) {
@@ -110,8 +110,8 @@ import { IssuedVpnDeviceCredential } from '../core/models';
 
         <ng-template #noDevicesState>
           <div class="empty-state">
-            <h3>No registered devices yet</h3>
-            <p class="muted-note">Issue the first VPN credential to create a device-bound access path.</p>
+            <h3>Пока нет зарегистрированных устройств</h3>
+            <p class="muted-note">Выдайте первые VPN-учетные данные, чтобы создать доступ для конкретного устройства.</p>
           </div>
         </ng-template>
       </article>
@@ -119,25 +119,25 @@ import { IssuedVpnDeviceCredential } from '../core/models';
       <article class="panel data-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Device access</p>
-            <h2>Issue a VPN credential</h2>
+            <p class="eyebrow">Доступ для устройства</p>
+            <h2>Выдать VPN-учетные данные</h2>
           </div>
         </div>
 
         <div class="auth-form">
           <label>
-            <span>Device name</span>
-            <input type="text" [(ngModel)]="newDeviceName" name="newDeviceName" placeholder="Alex iPhone" />
+            <span>Название устройства</span>
+            <input type="text" [(ngModel)]="newDeviceName" name="newDeviceName" placeholder="iPhone Алексея" />
           </label>
           <label>
-            <span>Device type</span>
+            <span>Тип устройства</span>
             <input type="text" [(ngModel)]="newDeviceType" name="newDeviceType" placeholder="phone" />
           </label>
           <label>
-            <span>Platform</span>
+            <span>Платформа</span>
             <input type="text" [(ngModel)]="newDevicePlatform" name="newDevicePlatform" placeholder="ios" />
           </label>
-          <button type="button" class="button primary" (click)="issueDeviceCredential()">Issue VPN credential</button>
+          <button type="button" class="button primary" (click)="issueDeviceCredential()">Выдать VPN-учетные данные</button>
         </div>
 
         @if (issuedCredential()) {
@@ -160,15 +160,15 @@ import { IssuedVpnDeviceCredential } from '../core/models';
       <article class="panel data-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">VPN sessions</p>
-            <h2>Current activity</h2>
+            <p class="eyebrow">VPN-сессии</p>
+            <h2>Текущая активность</h2>
           </div>
         </div>
 
         <div class="stack-list" *ngIf="dashboard.sessions.length; else noSessionsState">
           @for (session of dashboard.sessions; track session.id) {
             <div class="stack-item">
-              <strong>{{ session.assignedVpnIp || 'Pending IP lease' }}</strong>
+              <strong>{{ session.assignedVpnIp || 'Ожидается IP-адрес' }}</strong>
               <span>{{ session.sourceIp }}</span>
               <span>{{ session.startedAt | date: 'medium' }}</span>
             </div>
@@ -177,8 +177,8 @@ import { IssuedVpnDeviceCredential } from '../core/models';
 
         <ng-template #noSessionsState>
           <div class="empty-state">
-            <h3>No recent VPN sessions</h3>
-            <p class="muted-note">Session visibility appears here after accounting events reach the portal.</p>
+            <h3>Нет недавних VPN-сессий</h3>
+            <p class="muted-note">Информация о сессиях появится здесь после поступления accounting-событий в портал.</p>
           </div>
         </ng-template>
       </article>
@@ -186,8 +186,8 @@ import { IssuedVpnDeviceCredential } from '../core/models';
       <article class="panel data-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Trusted IPs</p>
-            <h2>Approved source addresses</h2>
+            <p class="eyebrow">Доверенные IP</p>
+            <h2>Разрешенные адреса источника</h2>
           </div>
         </div>
 
@@ -195,16 +195,16 @@ import { IssuedVpnDeviceCredential } from '../core/models';
           @for (ip of dashboard.trustedIps; track ip.id) {
             <div class="stack-item">
               <strong>{{ ip.ipAddress }}</strong>
-              <span>{{ ip.status }}</span>
-              <span>{{ ip.lastSeenAt ? (ip.lastSeenAt | date: 'medium') : 'No recent activity' }}</span>
+              <span>{{ trustedIpStatusLabel(ip.status) }}</span>
+              <span>{{ ip.lastSeenAt ? (ip.lastSeenAt | date: 'medium') : 'Недавней активности нет' }}</span>
             </div>
           }
         </div>
 
         <ng-template #noIpsState>
           <div class="empty-state">
-            <h3>No approved IPs</h3>
-            <p class="muted-note">New connection origins can be approved from email-driven confirmation flows.</p>
+            <h3>Нет подтвержденных IP-адресов</h3>
+            <p class="muted-note">Новые адреса подключения можно подтвердить через письмо со ссылкой.</p>
           </div>
         </ng-template>
       </article>
@@ -212,26 +212,26 @@ import { IssuedVpnDeviceCredential } from '../core/models';
       <article class="panel data-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">IP approval</p>
-            <h2>Request a new IP confirmation</h2>
+            <p class="eyebrow">Подтверждение IP</p>
+            <h2>Запросить подтверждение нового IP</h2>
           </div>
         </div>
 
         <div class="auth-form">
           <label>
-            <span>New source IP</span>
+            <span>Новый IP-адрес источника</span>
             <input type="text" [(ngModel)]="requestedIp" name="requestedIp" placeholder="198.51.100.77" />
           </label>
           <label>
-            <span>Device</span>
+            <span>Устройство</span>
             <select [(ngModel)]="selectedDeviceId" name="selectedDeviceId">
-              <option [ngValue]="null">No device selected</option>
+              <option [ngValue]="null">Устройство не выбрано</option>
               @for (device of dashboard.devices; track device.id) {
                 <option [ngValue]="device.id">{{ device.deviceName }}</option>
               }
             </select>
           </label>
-          <button type="button" class="button primary" (click)="requestIpConfirmation()">Create confirmation link</button>
+          <button type="button" class="button primary" (click)="requestIpConfirmation()">Создать ссылку подтверждения</button>
         </div>
 
         @if (lastConfirmationLink()) {
@@ -243,7 +243,7 @@ import { IssuedVpnDeviceCredential } from '../core/models';
             @for (confirmation of dashboard.pendingIpConfirmations; track confirmation.id) {
               <div class="stack-item">
                 <strong>{{ confirmation.requestedIp }}</strong>
-                <span>Expires {{ confirmation.expiresAt | date: 'medium' }}</span>
+                <span>Истекает {{ confirmation.expiresAt | date: 'medium' }}</span>
               </div>
             }
           </div>
@@ -253,8 +253,8 @@ import { IssuedVpnDeviceCredential } from '../core/models';
       <article class="panel data-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Platform guides</p>
-            <h2>Manual onboarding reference</h2>
+            <p class="eyebrow">Инструкции по платформам</p>
+            <h2>Справка по ручной настройке</h2>
           </div>
         </div>
 
@@ -275,8 +275,8 @@ import { IssuedVpnDeviceCredential } from '../core/models';
         </div>
         <ng-template #noGuidesState>
           <div class="empty-state">
-            <h3>No onboarding guides available</h3>
-            <p class="muted-note">Platform-specific connection guidance will appear here once configured.</p>
+            <h3>Инструкции по настройке недоступны</h3>
+            <p class="muted-note">Инструкции для конкретных платформ появятся здесь после настройки.</p>
           </div>
         </ng-template>
       </article>
@@ -313,15 +313,15 @@ export class DashboardPage {
     this.api.revokeDevice(deviceId).subscribe({
       next: () => {
         this.reloadDashboard();
-        this.message.set('Device revoked. Policy state updated.');
+        this.message.set('Устройство отозвано. Политика доступа обновлена.');
       },
-      error: () => this.error.set('Could not revoke device.')
+      error: () => this.error.set('Не удалось отозвать устройство.')
     });
   }
 
   protected issueDeviceCredential(): void {
     if (!this.newDeviceName.trim() || !this.newDeviceType.trim() || !this.newDevicePlatform.trim()) {
-      this.error.set('Enter device name, type, and platform first.');
+      this.error.set('Сначала укажите название устройства, тип и платформу.');
       return;
     }
 
@@ -339,7 +339,7 @@ export class DashboardPage {
         this.newDeviceType = '';
         this.newDevicePlatform = '';
       },
-      error: () => this.error.set('Could not issue a VPN device credential.')
+      error: () => this.error.set('Не удалось выдать VPN-учетные данные для устройства.')
     });
   }
 
@@ -351,13 +351,13 @@ export class DashboardPage {
         this.message.set(result.message);
         this.error.set(null);
       },
-      error: () => this.error.set('Could not rotate the VPN password for this device.')
+      error: () => this.error.set('Не удалось сменить VPN-пароль для этого устройства.')
     });
   }
 
   protected requestIpConfirmation(): void {
     if (!this.requestedIp.trim()) {
-      this.error.set('Enter an IP address first.');
+      this.error.set('Сначала укажите IP-адрес.');
       return;
     }
 
@@ -366,7 +366,7 @@ export class DashboardPage {
         this.message.set(result.message);
         this.lastConfirmationLink.set(result.confirmationLink);
       },
-      error: () => this.error.set('Could not create IP confirmation request.')
+      error: () => this.error.set('Не удалось создать запрос на подтверждение IP-адреса.')
     });
   }
 
@@ -374,13 +374,37 @@ export class DashboardPage {
     this.api.confirmIp(token).subscribe({
       next: () => {
         this.reloadDashboard();
-        this.message.set('IP address confirmed. Trusted IP list updated.');
+        this.message.set('IP-адрес подтвержден. Список доверенных IP обновлен.');
       },
-      error: () => this.error.set('Could not confirm IP address from this token.')
+      error: () => this.error.set('Не удалось подтвердить IP-адрес по этому токену.')
     });
   }
 
   private reloadDashboard(): void {
     this.refresh$.next();
+  }
+
+  protected deviceStatusLabel(status: string): string {
+    switch (status) {
+      case 'active':
+        return 'активно';
+      case 'revoked':
+        return 'отозвано';
+      default:
+        return status;
+    }
+  }
+
+  protected trustedIpStatusLabel(status: string): string {
+    switch (status) {
+      case 'active':
+        return 'разрешен';
+      case 'pending':
+        return 'ожидает подтверждения';
+      case 'revoked':
+        return 'отозван';
+      default:
+        return status;
+    }
   }
 }

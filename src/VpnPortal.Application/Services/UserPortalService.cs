@@ -133,7 +133,7 @@ public sealed class UserPortalService(
         }, cancellationToken);
 
         await auditService.WriteAsync("user", userId, "device_credential_issued", "vpn_device_credential", credential.Id.ToString(), null, new { device.Id, credential.VpnUsername }, cancellationToken);
-        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, vpnOnboardingInstructionService.Create(device.Platform, credential.VpnUsername), "VPN credential issued. Save this password now because it will not be shown again.");
+        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, vpnOnboardingInstructionService.Create(device.Platform, credential.VpnUsername), "VPN-учетные данные выданы. Сохраните этот пароль сейчас: повторно он показан не будет.");
     }
 
     public async Task<IssuedVpnDeviceCredentialDto?> RotateDeviceCredentialAsync(int userId, int deviceId, CancellationToken cancellationToken)
@@ -156,7 +156,7 @@ public sealed class UserPortalService(
         await deviceCredentialRepository.UpdateAsync(credential, cancellationToken);
         await auditService.WriteAsync("user", userId, "device_credential_rotated", "vpn_device_credential", credential.Id.ToString(), null, new { deviceId, credential.VpnUsername }, cancellationToken);
 
-        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, vpnOnboardingInstructionService.Create(device.Platform, credential.VpnUsername), "VPN credential rotated. Save the new password now because it will not be shown again.");
+        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, vpnOnboardingInstructionService.Create(device.Platform, credential.VpnUsername), "VPN-пароль обновлен. Сохраните новый пароль сейчас: повторно он показан не будет.");
     }
 
     public Task<bool> RevokeDeviceAsync(int userId, int deviceId, CancellationToken cancellationToken)
@@ -184,7 +184,7 @@ public sealed class UserPortalService(
         var existing = await trustedIpRepository.GetByUserAndIpAsync(userId, command.RequestedIp, cancellationToken);
         if (existing is not null && existing.Status == TrustedIpStatus.Active)
         {
-            return new IpConfirmationRequestResultDto(existing.Id, existing.IpAddress, existing.ApprovedAt ?? DateTimeOffset.UtcNow, "/confirm-ip/already-approved", "IP address is already approved.");
+            return new IpConfirmationRequestResultDto(existing.Id, existing.IpAddress, existing.ApprovedAt ?? DateTimeOffset.UtcNow, "/confirm-ip/already-approved", "Этот IP-адрес уже подтвержден.");
         }
 
         var rawToken = tokenProtector.GenerateRawToken();
@@ -204,7 +204,7 @@ public sealed class UserPortalService(
         await emailService.SendIpConfirmationLinkAsync(user.Email, confirmationLink, confirmation.ExpiresAt, cancellationToken);
         await auditService.WriteAsync("user", userId, "ip_confirmation_requested", "ip_change_confirmation", confirmation.Id.ToString(), null, new { confirmation.RequestedIp }, cancellationToken);
 
-        return new IpConfirmationRequestResultDto(confirmation.Id, confirmation.RequestedIp, confirmation.ExpiresAt, confirmationLink, "Confirmation link created and queued for delivery.");
+        return new IpConfirmationRequestResultDto(confirmation.Id, confirmation.RequestedIp, confirmation.ExpiresAt, confirmationLink, "Ссылка подтверждения создана и поставлена в очередь на отправку.");
     }
 
     public async Task<bool> ConfirmIpChangeAsync(int userId, string token, CancellationToken cancellationToken)

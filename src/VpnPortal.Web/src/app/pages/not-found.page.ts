@@ -9,10 +9,10 @@ import { RouterLink } from '@angular/router';
     <section class="auth-shell">
       <article class="auth-panel auth-side">
         <p class="eyebrow">404</p>
-        <h1>Route not found</h1>
-        <p class="lead">This portal route does not exist. Return to the main entry point and continue from a supported public, user, or admin flow.</p>
+        <h1>Маршрут не найден</h1>
+        <p class="lead">Такого маршрута в портале нет. Вернитесь на главную страницу и продолжите работу через доступный публичный, пользовательский или административный сценарий.</p>
         <div class="inline-actions">
-          <a routerLink="/" class="button primary">Back to portal</a>
+          <a routerLink="/" class="button primary">Вернуться в портал</a>
         </div>
       </article>
     </section>

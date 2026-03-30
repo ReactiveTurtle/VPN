@@ -15,27 +15,27 @@ public sealed class AccountActivationService(
     {
         if (string.IsNullOrWhiteSpace(token))
         {
-            return new ActivationTokenStatusDto(false, false, null, null, "Activation token is missing.");
+            return new ActivationTokenStatusDto(false, false, null, null, "Токен активации отсутствует.");
         }
 
         var tokenHash = tokenProtector.Hash(token);
         var accountToken = await accountTokenRepository.GetByHashAsync(tokenHash, AccountTokenPurpose.AccountActivation, cancellationToken);
         if (accountToken is null)
         {
-            return new ActivationTokenStatusDto(false, false, null, null, "Activation token was not found.");
+            return new ActivationTokenStatusDto(false, false, null, null, "Токен активации не найден.");
         }
 
         if (accountToken.Used)
         {
-            return new ActivationTokenStatusDto(false, true, accountToken.UserEmail, accountToken.ExpiresAt, "Activation link has already been used.");
+            return new ActivationTokenStatusDto(false, true, accountToken.UserEmail, accountToken.ExpiresAt, "Ссылка активации уже была использована.");
         }
 
         if (accountToken.ExpiresAt <= DateTimeOffset.UtcNow)
         {
-            return new ActivationTokenStatusDto(false, false, accountToken.UserEmail, accountToken.ExpiresAt, "Activation link has expired.");
+            return new ActivationTokenStatusDto(false, false, accountToken.UserEmail, accountToken.ExpiresAt, "Срок действия ссылки активации истек.");
         }
 
-        return new ActivationTokenStatusDto(true, false, accountToken.UserEmail, accountToken.ExpiresAt, "Activation link is valid.");
+        return new ActivationTokenStatusDto(true, false, accountToken.UserEmail, accountToken.ExpiresAt, "Ссылка активации действительна.");
     }
 
     public async Task<ActivationCompletedDto?> ActivateAsync(ActivateAccountCommand command, CancellationToken cancellationToken)
@@ -72,6 +72,6 @@ public sealed class AccountActivationService(
         await accountTokenRepository.UpdateAsync(accountToken, cancellationToken);
         await auditService.WriteAsync("user", user.Id, "account_activated", "vpn_user", user.Id.ToString(), null, new { user.Email }, cancellationToken);
 
-        return new ActivationCompletedDto(user.Id, user.Email, user.Username, "Account activated. You can now sign in and complete VPN setup.");
+        return new ActivationCompletedDto(user.Id, user.Email, user.Username, "Учетная запись активирована. Теперь вы можете войти в портал и завершить настройку VPN.");
     }
 }

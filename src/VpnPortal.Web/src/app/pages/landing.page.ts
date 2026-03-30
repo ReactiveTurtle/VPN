@@ -12,31 +12,31 @@ import { PortalApiService } from '../core/portal-api.service';
   template: `
     <section class="hero">
       <div class="hero-main">
-        <p class="eyebrow">Secure remote access</p>
-        <h1>Approve access, bind devices, and keep VPN activity visible from one control plane.</h1>
+        <p class="eyebrow">Безопасный удаленный доступ</p>
+        <h1>Управляйте доступом, привязкой устройств и активностью VPN из единого портала.</h1>
         <p class="lead">
-          NorthGate brings request intake, account activation, device-scoped VPN credentials, trusted IP checks, and operational visibility into one portal instead of spreading them across ad hoc runbooks.
+          NorthGate объединяет прием заявок, активацию учетных записей, VPN-учетные данные для конкретных устройств, проверку доверенных IP и операционную видимость в одном интерфейсе.
         </p>
         <div class="hero-actions">
-          <a routerLink="/login" class="button primary">User sign in</a>
-          <a routerLink="/admin/login" class="button secondary">Admin operations</a>
+          <a routerLink="/login" class="button primary">Вход для пользователя</a>
+          <a routerLink="/admin/login" class="button secondary">Админ-панель</a>
         </div>
 
         <div class="summary-grid section-block">
           <article class="summary-card">
-            <span class="metric-label">Access model</span>
-            <strong>Per-device VPN credentials</strong>
-            <p class="detail-copy">Portal login stays separate from VPN password material issued to each registered device.</p>
+            <span class="metric-label">Модель доступа</span>
+            <strong>Отдельные VPN-данные для каждого устройства</strong>
+            <p class="detail-copy">Вход в портал отделен от VPN-паролей, которые выдаются каждому зарегистрированному устройству.</p>
           </article>
           <article class="summary-card">
-            <span class="metric-label">Security signal</span>
-            <strong>Blocked new-IP visibility</strong>
-            <p class="detail-copy">Unexpected source IPs can create confirmation flows instead of silently passing through.</p>
+            <span class="metric-label">Сигналы безопасности</span>
+            <strong>Контроль новых IP-адресов</strong>
+            <p class="detail-copy">Неожиданные IP-адреса источника требуют подтверждения вместо скрытого пропуска.</p>
           </article>
           <article class="summary-card">
-            <span class="metric-label">Operations</span>
-            <strong>Session-aware moderation</strong>
-            <p class="detail-copy">Admins review requests, user limits, audit events, and active VPN sessions from one place.</p>
+            <span class="metric-label">Операции</span>
+            <strong>Модерация с учетом сессий</strong>
+            <p class="detail-copy">Администраторы видят заявки, лимиты пользователей, события аудита и активные VPN-сессии в одном месте.</p>
           </article>
         </div>
       </div>
@@ -44,8 +44,8 @@ import { PortalApiService } from '../core/portal-api.service';
       <aside class="hero-side" *ngIf="status$ | async as status">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Platform status</p>
-            <h2>Deployment readiness snapshot</h2>
+            <p class="eyebrow">Состояние платформы</p>
+            <h2>Снимок готовности развертывания</h2>
           </div>
         </div>
 
@@ -53,28 +53,28 @@ import { PortalApiService } from '../core/portal-api.service';
           <article class="stat-card">
             <span class="metric-label">API</span>
             <strong>{{ status.name }}</strong>
-            <span class="meta-line">HTTP host is responding.</span>
+            <span class="meta-line">HTTP-хост отвечает.</span>
           </article>
           <article class="stat-card">
-            <span class="metric-label">Version</span>
+            <span class="metric-label">Версия</span>
             <strong>{{ status.version }}</strong>
-            <span class="meta-line">Current backend build marker.</span>
+            <span class="meta-line">Текущая метка сборки backend.</span>
           </article>
           <article class="stat-card">
-            <span class="metric-label">Database</span>
-            <strong [ngClass]="status.databaseConfigured ? 'ok' : 'warn'">{{ status.databaseConfigured ? 'Configured' : 'Missing' }}</strong>
-            <span class="meta-line">Connection string state reported by the API.</span>
+            <span class="metric-label">База данных</span>
+            <strong [ngClass]="status.databaseConfigured ? 'ok' : 'warn'">{{ status.databaseConfigured ? 'Настроена' : 'Не настроена' }}</strong>
+            <span class="meta-line">Состояние строки подключения по данным API.</span>
           </article>
         </div>
 
         <div class="feature-list pending-block">
           <div>
-            <strong>Public intake</strong>
-            <p class="detail-copy">Request capture is already wired to the backend moderation queue.</p>
+            <strong>Публичная подача заявок</strong>
+            <p class="detail-copy">Форма запроса уже подключена к очереди модерации на backend.</p>
           </div>
           <div>
-            <strong>Cookie auth</strong>
-            <p class="detail-copy">User and superadmin sessions are isolated through role-aware portal login.</p>
+            <strong>Cookie-аутентификация</strong>
+            <p class="detail-copy">Сессии пользователей и суперадминистраторов изолированы через ролевой вход в портал.</p>
           </div>
         </div>
       </aside>
@@ -83,25 +83,25 @@ import { PortalApiService } from '../core/portal-api.service';
     <section class="panel request-panel" id="request-access">
       <div class="panel-heading">
         <div>
-          <p class="eyebrow">Request access</p>
-          <h2>Submit a VPN access request</h2>
+          <p class="eyebrow">Запрос доступа</p>
+          <h2>Подать заявку на VPN-доступ</h2>
         </div>
-        <p>Provide a contact email and optional display name. The request enters the admin queue immediately.</p>
+        <p>Укажите контактный email и, при желании, отображаемое имя. Заявка сразу попадет в очередь администратора.</p>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="request-form">
         <label>
-          <span>Name</span>
-          <input type="text" formControlName="name" placeholder="Jane Doe" />
+          <span>Имя</span>
+          <input type="text" formControlName="name" placeholder="Иван Иванов" />
         </label>
 
         <label>
           <span>Email</span>
-          <input type="email" formControlName="email" placeholder="jane@company.com" />
+          <input type="email" formControlName="email" placeholder="ivan@company.com" />
         </label>
 
         <button type="submit" class="button primary" [disabled]="form.invalid || submitting()">
-          {{ submitting() ? 'Submitting...' : 'Submit request' }}
+          {{ submitting() ? 'Отправка...' : 'Отправить заявку' }}
         </button>
       </form>
 
@@ -120,7 +120,7 @@ export class LandingPage {
   });
 
   protected readonly status$ = this.api.getStatus().pipe(
-    catchError(() => of({ name: 'VpnPortal.Api', version: 'offline', databaseConfigured: false, developmentMode: true })),
+    catchError(() => of({ name: 'VpnPortal.Api', version: 'недоступно', databaseConfigured: false, developmentMode: true })),
     startWith(null)
   );
 
@@ -141,13 +141,26 @@ export class LandingPage {
     this.api.submitRequest(payload).subscribe({
       next: (result) => {
         this.submitting.set(false);
-        this.message.set(`Request #${result.id} is ${result.status}. The admin queue has been updated.`);
+        this.message.set(`Заявка #${result.id} создана со статусом «${this.requestStatusLabel(result.status)}». Очередь модерации обновлена.`);
         this.form.reset({ name: '', email: '' });
       },
       error: () => {
         this.submitting.set(false);
-        this.error.set('Could not submit the request. Start the API and try again.');
+        this.error.set('Не удалось отправить заявку. Запустите API и попробуйте снова.');
       }
     });
+  }
+
+  private requestStatusLabel(status: string): string {
+    switch (status) {
+      case 'pending':
+        return 'ожидает рассмотрения';
+      case 'approved':
+        return 'одобрена';
+      case 'rejected':
+        return 'отклонена';
+      default:
+        return status;
+    }
   }
 }

@@ -12,18 +12,18 @@ public sealed class SmtpEmailService(IOptions<EmailOptions> options) : IEmailSer
     {
         var settings = options.Value;
         var publicLink = BuildPublicLink(activationLink, settings.PublicBaseUrl);
-        var subject = "Your VPN account activation link";
+        var subject = "Ссылка активации VPN-учетной записи";
         var body = $"""
-            Hello,
+            Здравствуйте,
 
-            Your VPN access request has been approved.
+            Ваша заявка на VPN-доступ одобрена.
 
-            Use the activation link below to create your password:
+            Перейдите по ссылке ниже, чтобы создать пароль:
             {publicLink}
 
-            This link expires at {expiresAt:O}.
+            Ссылка действительна до {expiresAt:O}.
 
-            If you did not request access, ignore this message.
+            Если вы не запрашивали доступ, просто проигнорируйте это письмо.
             """;
 
         using var message = new MailMessage
@@ -52,18 +52,18 @@ public sealed class SmtpEmailService(IOptions<EmailOptions> options) : IEmailSer
     {
         var settings = options.Value;
         var publicLink = BuildPublicLink(confirmationLink, settings.PublicBaseUrl);
-        var subject = "Confirm a new VPN source IP";
+        var subject = "Подтвердите новый исходный IP-адрес VPN";
         var body = $"""
-            Hello,
+            Здравствуйте,
 
-            A VPN connection attempt was detected from a new IP address.
+            Обнаружена попытка VPN-подключения с нового IP-адреса.
 
-            Confirm this IP from the link below:
+            Подтвердите этот IP-адрес по ссылке ниже:
             {publicLink}
 
-            This link expires at {expiresAt:O}.
+            Ссылка действительна до {expiresAt:O}.
 
-            If this was not you, ignore this email and contact an administrator.
+            Если это были не вы, проигнорируйте письмо и свяжитесь с администратором.
             """;
 
         using var message = new MailMessage

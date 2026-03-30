@@ -13,21 +13,21 @@ import { PortalApiService } from '../core/portal-api.service';
     <section class="auth-shell" *ngIf="status$ | async as status">
       <div class="auth-layout">
         <article class="auth-panel auth-side">
-          <p class="eyebrow">Account activation</p>
-          <h1>{{ status.valid ? 'Finish account setup' : 'Activation link unavailable' }}</h1>
-          <p class="lead">Create the portal password used for sign-in. Device-specific VPN passwords are issued later from the user workspace.</p>
+          <p class="eyebrow">Активация учетной записи</p>
+          <h1>{{ status.valid ? 'Завершите настройку учетной записи' : 'Ссылка активации недоступна' }}</h1>
+          <p class="lead">Создайте пароль для входа в портал. Отдельные VPN-пароли для устройств выдаются позже в кабинете пользователя.</p>
 
           <div class="feature-list pending-block">
             <div>
-              <strong>Status</strong>
+              <strong>Статус</strong>
               <p class="detail-copy">{{ status.message }}</p>
             </div>
             <div *ngIf="status.email">
-              <strong>Account</strong>
+              <strong>Учетная запись</strong>
               <p class="detail-copy">{{ status.email }}</p>
             </div>
             <div *ngIf="status.expiresAt">
-              <strong>Expires</strong>
+              <strong>Истекает</strong>
               <p class="detail-copy">{{ status.expiresAt | date: 'medium' }}</p>
             </div>
           </div>
@@ -36,23 +36,23 @@ import { PortalApiService } from '../core/portal-api.service';
         <article class="auth-panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Portal password</p>
-              <h2>{{ status.valid ? 'Create password' : 'Token check' }}</h2>
+              <p class="eyebrow">Пароль портала</p>
+              <h2>{{ status.valid ? 'Создать пароль' : 'Проверка токена' }}</h2>
             </div>
           </div>
 
           <form *ngIf="status.valid" [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
             <label>
-              <span>Password</span>
-              <input type="password" formControlName="password" placeholder="Minimum 10 characters" />
+              <span>Пароль</span>
+              <input type="password" formControlName="password" placeholder="Минимум 10 символов" />
             </label>
 
             <label>
-              <span>Confirm password</span>
-              <input type="password" formControlName="confirmPassword" placeholder="Repeat password" />
+              <span>Подтвердите пароль</span>
+              <input type="password" formControlName="confirmPassword" placeholder="Повторите пароль" />
             </label>
 
-            <button type="submit" class="button primary" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Activating...' : 'Activate account' }}</button>
+            <button type="submit" class="button primary" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Активация...' : 'Активировать учетную запись' }}</button>
           </form>
 
           <div *ngIf="message() as message" class="feedback success">{{ message }}</div>
@@ -76,7 +76,7 @@ export class ActivateAccountPage {
   protected readonly status$ = this.route.paramMap.pipe(
     map((params) => params.get('token') ?? ''),
     switchMap((token) => this.api.getActivationStatus(token)),
-    catchError(() => of({ valid: false, used: false, email: null, expiresAt: null, message: 'Could not validate activation token.' }))
+    catchError(() => of({ valid: false, used: false, email: null, expiresAt: null, message: 'Не удалось проверить токен активации.' }))
   );
 
   protected readonly submitting = signal(false);
@@ -90,7 +90,7 @@ export class ActivateAccountPage {
 
     const { password, confirmPassword } = this.form.getRawValue();
     if (password !== confirmPassword) {
-      this.error.set('Passwords do not match.');
+      this.error.set('Пароли не совпадают.');
       return;
     }
 
@@ -106,7 +106,7 @@ export class ActivateAccountPage {
       },
       error: () => {
         this.submitting.set(false);
-        this.error.set('Activation failed. The link may be expired or already used.');
+        this.error.set('Не удалось активировать учетную запись. Возможно, ссылка истекла или уже была использована.');
       }
     });
   }

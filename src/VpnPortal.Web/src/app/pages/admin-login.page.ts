@@ -12,18 +12,18 @@ import { AuthService } from '../core/auth.service';
     <section class="auth-shell">
       <div class="auth-layout">
         <article class="auth-panel auth-side">
-          <p class="eyebrow">Superadmin sign in</p>
-          <h1>Moderation and runtime operations</h1>
-          <p class="lead">Only manually provisioned superadmins can review requests, manage user limits, inspect audit events, and disconnect live VPN sessions.</p>
+          <p class="eyebrow">Вход суперадминистратора</p>
+          <h1>Модерация и операционное управление</h1>
+          <p class="lead">Только вручную созданные суперадминистраторы могут рассматривать заявки, управлять лимитами пользователей, просматривать аудит и отключать активные VPN-сессии.</p>
 
           <div class="feature-list pending-block">
             <div>
-              <strong>Request queue</strong>
-              <p class="detail-copy">Approve pending requests and deliver activation links immediately.</p>
+              <strong>Очередь заявок</strong>
+              <p class="detail-copy">Одобряйте ожидающие заявки и сразу выдавайте ссылки активации.</p>
             </div>
             <div>
-              <strong>Operational controls</strong>
-              <p class="detail-copy">Inspect recent sessions, enforce account state, and review recent security-sensitive audit actions.</p>
+              <strong>Операционное управление</strong>
+              <p class="detail-copy">Просматривайте недавние сессии, управляйте состоянием учетных записей и отслеживайте важные события аудита.</p>
             </div>
           </div>
         </article>
@@ -31,23 +31,23 @@ import { AuthService } from '../core/auth.service';
         <article class="auth-panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Restricted access</p>
-              <h2>Admin sign in</h2>
+              <p class="eyebrow">Ограниченный доступ</p>
+              <h2>Вход администратора</h2>
             </div>
           </div>
 
           <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
             <label>
-              <span>Username</span>
+              <span>Имя пользователя</span>
               <input type="text" formControlName="login" placeholder="rootadmin" />
             </label>
 
             <label>
-              <span>Password</span>
-              <input type="password" formControlName="password" placeholder="Admin password" />
+              <span>Пароль</span>
+              <input type="password" formControlName="password" placeholder="Пароль администратора" />
             </label>
 
-            <button class="button primary" type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Signing in...' : 'Open operations console' }}</button>
+            <button class="button primary" type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Вход...' : 'Открыть консоль операций' }}</button>
           </form>
 
           <div *ngIf="error() as error" class="feedback error">{{ error }}</div>
@@ -84,7 +84,7 @@ export class AdminLoginPage {
       },
       error: () => {
         this.submitting.set(false);
-        this.error.set('Invalid superadmin credentials.');
+        this.error.set('Неверные учетные данные суперадминистратора.');
       }
     });
   }

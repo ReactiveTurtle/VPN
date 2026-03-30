@@ -20,53 +20,53 @@ public sealed class VpnOnboardingInstructionService(IOptions<VpnAccessOptions> v
         {
             "ios" => new VpnOnboardingInstructionDto(
                 "ios",
-                "iPhone or iPad manual IKEv2 setup",
-                "Create a native IKEv2 VPN profile and sign in with the device credential shown below.",
+                "Ручная настройка IKEv2 на iPhone или iPad",
+                "Создайте встроенный IKEv2-профиль VPN и войдите с учетными данными устройства, указанными ниже.",
                 [
-                    $"Open Settings -> VPN -> Add VPN Configuration -> Type: IKEv2.",
-                    $"Server: {serverAddress}.",
-                    $"Remote ID: {serverAddress}. Local ID can stay empty unless your deployment requires one.",
-                    $"Username: {vpnUsername}. Password: the device VPN password issued in the portal.",
-                    "Save the profile and connect once to verify the tunnel comes up."
+                    "Откройте Настройки -> VPN -> Добавить конфигурацию VPN -> Тип: IKEv2.",
+                    $"Сервер: {serverAddress}.",
+                    $"Remote ID: {serverAddress}. Local ID можно оставить пустым, если ваша схема развертывания не требует иного.",
+                    $"Имя пользователя: {vpnUsername}. Пароль: VPN-пароль устройства, выданный в портале.",
+                    "Сохраните профиль и подключитесь один раз, чтобы убедиться, что туннель поднимается."
                 ],
-                "Use the device VPN username and password shown above."),
+                "Используйте VPN-имя пользователя и пароль устройства, указанные выше."),
             "android" => new VpnOnboardingInstructionDto(
                 "android",
-                "Android IKEv2 setup",
-                "Use the platform VPN settings or a compatible IKEv2 client and sign in with the issued device credential.",
+                "Настройка IKEv2 на Android",
+                "Используйте системные настройки VPN или совместимый IKEv2-клиент и войдите с выданными учетными данными устройства.",
                 [
-                    "Open Settings -> Network & Internet -> VPN and add a new profile, or use your approved IKEv2 client.",
-                    $"Server: {serverAddress}. VPN type: IKEv2/IPSec with username and password.",
-                    $"Username: {vpnUsername}. Password: the device VPN password issued in the portal.",
-                    "Save the profile and connect. If your Android client requests IPSec identifiers, use the server address as Remote ID.",
-                    "If your deployment later introduces QR or managed profiles, prefer those over manual entry."
+                    "Откройте Настройки -> Сеть и Интернет -> VPN и добавьте новый профиль, либо используйте одобренный IKEv2-клиент.",
+                    $"Сервер: {serverAddress}. Тип VPN: IKEv2/IPSec с именем пользователя и паролем.",
+                    $"Имя пользователя: {vpnUsername}. Пароль: VPN-пароль устройства, выданный в портале.",
+                    "Сохраните профиль и подключитесь. Если Android-клиент запрашивает IPSec-идентификаторы, используйте адрес сервера как Remote ID.",
+                    "Если позже в развертывании появятся QR-коды или управляемые профили, используйте их вместо ручного ввода."
                 ],
-                "Use the device VPN username and password shown above."),
+                "Используйте VPN-имя пользователя и пароль устройства, указанные выше."),
             "windows" => new VpnOnboardingInstructionDto(
                 "windows",
-                "Windows built-in VPN setup",
-                "Create a native Windows VPN connection and authenticate with the issued device credential.",
+                "Настройка встроенного VPN в Windows",
+                "Создайте встроенное VPN-подключение Windows и выполните аутентификацию с выданными учетными данными устройства.",
                 [
-                    "Open Settings -> Network & Internet -> VPN -> Add VPN.",
-                    "VPN provider: Windows (built-in). Connection name: any descriptive name.",
-                    $"Server name or address: {serverAddress}. VPN type: IKEv2.",
-                    "Type of sign-in info: Username and password.",
-                    $"Username: {vpnUsername}. Password: the device VPN password issued in the portal.",
-                    "Save the profile, then connect from the Windows VPN settings screen."
+                    "Откройте Параметры -> Сеть и Интернет -> VPN -> Добавить VPN-подключение.",
+                    "Поставщик VPN: Windows (встроенный). Имя подключения: любое понятное название.",
+                    $"Имя или адрес сервера: {serverAddress}. Тип VPN: IKEv2.",
+                    "Тип данных для входа: имя пользователя и пароль.",
+                    $"Имя пользователя: {vpnUsername}. Пароль: VPN-пароль устройства, выданный в портале.",
+                    "Сохраните профиль, затем подключитесь из экрана настроек VPN в Windows."
                 ],
-                "Use the device VPN username and password shown above."),
+                "Используйте VPN-имя пользователя и пароль устройства, указанные выше."),
             _ => new VpnOnboardingInstructionDto(
                 "macos",
-                "macOS native IKEv2 setup",
-                "Create a native IKEv2 VPN profile in macOS and authenticate with the issued device credential.",
+                "Настройка встроенного IKEv2 в macOS",
+                "Создайте встроенный IKEv2-профиль VPN в macOS и выполните аутентификацию с выданными учетными данными устройства.",
                 [
-                    "Open System Settings -> VPN -> Add VPN Configuration -> IKEv2.",
-                    $"Server address: {serverAddress}. Remote ID: {serverAddress}.",
-                    $"Username: {vpnUsername}. Password: the device VPN password issued in the portal.",
-                    "Leave Local ID empty unless your deployment requires a specific value.",
-                    "Save the profile and connect once to verify access."
+                    "Откройте Системные настройки -> VPN -> Добавить конфигурацию VPN -> IKEv2.",
+                    $"Адрес сервера: {serverAddress}. Remote ID: {serverAddress}.",
+                    $"Имя пользователя: {vpnUsername}. Пароль: VPN-пароль устройства, выданный в портале.",
+                    "Оставьте Local ID пустым, если ваше развертывание не требует конкретного значения.",
+                    "Сохраните профиль и подключитесь один раз, чтобы проверить доступ."
                 ],
-                "Use the device VPN username and password shown above.")
+                "Используйте VPN-имя пользователя и пароль устройства, указанные выше.")
         };
     }
 

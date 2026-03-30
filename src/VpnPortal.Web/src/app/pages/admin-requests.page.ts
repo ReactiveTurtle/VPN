@@ -11,25 +11,25 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
   template: `
     <section class="hero">
       <div class="hero-main">
-        <p class="eyebrow">Admin operations</p>
-        <h1>Moderate access and supervise runtime state</h1>
-        <p class="lead">This view combines request moderation, user policy controls, recent sessions, and audit visibility for superadmin operators.</p>
+        <p class="eyebrow">Операции администратора</p>
+        <h1>Модерация доступа и контроль runtime-состояния</h1>
+        <p class="lead">Этот экран объединяет модерацию заявок, управление политиками пользователей, недавние сессии и аудит для суперадминистраторов.</p>
 
         <div class="summary-grid section-block">
           <article class="summary-card">
-            <span class="metric-label">Pending requests</span>
+            <span class="metric-label">Ожидающие заявки</span>
             <strong>{{ pendingRequestCount() }}</strong>
-            <p class="detail-copy">Requests still waiting for moderation.</p>
+            <p class="detail-copy">Заявки, которые еще ждут рассмотрения.</p>
           </article>
           <article class="summary-card">
-            <span class="metric-label">Tracked users</span>
+            <span class="metric-label">Пользователи</span>
             <strong>{{ users().length }}</strong>
-            <p class="detail-copy">Provisioned users currently visible to admin operations.</p>
+            <p class="detail-copy">Пользователи, доступные для администрирования.</p>
           </article>
           <article class="summary-card">
-            <span class="metric-label">Recent sessions</span>
+            <span class="metric-label">Недавние сессии</span>
             <strong>{{ sessions().length }}</strong>
-            <p class="detail-copy">Active and recently observed VPN connection records.</p>
+            <p class="detail-copy">Активные и недавно замеченные записи VPN-подключений.</p>
           </article>
         </div>
       </div>
@@ -37,23 +37,23 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
       <aside class="hero-side">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Operational focus</p>
-            <h2>What to watch now</h2>
+            <p class="eyebrow">Фокус оператора</p>
+            <h2>Что требует внимания сейчас</h2>
           </div>
         </div>
 
         <div class="feature-list">
           <div>
-            <strong>Moderation queue</strong>
-            <p class="detail-copy">Approve pending requests and deliver activation links immediately.</p>
+            <strong>Очередь модерации</strong>
+            <p class="detail-copy">Одобряйте ожидающие заявки и сразу отправляйте ссылки активации.</p>
           </div>
           <div>
-            <strong>Session control</strong>
-            <p class="detail-copy">Disconnect suspicious live sessions when runtime integration is available.</p>
+            <strong>Управление сессиями</strong>
+            <p class="detail-copy">Отключайте подозрительные активные сессии, когда доступна runtime-интеграция.</p>
           </div>
           <div>
-            <strong>Audit review</strong>
-            <p class="detail-copy">Track high-value account, credential, and session events in one stream.</p>
+            <strong>Проверка аудита</strong>
+            <p class="detail-copy">Отслеживайте важные события учетных записей, учетных данных и сессий в одном потоке.</p>
           </div>
         </div>
       </aside>
@@ -70,8 +70,8 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
     <section class="panel data-panel">
       <div class="panel-heading">
         <div>
-          <p class="eyebrow">Moderation queue</p>
-          <h2>Review access requests</h2>
+          <p class="eyebrow">Очередь модерации</p>
+          <h2>Проверка заявок на доступ</h2>
         </div>
       </div>
 
@@ -80,20 +80,20 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
           <article class="stack-item">
             <div class="panel-heading">
               <div>
-                <strong>{{ request.name || 'Unknown user' }}</strong>
+                <strong>{{ request.name || 'Неизвестный пользователь' }}</strong>
                 <p>{{ request.email }}</p>
               </div>
-              <span class="badge">{{ request.status }}</span>
+              <span class="badge">{{ requestStatusLabel(request.status) }}</span>
             </div>
 
             <div class="feature-list">
               <div>
-                <strong>Submitted</strong>
+                <strong>Подана</strong>
                 <p class="detail-copy">{{ request.submittedAt | date: 'medium' }}</p>
               </div>
               <div>
-                <strong>Review note</strong>
-                <p class="detail-copy">{{ request.adminComment || 'Waiting for review' }}</p>
+                <strong>Комментарий проверки</strong>
+                <p class="detail-copy">{{ request.adminComment || 'Ожидает рассмотрения' }}</p>
               </div>
             </div>
 
@@ -104,19 +104,19 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
             @if (request.status === 'pending') {
               <div class="pending-block auth-form">
                 <label>
-                  <span>Admin comment</span>
-                  <textarea [(ngModel)]="comments[request.id]" [name]="'comment-' + request.id" rows="3" placeholder="Optional admin comment"></textarea>
+                  <span>Комментарий администратора</span>
+                  <textarea [(ngModel)]="comments[request.id]" [name]="'comment-' + request.id" rows="3" placeholder="Необязательный комментарий администратора"></textarea>
                 </label>
                 <div class="action-row">
                   <button type="button" class="button primary" [disabled]="busyRequestId() === request.id" (click)="approve(request)">
-                    {{ busyRequestId() === request.id ? 'Saving...' : 'Approve' }}
+                    {{ busyRequestId() === request.id ? 'Сохранение...' : 'Одобрить' }}
                   </button>
-                  <button type="button" class="button danger" [disabled]="busyRequestId() === request.id" (click)="reject(request)">Reject</button>
+                  <button type="button" class="button danger" [disabled]="busyRequestId() === request.id" (click)="reject(request)">Отклонить</button>
                 </div>
               </div>
             } @else {
               <div class="chip-row pending-block">
-                <span class="session-pill">Already processed</span>
+                <span class="session-pill">Уже обработана</span>
               </div>
             }
           </article>
@@ -125,8 +125,8 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
 
       <ng-template #emptyState>
         <div class="empty-state">
-          <h3>No requests in queue</h3>
-          <p class="muted-note">Public intake has not produced any moderation items yet.</p>
+          <h3>В очереди нет заявок</h3>
+          <p class="muted-note">Публичная форма пока не создала элементов для модерации.</p>
         </div>
       </ng-template>
     </section>
@@ -135,8 +135,8 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
       <article class="panel data-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Users</p>
-            <h2>Account control</h2>
+            <p class="eyebrow">Пользователи</p>
+            <h2>Управление учетными записями</h2>
           </div>
         </div>
         <div class="stack-list" *ngIf="users().length; else emptyUsersState">
@@ -144,16 +144,16 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
             <div class="stack-item">
               <strong>{{ user.username }}</strong>
               <span>{{ user.email }}</span>
-              <span>{{ user.active ? 'active' : 'inactive' }} / max devices: {{ user.maxDevices }} / bound: {{ user.deviceCount }}</span>
+              <span>{{ userStatusLabel(user.active) }} / максимум устройств: {{ user.maxDevices }} / привязано: {{ user.deviceCount }}</span>
               <div class="auth-form pending-block">
                 <label>
-                  <span>Max devices</span>
+                  <span>Максимум устройств</span>
                   <input type="number" min="1" [(ngModel)]="userLimits[user.id]" [name]="'limit-' + user.id" />
                 </label>
                 <div class="action-row">
-                  <button type="button" class="button primary compact" [disabled]="busyUserId() === user.id" (click)="saveUser(user)">Save</button>
+                  <button type="button" class="button primary compact" [disabled]="busyUserId() === user.id" (click)="saveUser(user)">Сохранить</button>
                   <button type="button" class="button ghost compact" [disabled]="busyUserId() === user.id" (click)="toggleUser(user)">
-                    {{ user.active ? 'Deactivate' : 'Activate' }}
+                    {{ user.active ? 'Деактивировать' : 'Активировать' }}
                   </button>
                 </div>
               </div>
@@ -162,8 +162,8 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
         </div>
         <ng-template #emptyUsersState>
           <div class="empty-state">
-            <h3>No managed users yet</h3>
-            <p class="muted-note">Approved access requests will create portal users that can be managed here.</p>
+            <h3>Пока нет управляемых пользователей</h3>
+            <p class="muted-note">Одобренные заявки создают пользователей портала, которыми можно управлять здесь.</p>
           </div>
         </ng-template>
       </article>
@@ -171,26 +171,26 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
       <article class="panel data-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">VPN sessions</p>
-            <h2>Active and recent connections</h2>
+            <p class="eyebrow">VPN-сессии</p>
+            <h2>Активные и недавние подключения</h2>
           </div>
         </div>
         <div class="stack-list" *ngIf="sessions().length; else emptySessionsState">
           @for (session of sessions(); track session.id) {
             <div class="stack-item">
               <strong>{{ session.username }}</strong>
-              <span>{{ session.sourceIp }} -> {{ session.assignedVpnIp || 'pending lease' }}</span>
-              <span>{{ session.deviceName || 'Unknown device' }}</span>
+              <span>{{ session.sourceIp }} -> {{ session.assignedVpnIp || 'ожидается адрес' }}</span>
+              <span>{{ session.deviceName || 'Неизвестное устройство' }}</span>
               <button type="button" class="button danger compact" [disabled]="busySessionId() === session.id || !session.active" (click)="disconnectSession(session.id)">
-                {{ busySessionId() === session.id ? 'Disconnecting...' : (session.active ? 'Disconnect' : 'Closed') }}
+                {{ busySessionId() === session.id ? 'Отключение...' : (session.active ? 'Отключить' : 'Закрыта') }}
               </button>
             </div>
           }
         </div>
         <ng-template #emptySessionsState>
           <div class="empty-state">
-            <h3>No recent sessions</h3>
-            <p class="muted-note">Session activity will appear here after VPN accounting events reach the portal.</p>
+            <h3>Нет недавних сессий</h3>
+            <p class="muted-note">Активность сессий появится здесь после поступления accounting-событий VPN в портал.</p>
           </div>
         </ng-template>
       </article>
@@ -198,23 +198,23 @@ import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/mode
       <article class="panel data-panel">
         <div class="panel-heading">
           <div>
-            <p class="eyebrow">Audit log</p>
-            <h2>Recent security events</h2>
+            <p class="eyebrow">Журнал аудита</p>
+            <h2>Недавние события безопасности</h2>
           </div>
         </div>
         <div class="stack-list" *ngIf="auditLog().length; else emptyAuditState">
           @for (entry of auditLog(); track entry.id) {
             <div class="stack-item">
-              <strong>{{ entry.action }}</strong>
-              <span>{{ entry.actorType }} / {{ entry.entityType }} / {{ entry.entityId }}</span>
+              <strong>{{ auditActionLabel(entry.action) }}</strong>
+              <span>{{ actorTypeLabel(entry.actorType) }} / {{ entityTypeLabel(entry.entityType) }} / {{ entry.entityId }}</span>
               <span>{{ entry.createdAt | date: 'medium' }}</span>
             </div>
           }
         </div>
         <ng-template #emptyAuditState>
           <div class="empty-state">
-            <h3>No audit entries yet</h3>
-            <p class="muted-note">Security-relevant actions will accumulate here as users and admins interact with the portal.</p>
+            <h3>Записей аудита пока нет</h3>
+            <p class="muted-note">Здесь будут накапливаться значимые действия пользователей и администраторов.</p>
           </div>
         </ng-template>
       </article>
@@ -253,11 +253,11 @@ export class AdminRequestsPage {
       next: (updated) => {
         this.mergeRequest(updated);
         this.busyRequestId.set(null);
-        this.message.set(`Request #${updated.id} approved. Activation link is ready.`);
+        this.message.set(`Заявка #${updated.id} одобрена. Ссылка активации готова.`);
       },
       error: () => {
         this.busyRequestId.set(null);
-        this.error.set(`Could not approve request #${request.id}.`);
+        this.error.set(`Не удалось одобрить заявку #${request.id}.`);
       }
     });
   }
@@ -271,11 +271,11 @@ export class AdminRequestsPage {
       next: (updated) => {
         this.mergeRequest(updated);
         this.busyRequestId.set(null);
-        this.message.set(`Request #${updated.id} rejected.`);
+        this.message.set(`Заявка #${updated.id} отклонена.`);
       },
       error: () => {
         this.busyRequestId.set(null);
-        this.error.set(`Could not reject request #${request.id}.`);
+        this.error.set(`Не удалось отклонить заявку #${request.id}.`);
       }
     });
   }
@@ -283,7 +283,7 @@ export class AdminRequestsPage {
   private loadRequests(): void {
     this.api.getAdminRequests().subscribe({
       next: (requests) => this.requests.set(requests),
-      error: () => this.error.set('Could not load moderation queue. Start the API and refresh.')
+      error: () => this.error.set('Не удалось загрузить очередь модерации. Запустите API и обновите страницу.')
     });
   }
 
@@ -292,13 +292,13 @@ export class AdminRequestsPage {
     this.api.disconnectAdminSession(sessionId).subscribe({
       next: () => {
         this.busySessionId.set(null);
-        this.message.set(`Session #${sessionId} disconnected.`);
+        this.message.set(`Сессия #${sessionId} отключена.`);
         this.loadSessions();
         this.loadAuditLog();
       },
       error: () => {
         this.busySessionId.set(null);
-        this.error.set(`Could not disconnect session #${sessionId}.`);
+        this.error.set(`Не удалось отключить сессию #${sessionId}.`);
       }
     });
   }
@@ -309,12 +309,12 @@ export class AdminRequestsPage {
       next: (updated) => {
         this.busyUserId.set(null);
         this.mergeUser(updated);
-        this.message.set(`User ${updated.username} updated.`);
+        this.message.set(`Пользователь ${updated.username} обновлен.`);
         this.loadAuditLog();
       },
       error: () => {
         this.busyUserId.set(null);
-        this.error.set(`Could not update user ${user.username}.`);
+        this.error.set(`Не удалось обновить пользователя ${user.username}.`);
       }
     });
   }
@@ -325,12 +325,12 @@ export class AdminRequestsPage {
       next: (updated) => {
         this.busyUserId.set(null);
         this.mergeUser(updated);
-        this.message.set(`User ${updated.username} is now ${updated.active ? 'active' : 'inactive'}.`);
+        this.message.set(`Пользователь ${updated.username} теперь ${updated.active ? 'активен' : 'неактивен'}.`);
         this.loadAuditLog();
       },
       error: () => {
         this.busyUserId.set(null);
-        this.error.set(`Could not change status for ${user.username}.`);
+        this.error.set(`Не удалось изменить статус пользователя ${user.username}.`);
       }
     });
   }
@@ -343,21 +343,21 @@ export class AdminRequestsPage {
           this.userLimits[user.id] = user.maxDevices;
         });
       },
-      error: () => this.error.set('Could not load users.')
+      error: () => this.error.set('Не удалось загрузить пользователей.')
     });
   }
 
   private loadSessions(): void {
     this.api.getAdminSessions().subscribe({
       next: (sessions) => this.sessions.set(sessions),
-      error: () => this.error.set('Could not load VPN sessions.')
+      error: () => this.error.set('Не удалось загрузить VPN-сессии.')
     });
   }
 
   private loadAuditLog(): void {
     this.api.getAuditLog().subscribe({
       next: (entries) => this.auditLog.set(entries),
-      error: () => this.error.set('Could not load audit log.')
+      error: () => this.error.set('Не удалось загрузить журнал аудита.')
     });
   }
 
@@ -368,5 +368,79 @@ export class AdminRequestsPage {
   private mergeUser(updated: AdminUser): void {
     this.userLimits[updated.id] = updated.maxDevices;
     this.users.update((users) => users.map((user) => user.id === updated.id ? updated : user));
+  }
+
+  protected requestStatusLabel(status: string): string {
+    switch (status) {
+      case 'pending':
+        return 'Ожидает';
+      case 'approved':
+        return 'Одобрена';
+      case 'rejected':
+        return 'Отклонена';
+      default:
+        return status;
+    }
+  }
+
+  protected userStatusLabel(active: boolean): string {
+    return active ? 'активен' : 'неактивен';
+  }
+
+  protected actorTypeLabel(actorType: string): string {
+    switch (actorType) {
+      case 'user':
+        return 'пользователь';
+      case 'superadmin':
+        return 'суперадминистратор';
+      case 'system':
+        return 'система';
+      default:
+        return actorType;
+    }
+  }
+
+  protected entityTypeLabel(entityType: string): string {
+    switch (entityType) {
+      case 'vpn_user':
+        return 'пользователь VPN';
+      case 'vpn_request':
+        return 'заявка на VPN';
+      case 'vpn_device_credential':
+        return 'учетные данные устройства VPN';
+      case 'ip_change_confirmation':
+        return 'подтверждение смены IP';
+      case 'trusted_ip':
+        return 'доверенный IP';
+      default:
+        return entityType;
+    }
+  }
+
+  protected auditActionLabel(action: string): string {
+    switch (action) {
+      case 'request_approved':
+        return 'Заявка одобрена';
+      case 'request_rejected':
+        return 'Заявка отклонена';
+      case 'user_activated':
+        return 'Пользователь активирован';
+      case 'user_deactivated':
+        return 'Пользователь деактивирован';
+      case 'device_credential_issued':
+        return 'Выданы учетные данные устройства';
+      case 'device_credential_rotated':
+        return 'Учетные данные устройства изменены';
+      case 'ip_confirmation_requested':
+        return 'Запрошено подтверждение IP';
+      case 'ip_confirmed':
+        return 'IP-адрес подтвержден';
+      case 'vpn_new_ip_blocked':
+        return 'Новое подключение с IP заблокировано';
+      case 'account_activated':
+        return 'Учетная запись активирована';
+      default:
+        return action;
+    }
   }
 }

@@ -12,18 +12,18 @@ import { AuthService } from '../core/auth.service';
     <section class="auth-shell">
       <div class="auth-layout">
         <article class="auth-panel auth-side">
-          <p class="eyebrow">User sign in</p>
-          <h1>Open your VPN workspace</h1>
-          <p class="lead">Use the portal credentials created through the activation link. VPN device passwords are managed separately inside the workspace after sign-in.</p>
+          <p class="eyebrow">Вход пользователя</p>
+          <h1>Откройте свой VPN-кабинет</h1>
+          <p class="lead">Используйте учетные данные портала, созданные через ссылку активации. VPN-пароли устройств управляются отдельно внутри кабинета после входа.</p>
 
           <div class="feature-list pending-block">
             <div>
-              <strong>Device-aware access</strong>
-              <p class="detail-copy">Issue or rotate VPN credentials per device instead of sharing one static secret.</p>
+              <strong>Доступ с учетом устройства</strong>
+              <p class="detail-copy">Выдавайте и меняйте VPN-учетные данные для каждого устройства отдельно, без общего статического секрета.</p>
             </div>
             <div>
-              <strong>Source IP confirmation</strong>
-              <p class="detail-copy">Unexpected connection origins can be reviewed and approved without leaving the portal.</p>
+              <strong>Подтверждение IP-адреса</strong>
+              <p class="detail-copy">Неожиданные адреса подключения можно проверить и подтвердить прямо в портале.</p>
             </div>
           </div>
         </article>
@@ -31,29 +31,29 @@ import { AuthService } from '../core/auth.service';
         <article class="auth-panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Credentials</p>
-              <h2>Sign in</h2>
+              <p class="eyebrow">Учетные данные</p>
+              <h2>Войти</h2>
             </div>
           </div>
 
           <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
             <label>
-              <span>Username or email</span>
-              <input type="text" formControlName="login" placeholder="alex or alex@example.com" />
+              <span>Имя пользователя или email</span>
+              <input type="text" formControlName="login" placeholder="alex или alex@example.com" />
             </label>
 
             <label>
-              <span>Password</span>
-              <input type="password" formControlName="password" placeholder="Your portal password" />
+              <span>Пароль</span>
+              <input type="password" formControlName="password" placeholder="Ваш пароль от портала" />
             </label>
 
-            <button class="button primary" type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Signing in...' : 'Continue to workspace' }}</button>
+            <button class="button primary" type="submit" [disabled]="form.invalid || submitting()">{{ submitting() ? 'Вход...' : 'Перейти в кабинет' }}</button>
           </form>
 
           <div *ngIf="error() as error" class="feedback error">{{ error }}</div>
 
           <div class="inline-actions pending-block">
-            <a routerLink="/" fragment="request-access" class="button ghost compact">Request new access</a>
+            <a routerLink="/" fragment="request-access" class="button ghost compact">Запросить новый доступ</a>
           </div>
         </article>
       </div>
@@ -88,7 +88,7 @@ export class UserLoginPage {
       },
       error: () => {
         this.submitting.set(false);
-        this.error.set('Invalid credentials or inactive account.');
+        this.error.set('Неверные учетные данные или неактивная учетная запись.');
       }
     });
   }

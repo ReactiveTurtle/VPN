@@ -20,6 +20,10 @@ export class App implements OnInit {
   protected readonly isUser = computed(() => this.currentUser()?.role === 'User');
   protected readonly isAdmin = computed(() => this.currentUser()?.role === 'SuperAdmin');
 
+  protected roleLabel(role: string): string {
+    return role === 'SuperAdmin' ? 'Сессия суперадминистратора' : 'Рабочая область пользователя';
+  }
+
   ngOnInit(): void {
     this.csrf.ensureToken().pipe(catchError(() => EMPTY)).subscribe();
     this.auth.refreshSession().pipe(catchError(() => EMPTY)).subscribe();
