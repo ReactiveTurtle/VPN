@@ -20,19 +20,6 @@ export class App implements OnInit {
   protected readonly isUser = computed(() => this.currentUser()?.role === 'User');
   protected readonly isAdmin = computed(() => this.currentUser()?.role === 'SuperAdmin');
 
-  protected roleLabel(role: string): string {
-    return role === 'SuperAdmin' ? 'Сессия суперадминистратора' : 'Личный кабинет';
-  }
-
-  protected sessionIdentity(): string | null {
-    const user = this.currentUser();
-    if (!user) {
-      return null;
-    }
-
-    return user.email || user.login;
-  }
-
   ngOnInit(): void {
     this.csrf.ensureToken().pipe(catchError(() => EMPTY)).subscribe();
     this.auth.refreshSession().pipe(catchError(() => EMPTY)).subscribe();

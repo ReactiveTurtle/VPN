@@ -1,92 +1,75 @@
 import { AsyncPipe, DatePipe, NgIf } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { BehaviorSubject, catchError, of, shareReplay, switchMap } from 'rxjs';
+import { NotificationService } from '../core/notification.service';
 import { PortalApiService } from '../core/portal-api.service';
-import { IssuedVpnDeviceCredential } from '../core/models';
+import { IssuedVpnDeviceCredential, TrustedDevice, UserDashboard } from '../core/models';
+import { SectionMenuComponent, SectionMenuItem } from './section-menu.component';
 
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
-  imports: [AsyncPipe, DatePipe, NgIf, FormsModule],
+  imports: [AsyncPipe, DatePipe, NgIf, FormsModule, MatTooltipModule, SectionMenuComponent],
   template: `
+    <div class="dashboard-page-shell">
     <section class="hero hero-single" *ngIf="dashboard$ | async as dashboard">
       <div class="hero-main">
         <p class="eyebrow">Личный кабинет</p>
-        <h1>{{ dashboard.email }}</h1>
-        <p class="lead">Здесь вы управляете доступом для устройств: создаёте пароль, видите привязанный IP и при необходимости меняете доступ без лишних шагов.</p>
+        <h1>Устройства и VPN-доступ</h1>
+        <p class="lead">Создавайте доступы для своих устройств, храните свежевыданный пароль и при необходимости отвязывайте IP без лишних шагов.</p>
 
-        <div class="compact-stats section-block">
-          <article class="compact-stat">
-            <span class="metric-label">Статус доступа</span>
-            <strong>{{ dashboard.active ? 'Активен' : 'Неактивен' }}</strong>
-          </article>
-          <article class="compact-stat">
-            <span class="metric-label">Устройства</span>
-            <strong>{{ dashboard.devices.length }} / {{ dashboard.maxDevices }}</strong>
-          </article>
-          <article class="compact-stat">
-            <span class="metric-label">Активность</span>
-            <strong>{{ dashboard.sessions.length }}</strong>
-          </article>
+        <div class="hero-inline-summary">
+          <span class="hero-summary-pill">Активных устройств: {{ activeDeviceCount(dashboard.devices) }} из {{ dashboard.maxDevices }}</span>
+          @if (!dashboard.active) {
+            <span class="hero-summary-pill hero-summary-pill-warning">Доступ в кабинет ограничен</span>
+          }
         </div>
       </div>
     </section>
 
-    <section class="panel request-panel" *ngIf="message() as message">
-      <div class="feedback success">{{ message }}</div>
-    </section>
+    <app-section-menu
+      *ngIf="dashboard$ | async as dashboard"
+      class="dashboard-tabs"
+      [compact]="true"
+      [ariaLabel]="'Разделы личного кабинета'"
+      [activeSectionId]="activeSectionId()"
+      (sectionChange)="activeSectionId.set($event)"
+      [sections]="dashboardSections(dashboard)" />
 
-    <section class="panel request-panel" *ngIf="error() as error">
-      <div class="feedback error">{{ error }}</div>
-    </section>
-
-    <section class="panel data-panel section-subtle">
-      <div class="content-section-header content-section-header-single">
-        <div>
-          <p class="eyebrow">Разделы кабинета</p>
-          <h2>Быстрые переходы</h2>
-          <p>Основные сценарии вынесены в отдельные секции, чтобы доступы, справка и активность не смешивались на одной длинной ленте.</p>
-        </div>
-      </div>
-
-      <nav class="section-nav" aria-label="Разделы личного кабинета">
-        <a href="#device-access">
-          <strong>Доступы</strong>
-          <span>Создание устройства, свежевыданные данные и список доступов.</span>
-        </a>
-        <a href="#setup-guide">
-          <strong>Справка</strong>
-          <span>Ручная настройка и пошаговые инструкции по платформам.</span>
-        </a>
-        <a href="#vpn-sessions">
-          <strong>VPN-сессии</strong>
-          <span>Текущие и недавние подключения после accounting-событий.</span>
-        </a>
-      </nav>
-    </section>
-
-    <section class="content-section" *ngIf="dashboard$ | async as dashboard" id="device-access">
+    @if ((dashboard$ | async); as dashboard) {
+      @if (activeSectionId() === 'device-access') {
+    <section class="content-section section-shell dashboard-tab-content">
       <article class="panel data-panel">
         <div class="content-section-header content-section-header-single">
           <div>
-            <p class="eyebrow">Доступы</p>
-            <h2>Устройства и выданные доступы</h2>
-            <p>Создавайте доступы, сохраняйте свежевыданный пароль и управляйте устройствами в одном рабочем блоке.</p>
+            <p class="eyebrow">Устройства</p>
+            <h2>Ваши устройства</h2>
+            <p>Сначала создайте доступ для нового устройства, затем сохраните пароль и используйте его при подключении.</p>
           </div>
         </div>
 
-        <div class="auth-form">
-          <label>
-            <span>Название устройства</span>
-            <input type="text" [(ngModel)]="newDeviceName" name="newDeviceName" placeholder="Ноутбук дома" />
-          </label>
-          <button type="button" class="button primary" (click)="issueDeviceCredential()">Создать доступ для устройства</button>
+        <div class="dashboard-create-flow">
+          <div class="dashboard-create-card">
+            <div>
+              <strong>Добавить устройство</strong>
+              <p class="detail-copy">Дайте устройству понятное имя, чтобы потом быстро находить его в списке.</p>
+            </div>
+
+            <div class="dashboard-create-form">
+              <label>
+                <span>Название устройства</span>
+                <input type="text" [(ngModel)]="newDeviceName" name="newDeviceName" placeholder="Ноутбук дома" />
+              </label>
+              <button type="button" class="button primary" (click)="issueDeviceCredential()">Создать доступ</button>
+            </div>
+          </div>
         </div>
 
         @if (issuedCredential()) {
-          <div class="soft-divider credential-panel credential-panel-inline">
-            <p class="eyebrow">Свежевыданный доступ</p>
+          <div class="credential-panel credential-panel-inline credential-panel-prominent pending-block">
+            <p class="eyebrow">Новый доступ</p>
             <div class="credential-grid pending-block">
               <div class="activation-link">
                 <strong>VPN-логин</strong>
@@ -94,7 +77,8 @@ import { IssuedVpnDeviceCredential } from '../core/models';
                   <button
                     type="button"
                     class="copy-code"
-                    title="Нажмите, чтобы скопировать"
+                    [matTooltip]="'Скопировать VPN-логин'"
+                    matTooltipPosition="above"
                     (click)="copyValue(issuedCredential()?.vpnUsername, 'VPN-логин скопирован.')">
                     <code>{{ issuedCredential()?.vpnUsername }}</code>
                   </button>
@@ -106,7 +90,8 @@ import { IssuedVpnDeviceCredential } from '../core/models';
                   <button
                     type="button"
                     class="copy-code"
-                    title="Нажмите, чтобы скопировать"
+                    [matTooltip]="'Скопировать пароль устройства'"
+                    matTooltipPosition="above"
                     (click)="copyValue(issuedCredential()?.vpnPassword, 'Пароль устройства скопирован.')">
                     <code>{{ issuedCredential()?.vpnPassword }}</code>
                   </button>
@@ -114,13 +99,17 @@ import { IssuedVpnDeviceCredential } from '../core/models';
               </div>
             </div>
 
-            <div class="feature-list pending-block">
-              <div>
+            <div class="guide-summary pending-block">
+              <div class="guide-summary-card">
                 <strong>{{ issuedCredential()?.onboarding?.title }}</strong>
                 <p class="detail-copy">{{ issuedCredential()?.onboarding?.summary }}</p>
               </div>
-              @for (step of issuedCredential()?.onboarding?.steps ?? []; track step) {
-                <div>
+            </div>
+
+            <div class="ordered-steps pending-block">
+              @for (step of issuedCredential()?.onboarding?.steps ?? []; track step; let stepIndex = $index) {
+                <div class="guide-step-card">
+                  <span class="guide-step-index">{{ stepIndex + 1 }}</span>
                   <span>{{ step }}</span>
                 </div>
               }
@@ -128,25 +117,25 @@ import { IssuedVpnDeviceCredential } from '../core/models';
           </div>
         }
 
-        <div class="content-section-header content-section-header-single soft-divider">
+        <div class="content-section-header content-section-header-single content-section-header-spacious soft-divider">
           <div>
-            <p class="eyebrow">Список доступов</p>
-            <h2>Выданные устройства</h2>
-            <p>У каждого устройства свой логин, пароль и привязанный IP. Если привязки ещё нет, она появится после первого успешного подключения.</p>
+            <p class="eyebrow">Список устройств</p>
+            <h2>Все выданные доступы</h2>
+            <p>У каждого устройства свой VPN-логин и свой пароль. Привязанный IP появится после первого успешного подключения.</p>
           </div>
         </div>
 
-        <div class="stack-list" *ngIf="dashboard.devices.length; else noDevicesState">
+        <div class="stack-list stack-list-devices" *ngIf="dashboard.devices.length; else noDevicesState">
           @for (device of dashboard.devices; track device.id) {
             <article class="stack-item device-card">
               <div class="device-card-header">
                 <div class="list-copy">
                   <strong>{{ device.deviceName }}</strong>
-                  <div class="meta-row">
-                    <span class="status-chip">{{ deviceStatusLabel(device.status) }}</span>
-                    <span>{{ device.vpnUsername || 'Логин будет показан после выдачи доступа.' }}</span>
-                  </div>
+                  <p class="detail-copy">{{ deviceAccessLabel(device) }}</p>
                 </div>
+                @if (isRevokedDevice(device)) {
+                  <span class="status-chip status-chip-danger">Доступ удалён</span>
+                }
               </div>
 
               <div class="device-meta-grid pending-block">
@@ -174,7 +163,7 @@ import { IssuedVpnDeviceCredential } from '../core/models';
                   @if (device.boundIpAddress) {
                     <button type="button" class="button ghost compact" (click)="unbindDeviceIp(device.id)">Отвязать IP</button>
                   }
-                  <button type="button" class="button danger compact" (click)="revokeDevice(device.id)">Отозвать доступ</button>
+                  <button type="button" class="button danger compact" (click)="revokeDevice(device.id)">Удалить доступ</button>
                 </div>
               }
             </article>
@@ -183,77 +172,97 @@ import { IssuedVpnDeviceCredential } from '../core/models';
 
         <ng-template #noDevicesState>
           <div class="empty-state">
-            <h3>Пока нет доступов для устройств</h3>
-            <p class="muted-note">Создайте первый доступ для устройства, чтобы получить логин и пароль для VPN.</p>
+            <h3>Пока нет устройств</h3>
+            <p class="muted-note">Создайте первый доступ, чтобы получить VPN-логин и пароль для подключения.</p>
           </div>
         </ng-template>
       </article>
     </section>
+      }
+    }
 
-    <section class="content-section" *ngIf="dashboard$ | async as dashboard" id="setup-guide">
+    @if ((dashboard$ | async); as dashboard) {
+      @if (activeSectionId() === 'setup-guide') {
+    <section class="content-section section-shell dashboard-tab-content">
       <article class="panel data-panel">
         <div class="content-section-header content-section-header-single">
           <div>
-            <p class="eyebrow">Справка</p>
-            <h2>Ручная настройка</h2>
-            <p>Первое успешное подключение автоматически привязывает текущий IP к устройству. Если IP изменился, сначала отвяжите старый IP у нужного устройства.</p>
+            <p class="eyebrow">Настройка</p>
+            <h2>Как подключить устройство</h2>
+            <p>После первого успешного подключения портал автоматически запомнит текущий IP устройства. Если IP изменился, сначала отвяжите старый IP в разделе устройств.</p>
           </div>
         </div>
 
-        <div class="guide-grid">
-          @for (guide of dashboard.platformGuides; track guide.platform) {
-            <div class="stack-item guide-card">
-              <strong>{{ guide.title }}</strong>
-              <span>{{ guide.summary }}</span>
-              <div class="feature-list pending-block">
-                @for (step of guide.steps; track step) {
-                  <div>
-                    <span>{{ step }}</span>
-                  </div>
-                }
-              </div>
+          <div class="guide-grid">
+            @for (guide of dashboard.platformGuides; track guide.platform) {
+              <div class="stack-item guide-card">
+                <div class="guide-summary-card">
+                  <strong>{{ guide.title }}</strong>
+                  <span>{{ guide.summary }}</span>
+                </div>
+                <div class="ordered-steps pending-block">
+                  @for (step of guide.steps; track step; let stepIndex = $index) {
+                    <div class="guide-step-card">
+                      <span class="guide-step-index">{{ stepIndex + 1 }}</span>
+                      <span>{{ step }}</span>
+                    </div>
+                  }
+                </div>
             </div>
           }
         </div>
       </article>
     </section>
+      }
+    }
 
-    <section class="content-section" *ngIf="dashboard$ | async as dashboard" id="vpn-sessions">
+    @if ((dashboard$ | async); as dashboard) {
+      @if (activeSectionId() === 'vpn-sessions') {
+    <section class="content-section section-shell dashboard-tab-content">
       <article class="panel data-panel">
         <div class="content-section-header content-section-header-single">
           <div>
-            <p class="eyebrow">Активность</p>
-            <h2>VPN-сессии</h2>
-            <p>Здесь отображаются текущие и недавние подключения после поступления accounting-событий в портал.</p>
+            <p class="eyebrow">История</p>
+            <h2>История подключений</h2>
+            <p>Здесь отображаются текущие и недавние подключения ваших устройств.</p>
           </div>
         </div>
 
-        <div class="stack-list" *ngIf="dashboard.sessions.length; else noSessionsState">
+        <div class="stack-list stack-list-compact" *ngIf="dashboard.sessions.length; else noSessionsState">
           @for (session of dashboard.sessions; track session.id) {
-            <div class="stack-item">
-              <strong>{{ session.deviceName || 'Устройство без названия' }}</strong>
-              <div class="meta-row">
-                <span>{{ session.sourceIp }}</span>
-                <span>{{ session.assignedVpnIp || 'VPN IP ещё не назначен' }}</span>
-                <span>{{ session.active ? 'Сессия активна' : 'Сессия завершена' }}</span>
+            <article class="session-card">
+              <div class="session-card-top">
+                <div class="session-card-copy">
+                  <strong>{{ session.deviceName || 'Устройство без названия' }}</strong>
+                  <p class="detail-copy">{{ session.startedAt | date: 'medium' }}</p>
+                </div>
+                <span class="status-chip session-status-chip" [class.status-chip-success]="session.active">{{ session.active ? 'Сейчас онлайн' : 'Завершено' }}</span>
               </div>
-              <p class="detail-copy">Начало {{ session.startedAt | date: 'medium' }}</p>
-            </div>
+
+              <div class="session-meta-row">
+                <span><strong>Внешний IP:</strong> {{ session.sourceIp }}</span>
+                <span><strong>VPN IP:</strong> {{ session.assignedVpnIp || 'Ещё не назначен' }}</span>
+              </div>
+            </article>
           }
         </div>
 
         <ng-template #noSessionsState>
           <div class="empty-state">
-            <h3>Пока нет недавних VPN-сессий</h3>
-            <p class="muted-note">После первого успешного подключения здесь появится история активности устройства.</p>
+            <h3>История пока пуста</h3>
+            <p class="muted-note">После первого успешного подключения здесь появятся недавние подключения ваших устройств.</p>
           </div>
         </ng-template>
       </article>
     </section>
+      }
+    }
+    </div>
   `
 })
 export class DashboardPage {
   private readonly api = inject(PortalApiService);
+  private readonly notifications = inject(NotificationService);
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
 
   protected readonly dashboard$ = this.refresh$.pipe(
@@ -261,26 +270,42 @@ export class DashboardPage {
     catchError(() => of(null)),
     shareReplay(1)
   );
-  protected readonly message = signal<string | null>(null);
-  protected readonly error = signal<string | null>(null);
   protected readonly issuedCredential = signal<IssuedVpnDeviceCredential | null>(null);
+  protected readonly activeSectionId = signal<string>('device-access');
   protected newDeviceName = '';
+
+  protected dashboardSections(dashboard: UserDashboard): SectionMenuItem[] {
+    return [
+      {
+        id: 'device-access',
+        label: 'Устройства',
+        accent: true
+      },
+      {
+        id: 'setup-guide',
+        label: 'Настройка'
+      },
+      {
+        id: 'vpn-sessions',
+        label: 'История'
+      }
+    ];
+  }
 
   protected revokeDevice(deviceId: number): void {
     this.api.revokeDevice(deviceId).subscribe({
       next: () => {
         this.reloadDashboard();
         this.issuedCredential.set(null);
-        this.message.set('Доступ для устройства отозван.');
-        this.error.set(null);
+        this.showSuccess('Доступ для устройства удалён.');
       },
-      error: () => this.error.set('Не удалось отозвать доступ для устройства.')
+      error: () => this.showError('Не удалось удалить доступ для устройства.')
     });
   }
 
   protected issueDeviceCredential(): void {
     if (!this.newDeviceName.trim()) {
-      this.error.set('Сначала укажите название устройства.');
+      this.showError('Сначала укажите название устройства.');
       return;
     }
 
@@ -290,11 +315,10 @@ export class DashboardPage {
       next: (result) => {
         this.issuedCredential.set(result);
         this.reloadDashboard();
-        this.message.set(result.message);
-        this.error.set(null);
+        this.showSuccess('Доступ создан. Сохраните логин и пароль сейчас.');
         this.newDeviceName = '';
       },
-      error: () => this.error.set('Не удалось создать доступ для устройства.')
+      error: () => this.showError('Не удалось создать доступ для устройства.')
     });
   }
 
@@ -303,10 +327,9 @@ export class DashboardPage {
       next: (result) => {
         this.issuedCredential.set(result);
         this.reloadDashboard();
-        this.message.set(result.message);
-        this.error.set(null);
+        this.showSuccess('Пароль обновлён. Сохраните новый пароль сейчас.');
       },
-      error: () => this.error.set('Не удалось сменить пароль для этого устройства.')
+      error: () => this.showError('Не удалось сменить пароль для этого устройства.')
     });
   }
 
@@ -314,10 +337,9 @@ export class DashboardPage {
     this.api.unbindDeviceIp(deviceId).subscribe({
       next: () => {
         this.reloadDashboard();
-        this.message.set('IP отвязан. Следующее успешное подключение привяжет новый IP автоматически.');
-        this.error.set(null);
+        this.showSuccess('IP отвязан. Следующее подключение привяжет новый адрес автоматически.');
       },
-      error: () => this.error.set('Не удалось отвязать IP у этого устройства.')
+      error: () => this.showError('Не удалось отвязать IP у этого устройства.')
     });
   }
 
@@ -327,10 +349,9 @@ export class DashboardPage {
     }
 
     navigator.clipboard.writeText(value).then(() => {
-      this.message.set(successMessage);
-      this.error.set(null);
+      this.notifications.info(successMessage);
     }).catch(() => {
-      this.error.set('Не удалось скопировать значение в буфер обмена.');
+      this.notifications.error('Не удалось скопировать значение в буфер обмена.');
     });
   }
 
@@ -338,14 +359,27 @@ export class DashboardPage {
     this.refresh$.next();
   }
 
-  protected deviceStatusLabel(status: string): string {
-    switch (status) {
-      case 'active':
-        return 'доступ активен';
-      case 'revoked':
-        return 'доступ отозван';
-      default:
-        return status;
+  private showSuccess(message: string): void {
+    this.notifications.success(message);
+  }
+
+  private showError(message: string): void {
+    this.notifications.error(message);
+  }
+
+  protected deviceAccessLabel(device: TrustedDevice): string {
+    if (this.isRevokedDevice(device)) {
+      return device.vpnUsername ? `VPN-логин: ${device.vpnUsername}` : 'Доступ удалён';
     }
+
+    return device.vpnUsername ? `VPN-логин: ${device.vpnUsername}` : 'VPN-логин появится после выдачи доступа.';
+  }
+
+  protected isRevokedDevice(device: TrustedDevice): boolean {
+    return device.status === 'revoked' || device.credentialStatus === 'revoked';
+  }
+
+  protected activeDeviceCount(devices: TrustedDevice[]): number {
+    return devices.filter((device) => !this.isRevokedDevice(device)).length;
   }
 }

@@ -1,37 +1,3 @@
-export interface AdminSectionLink {
-  route: string;
-  label: string;
-  description: string;
-}
-
-export const ADMIN_SECTION_LINKS: AdminSectionLink[] = [
-  {
-    route: '/admin/requests/pending',
-    label: 'Ожидающие заявки',
-    description: 'Очередь модерации новых запросов на доступ.'
-  },
-  {
-    route: '/admin/requests/history',
-    label: 'История решений',
-    description: 'Одобренные и отклоненные заявки с итогом обработки.'
-  },
-  {
-    route: '/admin/audit',
-    label: 'Аудит',
-    description: 'Журнал действий пользователей, администраторов и системы.'
-  },
-  {
-    route: '/admin/sessions',
-    label: 'Сессии',
-    description: 'Активные и недавние VPN-подключения.'
-  },
-  {
-    route: '/admin/accounts',
-    label: 'Учетные записи',
-    description: 'Управление статусом пользователей и лимитом устройств.'
-  }
-];
-
 export function requestStatusLabel(status: string): string {
   switch (status) {
     case 'pending':
