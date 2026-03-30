@@ -20,5 +20,17 @@ public sealed class TrustedIp
         DeviceId = deviceId;
         LastSeenAt = approvedAt;
         ApprovedAt = approvedAt;
+        RevokedAt = null;
+    }
+
+    public void Touch(DateTimeOffset seenAt)
+    {
+        LastSeenAt = seenAt;
+    }
+
+    public void Revoke(DateTimeOffset revokedAt)
+    {
+        Status = TrustedIpStatus.Revoked;
+        RevokedAt = revokedAt;
     }
 }

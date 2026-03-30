@@ -26,7 +26,7 @@
 - VPN host secrets should be stored under locked-down files in `/etc/vpnportal/` or equivalent restricted paths.
 - `FreeRADIUS` should reject inactive users and new sessions beyond `max_devices` before VPN tunnel establishment.
 - The current `max_devices` policy is device-aware: it counts other active device sessions rather than blindly rejecting a reconnect from the same device credential.
-- The current trusted-IP policy is also enforced in FreeRADIUS: once a device has active trusted IPs, a new source IP is rejected until it is confirmed through the portal flow.
+- The current trusted-IP policy is also enforced in FreeRADIUS: the first successful login binds a source IP to the device, and later connections from a different IP are rejected until the user explicitly unbinds the old IP in the portal.
 - Runtime disconnect is best-effort and currently depends on matching live `strongSwan` SAs from host-side helper logic.
 
 ## Current Risks / Gaps
@@ -35,7 +35,7 @@
 - Platform-specific device identity quality may differ across VPN clients.
 - Session disconnect in the portal is currently a repository-level state change, not guaranteed real-time VPN teardown.
 - The per-device VPN credential model now exists in the application, but the VPN and AAA runtime path still needs production validation and accounting integration.
-- The blocked new-IP flow is now wired end-to-end in templates and API shape, but still needs production validation with live FreeRADIUS traffic.
+- The device-IP auto-bind and rebind gate still needs production validation with live FreeRADIUS accounting and auth traffic.
 - Admin disconnect now has a host-side runtime path, but it still needs production validation against live `swanctl --list-sas --raw` output on the target host.
 
 ## First Superadmin

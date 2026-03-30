@@ -553,7 +553,6 @@ If required, expose internal-only endpoints for RADIUS integration or event hand
 
 Examples:
 
-- `POST /internal/radius/auth-events`
 - `POST /internal/radius/accounting-events`
 
 ## 11. Database access model

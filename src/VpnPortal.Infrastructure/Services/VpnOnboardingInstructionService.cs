@@ -18,6 +18,18 @@ public sealed class VpnOnboardingInstructionService(IOptions<VpnAccessOptions> v
 
         return normalized switch
         {
+            "manual" => new VpnOnboardingInstructionDto(
+                "manual",
+                "Ручная настройка VPN",
+                "Создайте IKEv2-подключение вручную и используйте логин с паролем устройства из портала.",
+                [
+                    $"Сервер или адрес подключения: {serverAddress}.",
+                    "Тип подключения: IKEv2.",
+                    $"Имя пользователя: {vpnUsername}. Пароль: пароль устройства, который портал показывает один раз после создания или смены.",
+                    $"Если клиент запрашивает Remote ID, укажите {serverAddress}.",
+                    "После сохранения профиля выполните первое подключение: этот вход автоматически привяжет текущий IP к устройству."
+                ],
+                "Используйте логин и пароль устройства из портала."),
             "ios" => new VpnOnboardingInstructionDto(
                 "ios",
                 "Ручная настройка IKEv2 на iPhone или iPad",
@@ -77,7 +89,7 @@ public sealed class VpnOnboardingInstructionService(IOptions<VpnAccessOptions> v
 
     private static string NormalizePlatform(string platform)
     {
-        var normalized = platform.Trim().ToLowerInvariant();
+        var normalized = string.IsNullOrWhiteSpace(platform) ? "manual" : platform.Trim().ToLowerInvariant();
         return normalized switch
         {
             "iphone" or "ipad" => "ios",

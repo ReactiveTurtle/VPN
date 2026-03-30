@@ -6,7 +6,7 @@
 - superadmin approval and rejection flow
 - account activation with expiring token
 - user and superadmin authentication
-- user dashboard for devices, issued device credentials, trusted IPs, confirmations, and sessions
+- user dashboard for devices, issued device credentials, bound device IPs, and sessions
 - admin operations for users, sessions, and audit log
 - PostgreSQL schema for policy and audit data
 - EF Core persistence foundation and migration program
@@ -19,7 +19,7 @@
 
 - trusted device and trusted IP persistence for VPN policy
 - session disconnect as application state transition
-- email-driven IP confirmation workflow
+- first-connect source-IP auto-binding and explicit user-side IP unbind workflow
 - documented single-host bootstrap for `strongSwan`, `FreeRADIUS`, and `PostgreSQL`
 - documented separation between portal passwords and VPN device credentials
 

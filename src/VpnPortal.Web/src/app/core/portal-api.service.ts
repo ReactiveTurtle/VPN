@@ -1,11 +1,13 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { ActivationCompleted, ActivationTokenStatus, AdminSession, AdminUser, AppStatus, AuditLogEntry, IpConfirmationRequestResult, IssuedVpnDeviceCredential, SessionUser, UserDashboard, VpnRequest } from './models';
+import { Observable, switchMap } from 'rxjs';
+import { ActivationCompleted, ActivationTokenStatus, AdminSession, AdminUser, AppStatus, AuditLogEntry, IssuedVpnDeviceCredential, SessionUser, UserDashboard, VpnRequest } from './models';
+import { CsrfService } from './csrf.service';
 
 @Injectable({ providedIn: 'root' })
 export class PortalApiService {
   private readonly http = inject(HttpClient);
+  private readonly csrf = inject(CsrfService);
   private readonly authOptions = { withCredentials: true };
 
   getStatus(): Observable<AppStatus> {
@@ -21,11 +23,11 @@ export class PortalApiService {
   }
 
   approveRequest(requestId: number, comment?: string | null): Observable<VpnRequest> {
-    return this.http.post<VpnRequest>(`/api/admin/requests/${requestId}/approve`, { comment: comment ?? null }, this.authOptions);
+    return this.withCsrf((headers) => this.http.post<VpnRequest>(`/api/admin/requests/${requestId}/approve`, { comment: comment ?? null }, { ...this.authOptions, headers }));
   }
 
   rejectRequest(requestId: number, comment?: string | null): Observable<VpnRequest> {
-    return this.http.post<VpnRequest>(`/api/admin/requests/${requestId}/reject`, { comment: comment ?? null }, this.authOptions);
+    return this.withCsrf((headers) => this.http.post<VpnRequest>(`/api/admin/requests/${requestId}/reject`, { comment: comment ?? null }, { ...this.authOptions, headers }));
   }
 
   getDashboard(): Observable<UserDashboard> {
@@ -53,27 +55,23 @@ export class PortalApiService {
   }
 
   logout(): Observable<void> {
-    return this.http.post<void>('/api/auth/logout', {}, this.authOptions);
+    return this.withCsrf((headers) => this.http.post<void>('/api/auth/logout', {}, { ...this.authOptions, headers }));
   }
 
   revokeDevice(deviceId: number): Observable<void> {
-    return this.http.delete<void>(`/api/me/devices/${deviceId}`, this.authOptions);
+    return this.withCsrf((headers) => this.http.delete<void>(`/api/me/devices/${deviceId}`, { ...this.authOptions, headers }));
   }
 
-  issueDeviceCredential(payload: { deviceName: string; deviceType: string; platform: string }): Observable<IssuedVpnDeviceCredential> {
-    return this.http.post<IssuedVpnDeviceCredential>('/api/me/devices', payload, this.authOptions);
+  issueDeviceCredential(payload: { deviceName: string }): Observable<IssuedVpnDeviceCredential> {
+    return this.withCsrf((headers) => this.http.post<IssuedVpnDeviceCredential>('/api/me/devices', payload, { ...this.authOptions, headers }));
   }
 
   rotateDeviceCredential(deviceId: number): Observable<IssuedVpnDeviceCredential> {
-    return this.http.post<IssuedVpnDeviceCredential>(`/api/me/devices/${deviceId}/rotate-credential`, {}, this.authOptions);
+    return this.withCsrf((headers) => this.http.post<IssuedVpnDeviceCredential>(`/api/me/devices/${deviceId}/rotate-credential`, {}, { ...this.authOptions, headers }));
   }
 
-  requestIpConfirmation(payload: { requestedIp: string; deviceId?: number | null }): Observable<IpConfirmationRequestResult> {
-    return this.http.post<IpConfirmationRequestResult>('/api/me/ip-confirmations/request', payload, this.authOptions);
-  }
-
-  confirmIp(token: string): Observable<void> {
-    return this.http.post<void>(`/api/me/ip-confirmations/${encodeURIComponent(token)}/confirm`, {}, this.authOptions);
+  unbindDeviceIp(deviceId: number): Observable<void> {
+    return this.withCsrf((headers) => this.http.delete<void>(`/api/me/devices/${deviceId}/trusted-ip`, { ...this.authOptions, headers }));
   }
 
   getAdminSessions(): Observable<AdminSession[]> {
@@ -81,7 +79,7 @@ export class PortalApiService {
   }
 
   disconnectAdminSession(sessionId: number): Observable<void> {
-    return this.http.post<void>(`/api/admin/sessions/${sessionId}/disconnect`, {}, this.authOptions);
+    return this.withCsrf((headers) => this.http.post<void>(`/api/admin/sessions/${sessionId}/disconnect`, {}, { ...this.authOptions, headers }));
   }
 
   getAuditLog(): Observable<AuditLogEntry[]> {
@@ -93,10 +91,16 @@ export class PortalApiService {
   }
 
   updateAdminUser(userId: number, payload: { maxDevices: number }): Observable<AdminUser> {
-    return this.http.patch<AdminUser>(`/api/admin/users/${userId}`, payload, this.authOptions);
+    return this.withCsrf((headers) => this.http.patch<AdminUser>(`/api/admin/users/${userId}`, payload, { ...this.authOptions, headers }));
   }
 
   setAdminUserStatus(userId: number, active: boolean): Observable<AdminUser> {
-    return this.http.post<AdminUser>(`/api/admin/users/${userId}/status`, { active }, this.authOptions);
+    return this.withCsrf((headers) => this.http.post<AdminUser>(`/api/admin/users/${userId}/status`, { active }, { ...this.authOptions, headers }));
+  }
+
+  private withCsrf<T>(request: (headers: HttpHeaders) => Observable<T>): Observable<T> {
+    return this.csrf.ensureToken().pipe(
+      switchMap((token) => request(new HttpHeaders({ 'X-XSRF-TOKEN': token })))
+    );
   }
 }

@@ -10,11 +10,9 @@ public sealed class UserPortalService(
     IDeviceRepository deviceRepository,
     IDeviceCredentialRepository deviceCredentialRepository,
     ITrustedIpRepository trustedIpRepository,
-    IIpChangeConfirmationRepository ipChangeConfirmationRepository,
     ITokenProtector tokenProtector,
     IVpnPasswordMaterialService vpnPasswordMaterialService,
     IVpnOnboardingInstructionService vpnOnboardingInstructionService,
-    IEmailService emailService,
     IAuditService auditService) : IUserPortalService
 {
     public async Task<UserDashboardDto?> GetDashboardAsync(int userId, CancellationToken cancellationToken)
@@ -26,47 +24,34 @@ public sealed class UserPortalService(
             return null;
         }
 
+        var boundIpsByDeviceId = user.TrustedIps
+            .Where(x => x.Status == TrustedIpStatus.Active && x.DeviceId is not null)
+            .GroupBy(x => x.DeviceId!.Value)
+            .ToDictionary(
+                x => x.Key,
+                x => x.OrderByDescending(y => y.LastSeenAt ?? y.ApprovedAt ?? y.FirstSeenAt).First());
+
         var devices = user.Devices
             .OrderByDescending(x => x.LastSeenAt ?? x.FirstSeenAt)
-            .Select(x => new TrustedDeviceDto(
-                x.Id,
-                x.DeviceName,
-                x.DeviceType,
-                x.Platform,
-                x.Status.ToString().ToLowerInvariant(),
-                x.ActiveCredential?.VpnUsername,
-                x.ActiveCredential?.Status.ToString().ToLowerInvariant(),
-                x.ActiveCredential?.RotatedAt,
-                x.ActiveCredential is null ? null : vpnOnboardingInstructionService.Create(x.Platform, x.ActiveCredential.VpnUsername),
-                x.FirstSeenAt,
-                x.LastSeenAt))
+            .Select(x =>
+            {
+                boundIpsByDeviceId.TryGetValue(x.Id, out var boundIp);
+
+                return new TrustedDeviceDto(
+                    x.Id,
+                    x.DeviceName,
+                    x.Status.ToString().ToLowerInvariant(),
+                    x.ActiveCredential?.VpnUsername,
+                    x.ActiveCredential?.Status.ToString().ToLowerInvariant(),
+                    x.ActiveCredential?.RotatedAt,
+                    boundIp?.IpAddress,
+                    boundIp?.LastSeenAt,
+                    x.FirstSeenAt,
+                    x.LastSeenAt);
+            })
             .ToArray();
 
         var platformGuides = vpnOnboardingInstructionService.CreateCatalog();
-
-        var trustedIps = user.TrustedIps
-            .OrderByDescending(x => x.LastSeenAt ?? x.FirstSeenAt)
-            .Select(x => new TrustedIpDto(
-                x.Id,
-                x.IpAddress,
-                x.Status.ToString().ToLowerInvariant(),
-                x.FirstSeenAt,
-                x.LastSeenAt,
-                x.ApprovedAt))
-            .ToArray();
-
-        var confirmations = await ipChangeConfirmationRepository.GetPendingByUserIdAsync(userId, cancellationToken);
-        var pendingConfirmations = confirmations
-            .Where(x => x.Status == IpChangeConfirmationStatus.Pending)
-            .OrderByDescending(x => x.CreatedAt)
-            .Select(x => new IpChangeConfirmationDto(
-                x.Id,
-                x.RequestedIp,
-                x.Status.ToString().ToLowerInvariant(),
-                x.ExpiresAt,
-                x.CreatedAt,
-                null))
-            .ToArray();
 
         var sessions = user.Sessions
             .OrderByDescending(x => x.StartedAt)
@@ -81,7 +66,7 @@ public sealed class UserPortalService(
                 x.Authorized))
             .ToArray();
 
-        return new UserDashboardDto(user.Id, user.Email, user.Username, user.Active, user.MaxDevices, platformGuides, devices, trustedIps, pendingConfirmations, sessions);
+        return new UserDashboardDto(user.Id, user.Email, user.Active, user.MaxDevices, platformGuides, devices, sessions);
     }
 
     public async Task<IssuedVpnDeviceCredentialDto?> IssueDeviceCredentialAsync(int userId, IssueVpnDeviceCredentialCommand command, CancellationToken cancellationToken)
@@ -93,9 +78,7 @@ public sealed class UserPortalService(
         }
 
         var deviceName = command.DeviceName?.Trim();
-        var deviceType = command.DeviceType?.Trim().ToLowerInvariant();
-        var platform = command.Platform?.Trim().ToLowerInvariant();
-        if (string.IsNullOrWhiteSpace(deviceName) || string.IsNullOrWhiteSpace(deviceType) || string.IsNullOrWhiteSpace(platform))
+        if (string.IsNullOrWhiteSpace(deviceName))
         {
             return null;
         }
@@ -112,8 +95,8 @@ public sealed class UserPortalService(
             UserId = userId,
             DeviceUuid = $"dev-{Guid.NewGuid():N}",
             DeviceName = deviceName,
-            DeviceType = deviceType,
-            Platform = platform,
+            DeviceType = "device",
+            Platform = "manual",
             Status = DeviceStatus.Active,
             FirstSeenAt = now,
             LastSeenAt = now
@@ -133,7 +116,7 @@ public sealed class UserPortalService(
         }, cancellationToken);
 
         await auditService.WriteAsync("user", userId, "device_credential_issued", "vpn_device_credential", credential.Id.ToString(), null, new { device.Id, credential.VpnUsername }, cancellationToken);
-        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, vpnOnboardingInstructionService.Create(device.Platform, credential.VpnUsername), "VPN-учетные данные выданы. Сохраните этот пароль сейчас: повторно он показан не будет.");
+        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, vpnOnboardingInstructionService.Create(device.Platform, credential.VpnUsername), "Доступ для устройства создан. Сохраните пароль сейчас: повторно он показан не будет.");
     }
 
     public async Task<IssuedVpnDeviceCredentialDto?> RotateDeviceCredentialAsync(int userId, int deviceId, CancellationToken cancellationToken)
@@ -156,7 +139,7 @@ public sealed class UserPortalService(
         await deviceCredentialRepository.UpdateAsync(credential, cancellationToken);
         await auditService.WriteAsync("user", userId, "device_credential_rotated", "vpn_device_credential", credential.Id.ToString(), null, new { deviceId, credential.VpnUsername }, cancellationToken);
 
-        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, vpnOnboardingInstructionService.Create(device.Platform, credential.VpnUsername), "VPN-пароль обновлен. Сохраните новый пароль сейчас: повторно он показан не будет.");
+        return new IssuedVpnDeviceCredentialDto(device.Id, device.DeviceName, credential.VpnUsername, vpnPassword, vpnOnboardingInstructionService.Create(device.Platform, credential.VpnUsername), "Пароль для устройства обновлен. Сохраните новый пароль сейчас: повторно он показан не будет.");
     }
 
     public Task<bool> RevokeDeviceAsync(int userId, int deviceId, CancellationToken cancellationToken)
@@ -164,83 +147,23 @@ public sealed class UserPortalService(
         return RevokeAndAuditAsync(userId, deviceId, cancellationToken);
     }
 
-    public async Task<IpConfirmationRequestResultDto?> RequestIpConfirmationAsync(int userId, RequestIpConfirmationCommand command, CancellationToken cancellationToken)
+    public async Task<bool> UnbindDeviceIpAsync(int userId, int deviceId, CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByIdWithRelationsAsync(userId, cancellationToken);
-        if (user is null || string.IsNullOrWhiteSpace(command.RequestedIp))
-        {
-            return null;
-        }
-
-        if (command.DeviceId is int deviceId)
-        {
-            var device = await deviceRepository.GetByIdAsync(deviceId, cancellationToken);
-            if (device is null || device.UserId != userId)
-            {
-                return null;
-            }
-        }
-
-        var existing = await trustedIpRepository.GetByUserAndIpAsync(userId, command.RequestedIp, cancellationToken);
-        if (existing is not null && existing.Status == TrustedIpStatus.Active)
-        {
-            return new IpConfirmationRequestResultDto(existing.Id, existing.IpAddress, existing.ApprovedAt ?? DateTimeOffset.UtcNow, "/confirm-ip/already-approved", "Этот IP-адрес уже подтвержден.");
-        }
-
-        var rawToken = tokenProtector.GenerateRawToken();
-        var confirmation = new IpChangeConfirmation
-        {
-            UserId = userId,
-            DeviceId = command.DeviceId,
-            RequestedIp = command.RequestedIp,
-            TokenHash = tokenProtector.Hash(rawToken),
-            Status = IpChangeConfirmationStatus.Pending,
-            ExpiresAt = DateTimeOffset.UtcNow.AddHours(1),
-            CreatedAt = DateTimeOffset.UtcNow
-        };
-
-        confirmation = await ipChangeConfirmationRepository.AddAsync(confirmation, cancellationToken);
-        var confirmationLink = $"/dashboard?confirmIpToken={rawToken}";
-        await emailService.SendIpConfirmationLinkAsync(user.Email, confirmationLink, confirmation.ExpiresAt, cancellationToken);
-        await auditService.WriteAsync("user", userId, "ip_confirmation_requested", "ip_change_confirmation", confirmation.Id.ToString(), null, new { confirmation.RequestedIp }, cancellationToken);
-
-        return new IpConfirmationRequestResultDto(confirmation.Id, confirmation.RequestedIp, confirmation.ExpiresAt, confirmationLink, "Ссылка подтверждения создана и поставлена в очередь на отправку.");
-    }
-
-    public async Task<bool> ConfirmIpChangeAsync(int userId, string token, CancellationToken cancellationToken)
-    {
-        var tokenHash = tokenProtector.Hash(token);
-        var confirmation = await ipChangeConfirmationRepository.GetByHashAsync(tokenHash, cancellationToken);
-        if (confirmation is null || confirmation.UserId != userId || confirmation.Status != IpChangeConfirmationStatus.Pending || confirmation.ExpiresAt <= DateTimeOffset.UtcNow)
+        var device = await deviceRepository.GetByIdAsync(deviceId, cancellationToken);
+        if (device is null || device.UserId != userId)
         {
             return false;
         }
 
-        var trustedIp = await trustedIpRepository.GetByUserAndIpAsync(userId, confirmation.RequestedIp, cancellationToken);
+        var trustedIp = await trustedIpRepository.GetActiveByDeviceIdAsync(deviceId, cancellationToken);
         if (trustedIp is null)
         {
-            trustedIp = new TrustedIp
-            {
-                UserId = userId,
-                DeviceId = confirmation.DeviceId,
-                IpAddress = confirmation.RequestedIp,
-                Status = TrustedIpStatus.Active,
-                FirstSeenAt = DateTimeOffset.UtcNow,
-                LastSeenAt = DateTimeOffset.UtcNow,
-                ApprovedAt = DateTimeOffset.UtcNow
-            };
-
-            await trustedIpRepository.AddAsync(trustedIp, cancellationToken);
-        }
-        else
-        {
-            trustedIp.Activate(DateTimeOffset.UtcNow, confirmation.DeviceId);
-            await trustedIpRepository.UpdateAsync(trustedIp, cancellationToken);
+            return false;
         }
 
-        confirmation.Confirm(DateTimeOffset.UtcNow);
-        await ipChangeConfirmationRepository.UpdateAsync(confirmation, cancellationToken);
-        await auditService.WriteAsync("user", userId, "ip_confirmed", "trusted_ip", confirmation.RequestedIp, null, new { confirmation.RequestedIp }, cancellationToken);
+        trustedIp.Revoke(DateTimeOffset.UtcNow);
+        await trustedIpRepository.UpdateAsync(trustedIp, cancellationToken);
+        await auditService.WriteAsync("user", userId, "device_ip_unbound", "trusted_ip", trustedIp.Id.ToString(), null, new { deviceId, trustedIp.IpAddress }, cancellationToken);
         return true;
     }
 

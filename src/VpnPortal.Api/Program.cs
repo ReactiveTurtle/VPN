@@ -38,7 +38,6 @@ builder.Services.AddScoped<ISuperAdminRepository, EfSuperAdminRepository>();
 builder.Services.AddScoped<IDeviceRepository, EfDeviceRepository>();
 builder.Services.AddScoped<IDeviceCredentialRepository, EfDeviceCredentialRepository>();
 builder.Services.AddScoped<ITrustedIpRepository, EfTrustedIpRepository>();
-builder.Services.AddScoped<IIpChangeConfirmationRepository, EfIpChangeConfirmationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, EfAuditLogRepository>();
 builder.Services.AddScoped<ISessionRepository, EfSessionRepository>();
 
@@ -49,7 +48,6 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminOperationsService, AdminOperationsService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IVpnAccountingService, VpnAccountingService>();
-builder.Services.AddScoped<IVpnAuthEventService, VpnAuthEventService>();
 builder.Services.AddSingleton<IVpnRuntimeControlService, VpnRuntimeControlService>();
 builder.Services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
 builder.Services.AddSingleton<IVpnOnboardingInstructionService, VpnOnboardingInstructionService>();
@@ -72,7 +70,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("frontend", policy =>
     {
         policy
-            .WithOrigins("http://localhost:4200")
+            .WithOrigins("http://localhost:4200", "http://localhost:5500")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();

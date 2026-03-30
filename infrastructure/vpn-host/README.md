@@ -18,7 +18,6 @@ They now include a concrete `FreeRADIUS` policy template that reads `vpn_device_
 They also include the current runtime helper layer for:
 
 - accounting event forwarding
-- blocked new-IP auth event forwarding
 - best-effort runtime session disconnect on the VPN host
 
 They still do not complete the full VPN integration by themselves, because runtime accounting, final device lifecycle enforcement, and production tuning still need to be validated on the target host.
@@ -78,7 +77,6 @@ Fill a real environment file before applying configurations:
 - `/etc/strongswan.conf` and `/etc/ipsec.conf` - strongSwan configuration
 - `/etc/freeradius/3.0/` - FreeRADIUS configuration
 - `/usr/local/lib/vpnportal/forward-accounting-event.sh` - canonical accounting forwarder
-- `/usr/local/lib/vpnportal/forward-auth-event.sh` - canonical blocked new-IP forwarder
 - `/usr/local/lib/vpnportal/disconnect-session.sh` - best-effort runtime session disconnect helper
 - `/usr/local/bin/vpn-speed.py` - optional helper for live VPN session throughput monitoring
 
@@ -86,10 +84,10 @@ Fill a real environment file before applying configurations:
 
 1. The portal issues a per-device VPN credential.
 2. `strongSwan` passes IKEv2 password-based authentication to `FreeRADIUS`.
-3. `FreeRADIUS` validates device credentials, `active`, trusted IP, and `max_devices` policy against PostgreSQL.
-4. `FreeRADIUS` forwards blocked new-IP events into the internal portal API.
-5. `FreeRADIUS` forwards accounting events into the internal portal API.
-6. The portal updates `vpn_sessions` and `ip_change_confirmations`.
+3. The first successful connection is allowed without a bound device IP; `FreeRADIUS` then enforces `active`, device-bound source IP, and `max_devices` policy against PostgreSQL.
+4. `FreeRADIUS` forwards accounting events into the internal portal API.
+5. The portal updates `vpn_sessions` and binds the first observed source IP to the device.
+6. Later source-IP changes stay blocked until the user unbinds the old IP in the portal.
 7. Admin disconnect can request best-effort runtime termination through the host-side disconnect helper.
 
 ## Schema And Admin Bootstrap

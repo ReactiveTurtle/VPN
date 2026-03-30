@@ -30,6 +30,17 @@ public sealed class EfTrustedIpRepository(VpnPortalDbContext dbContext) : ITrust
         return entity?.ToDomain();
     }
 
+    public async Task<TrustedIp?> GetActiveByDeviceIdAsync(int deviceId, CancellationToken cancellationToken)
+    {
+        var entity = await dbContext.TrustedIps
+            .AsNoTracking()
+            .Where(x => x.DeviceId == deviceId && x.Status == "active")
+            .OrderByDescending(x => x.LastSeenAt ?? x.ApprovedAt ?? x.FirstSeenAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return entity?.ToDomain();
+    }
+
     public async Task<TrustedIp> AddAsync(TrustedIp trustedIp, CancellationToken cancellationToken)
     {
         var entity = new TrustedIpEntity();

@@ -57,7 +57,7 @@ This project now treats `EF Core` migrations as the single source of truth for t
 - `trusted_devices` and `trusted_ips` model policy state for connection trust
 - `vpn_device_credentials` stores issued password-based credentials per device
 - `vpn_sessions` tracks active and historical sessions
-- `ip_change_confirmations` supports approval flow for new IPs
+- `ip_change_confirmations` remains in the schema from the earlier confirmation-based design and is no longer part of the user-facing IP flow
 - `audit_log` provides security and operations traceability
 - `vpn_sessions.session_id` is the stable accounting key used to update and close VPN sessions from internal accounting events
 

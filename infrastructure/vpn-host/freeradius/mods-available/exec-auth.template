@@ -1,7 +1,0 @@
-exec forward_auth_event_unknown_ip {
-    wait = yes
-    input_pairs = request
-    output_pairs = none
-    shell_escape = yes
-    program = "/usr/local/lib/vpnportal/forward-auth-event.sh blocked_new_ip '%{User-Name}' '%{Packet-Src-IP-Address}' '%{%{Acct-Session-Id}:-}' 'untrusted_ip'"
-}

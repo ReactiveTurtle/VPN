@@ -69,9 +69,8 @@ public sealed class MeController(IUserPortalService userPortalService) : Control
         return result is null ? NotFound() : Ok(result);
     }
 
-    [HttpPost("ip-confirmations/request")]
-    [ProducesResponseType<IpConfirmationRequestResultDto>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> RequestIpConfirmation([FromBody] RequestIpConfirmationCommand command, CancellationToken cancellationToken)
+    [HttpDelete("devices/{deviceId:int}/trusted-ip")]
+    public async Task<IActionResult> UnbindDeviceIp(int deviceId, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
         if (userId is null)
@@ -79,21 +78,8 @@ public sealed class MeController(IUserPortalService userPortalService) : Control
             return Forbid();
         }
 
-        var result = await userPortalService.RequestIpConfirmationAsync(userId.Value, command, cancellationToken);
-        return result is null ? BadRequest() : Ok(result);
-    }
-
-    [HttpPost("ip-confirmations/{token}/confirm")]
-    public async Task<IActionResult> ConfirmIp(string token, CancellationToken cancellationToken)
-    {
-        var userId = GetUserId();
-        if (userId is null)
-        {
-            return Forbid();
-        }
-
-        var result = await userPortalService.ConfirmIpChangeAsync(userId.Value, token, cancellationToken);
-        return result ? Ok() : BadRequest();
+        var unbound = await userPortalService.UnbindDeviceIpAsync(userId.Value, deviceId, cancellationToken);
+        return unbound ? NoContent() : NotFound();
     }
 
     private int? GetUserId()

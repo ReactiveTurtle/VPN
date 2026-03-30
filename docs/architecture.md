@@ -36,8 +36,9 @@ The original brief allowed `Blazor/ASP.NET Core`, but the current repository imp
 ### User portal
 
 1. User authenticates with cookie-based auth.
-2. Dashboard loads trusted devices, trusted IPs, pending confirmations, and sessions.
-3. User can issue or rotate a per-device VPN credential, revoke a device, and request or confirm a trusted IP change.
+2. `Личный кабинет` loads issued device access records, platform setup guides, and recent sessions.
+3. User can create or rotate a per-device VPN credential, revoke a device, and unbind the currently attached source IP from that device.
+4. The first successful VPN connection for a device auto-binds the current source IP to that device; later IP changes require unbinding in the portal before reconnecting.
 
 ### Admin operations
 

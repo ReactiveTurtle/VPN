@@ -11,7 +11,7 @@ This verifies the current runtime contract:
 - `FreeRADIUS` credential validation
 - `active` and `max_devices` gating
 - internal accounting forwarding into `vpn_sessions`
-- blocked new-IP forwarding into the portal confirmation flow
+- device IP auto-binding on the first successful connection and IP-change blocking until unbind
 
 ## Preconditions
 
@@ -27,7 +27,6 @@ This verifies the current runtime contract:
 3. Run `sudo freeradius -CX`
 4. Confirm the helper files exist:
    - `/usr/local/lib/vpnportal/forward-accounting-event.sh`
-   - `/usr/local/lib/vpnportal/forward-auth-event.sh`
 
 ## Happy Path
 
@@ -80,19 +79,17 @@ Expected result:
 Expected result:
 
 - `FreeRADIUS` rejects the connection
-- `/usr/local/lib/vpnportal/forward-auth-event.sh` posts to `POST /api/internal/radius/auth-events`
-- the portal creates a pending `ip_change_confirmation`
-- the user receives an email confirmation link
-- after confirmation, the same device can connect from the new IP
+- the previously bound IP remains attached to the device in the portal
+- after the user clicks `Отвязать IP` in `Личном кабинете`, the next successful connection from the new IP binds that IP to the device
 
 ## What To Inspect When It Fails
 
 1. `journalctl -u freeradius -n 200 --no-pager`
 2. `journalctl -u strongswan-starter -n 200 --no-pager`
 3. `journalctl -u nginx -n 100 --no-pager`
-4. portal logs for `VpnAccountingService` and `VpnAuthEventService`
+4. portal logs for `VpnAccountingService`
 5. `select * from vpn_sessions order by started_at desc limit 20;`
-6. `select * from ip_change_confirmations order by created_at desc limit 20;`
+6. `select * from trusted_ips order by last_seen_at desc nulls last limit 20;`
 
 ## Current Limits
 

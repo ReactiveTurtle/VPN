@@ -42,13 +42,10 @@ export interface SessionUser {
 export interface UserDashboard {
   id: number;
   email: string;
-  username: string;
   active: boolean;
   maxDevices: number;
   platformGuides: VpnOnboardingInstruction[];
   devices: TrustedDevice[];
-  trustedIps: TrustedIp[];
-  pendingIpConfirmations: IpChangeConfirmation[];
   sessions: VpnSession[];
 }
 
@@ -63,13 +60,12 @@ export interface VpnOnboardingInstruction {
 export interface TrustedDevice {
   id: number;
   deviceName: string;
-  deviceType: string;
-  platform: string;
   status: string;
   vpnUsername: string | null;
   credentialStatus: string | null;
   credentialRotatedAt: string | null;
-  onboarding: VpnOnboardingInstruction | null;
+  boundIpAddress: string | null;
+  boundIpLastSeenAt: string | null;
   firstSeenAt: string;
   lastSeenAt: string | null;
 }
@@ -92,32 +88,6 @@ export interface VpnSession {
   lastSeenAt: string | null;
   active: boolean;
   authorized: boolean;
-}
-
-export interface TrustedIp {
-  id: number;
-  ipAddress: string;
-  status: string;
-  firstSeenAt: string;
-  lastSeenAt: string | null;
-  approvedAt: string | null;
-}
-
-export interface IpChangeConfirmation {
-  id: number;
-  requestedIp: string;
-  status: string;
-  expiresAt: string;
-  createdAt: string;
-  confirmationLink: string | null;
-}
-
-export interface IpConfirmationRequestResult {
-  confirmationId: number;
-  requestedIp: string;
-  expiresAt: string;
-  confirmationLink: string;
-  message: string;
 }
 
 export interface AdminSession {

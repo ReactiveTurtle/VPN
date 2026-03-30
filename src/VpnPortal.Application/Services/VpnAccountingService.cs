@@ -6,6 +6,7 @@ namespace VpnPortal.Application.Services;
 
 public sealed class VpnAccountingService(
     IDeviceCredentialRepository deviceCredentialRepository,
+    ITrustedIpRepository trustedIpRepository,
     ISessionRepository sessionRepository,
     IAuditService auditService) : IVpnAccountingService
 {
@@ -26,6 +27,28 @@ public sealed class VpnAccountingService(
         var eventType = command.EventType.Trim().ToLowerInvariant();
         if (eventType is "start" or "interim")
         {
+            var trustedIp = await trustedIpRepository.GetActiveByDeviceIdAsync(credential.DeviceId, cancellationToken);
+            if (trustedIp is null)
+            {
+                await trustedIpRepository.AddAsync(new TrustedIp
+                {
+                    UserId = credential.UserId,
+                    DeviceId = credential.DeviceId,
+                    IpAddress = command.SourceIp,
+                    Status = Domain.Enums.TrustedIpStatus.Active,
+                    FirstSeenAt = occurredAt,
+                    LastSeenAt = occurredAt,
+                    ApprovedAt = occurredAt
+                }, cancellationToken);
+
+                await auditService.WriteAsync("system", null, "device_ip_bound", "trusted_ip", credential.DeviceId.ToString(), command.SourceIp, new { command.VpnUsername, command.SourceIp }, cancellationToken);
+            }
+            else if (string.Equals(trustedIp.IpAddress, command.SourceIp, StringComparison.OrdinalIgnoreCase))
+            {
+                trustedIp.Touch(occurredAt);
+                await trustedIpRepository.UpdateAsync(trustedIp, cancellationToken);
+            }
+
             await sessionRepository.RecordAuthorizedAsync(new VpnSession
             {
                 UserId = credential.UserId,

@@ -16,10 +16,9 @@ server default {
             reject
         }
 
-        if (%{sql:SELECT COUNT(*) FROM vpn_device_credentials c JOIN trusted_ips ti ON ti.user_id = c.user_id AND (ti.device_id = c.device_id OR ti.device_id IS NULL) WHERE lower(c.vpn_username) = lower('%{SQL-User-Name}') AND c.status = 'active' AND ti.status = 'active'} > 0 && %{sql:SELECT COUNT(*) FROM vpn_device_credentials c JOIN trusted_ips ti ON ti.user_id = c.user_id AND (ti.device_id = c.device_id OR ti.device_id IS NULL) WHERE lower(c.vpn_username) = lower('%{SQL-User-Name}') AND c.status = 'active' AND ti.status = 'active' AND ti.ip_address = cast('%{Packet-Src-IP-Address}' as inet)} == 0) {
-            forward_auth_event_unknown_ip
+        if (%{sql:SELECT COUNT(*) FROM vpn_device_credentials c JOIN trusted_ips ti ON ti.user_id = c.user_id AND ti.device_id = c.device_id WHERE lower(c.vpn_username) = lower('%{SQL-User-Name}') AND c.status = 'active' AND ti.status = 'active'} > 0 && %{sql:SELECT COUNT(*) FROM vpn_device_credentials c JOIN trusted_ips ti ON ti.user_id = c.user_id AND ti.device_id = c.device_id WHERE lower(c.vpn_username) = lower('%{SQL-User-Name}') AND c.status = 'active' AND ti.status = 'active' AND ti.ip_address = cast('%{Packet-Src-IP-Address}' as inet)} == 0) {
             update reply {
-                Reply-Message := "Source IP requires confirmation"
+                Reply-Message := "Source IP is bound to another device address"
             }
             reject
         }

@@ -42,16 +42,14 @@ The current target runtime flow on the host is:
 
 - `strongSwan` terminates IKEv2
 - `FreeRADIUS` validates password-based device credentials from PostgreSQL
-- `FreeRADIUS` forwards blocked new-IP events into `POST /api/internal/radius/auth-events`
 - `FreeRADIUS` forwards accounting events into `POST /api/internal/radius/accounting-events`
-- the portal updates `vpn_sessions` and `ip_change_confirmations`
+- the portal updates `vpn_sessions` and auto-binds the first source IP to the device
 - admin disconnect can request best-effort runtime session teardown through `/usr/local/lib/vpnportal/disconnect-session.sh`
 
 ## Host-Installed Runtime Helpers
 
 The bootstrap currently expects these host-local runtime helpers:
 
-- `/usr/local/lib/vpnportal/forward-auth-event.sh`
 - `/usr/local/lib/vpnportal/forward-accounting-event.sh`
 - `/usr/local/lib/vpnportal/disconnect-session.sh`
 - `/usr/local/bin/vpn-speed.py`

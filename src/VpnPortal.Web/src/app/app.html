@@ -2,20 +2,16 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a routerLink="/" class="brand-block">
-        <span class="brand-kicker">Безопасный доступ</span>
-        <span class="brand">NorthGate VPN Portal</span>
+        <span class="brand">Moonbridge VPN</span>
       </a>
 
       <nav class="main-nav" aria-label="Основная навигация">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Главная</a>
 
         @if (isUser()) {
-          <a routerLink="/dashboard" routerLinkActive="active">Кабинет</a>
+          <a routerLink="/dashboard" routerLinkActive="active">Личный кабинет</a>
         } @else if (isAdmin()) {
-          <a routerLink="/admin" routerLinkActive="active">Операции</a>
-        } @else {
-          <a routerLink="/login" routerLinkActive="active">Вход для пользователя</a>
-          <a routerLink="/admin/login" routerLinkActive="active">Вход для администратора</a>
+          <a routerLink="/admin" routerLinkActive="active">Суперадминка</a>
         }
       </nav>
 
@@ -23,11 +19,11 @@
         @if (currentUser(); as user) {
           <div class="session-summary">
             <span class="session-role">{{ roleLabel(user.role) }}</span>
-            <strong>{{ user.login }}</strong>
+            <strong>{{ sessionIdentity() }}</strong>
           </div>
           <button type="button" class="button ghost compact" (click)="logout()">Выйти</button>
         } @else {
-          <a routerLink="/" fragment="request-access" class="button secondary compact">Запросить доступ</a>
+          <a routerLink="/login" class="button primary compact">Войти</a>
         }
       </div>
     </div>

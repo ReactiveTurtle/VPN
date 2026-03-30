@@ -13,11 +13,10 @@
 - `RequestService`: request submission and approval flow
 - `AccountActivationService`: token validation and password setup
 - `AuthService`: user and superadmin authentication
-- `UserPortalService`: dashboard, device credential issuance and rotation, device revocation, IP confirmation workflow
+- `UserPortalService`: dashboard, device credential issuance and rotation, device revocation, and device IP unbind workflow
 - `AdminOperationsService`: user management, session management, audit access
 - `AuditService`: audit writes
-- `VpnAccountingService`: internal session accounting intake for VPN-side events
-- `VpnAuthEventService`: internal intake for blocked new-IP events coming from the VPN and AAA path
+- `VpnAccountingService`: internal session accounting intake for VPN-side events, including first-connect device IP auto-binding
 - `VpnOnboardingInstructionService`: platform-specific manual onboarding instructions for issued device credentials
 - `VpnRuntimeControlService`: best-effort host-side runtime disconnect requests for active VPN sessions
 
@@ -41,7 +40,6 @@
 - Admin request moderation
 - Admin user/session/audit operations
 - Internal accounting event intake for VPN-side session updates
-- Internal auth event intake for VPN-side blocked new-IP events
 - Platform-specific onboarding instructions for `iOS`, `Android`, `Windows`, and `macOS`
 - Best-effort runtime disconnect requests from admin session actions
 
@@ -51,8 +49,7 @@
 - VPN config generation and platform-specific onboarding artifacts are not yet fully implemented.
 - The `max_devices` gate currently lives in the FreeRADIUS template policy, uses active device-aware session counting, and still needs live validation against real VPN accounting traffic.
 - Current onboarding is manual instruction-based; `.mobileconfig`, QR, and managed client artifacts are still future work.
+- Device IP changes are user-driven through an explicit unbind action in the portal; there is no user-facing email confirmation step anymore.
 - The canonical host-side sender for accounting intake is `infrastructure/vpn-host/freeradius/scripts/forward-accounting-event.sh.template`.
 - The canonical FreeRADIUS wiring for that sender is `infrastructure/vpn-host/freeradius/mods-available/exec-accounting.template`.
-- The canonical host-side sender for blocked new-IP events is `infrastructure/vpn-host/freeradius/scripts/forward-auth-event.sh.template`.
-- The canonical FreeRADIUS wiring for blocked new-IP events is `infrastructure/vpn-host/freeradius/mods-available/exec-auth.template`.
 - Runtime admin disconnect currently depends on the host helper `infrastructure/vpn-host/strongswan/scripts/disconnect-session.sh.template` and still needs production validation against live `strongSwan` SAs.

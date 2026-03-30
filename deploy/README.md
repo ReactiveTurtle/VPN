@@ -68,7 +68,6 @@ The deployment package currently includes:
 The package does not replace bootstrap-managed runtime helpers such as:
 
 - `/usr/local/lib/vpnportal/forward-accounting-event.sh`
-- `/usr/local/lib/vpnportal/forward-auth-event.sh`
 - `/usr/local/lib/vpnportal/disconnect-session.sh`
 
 ## Deployment strategy

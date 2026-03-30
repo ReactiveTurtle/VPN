@@ -24,9 +24,6 @@ ipsec statusall || true
 log_step "Checking accounting forwarder helper"
 test -x /usr/local/lib/vpnportal/forward-accounting-event.sh
 
-log_step "Checking auth forwarder helper"
-test -x /usr/local/lib/vpnportal/forward-auth-event.sh
-
 log_step "Checking runtime disconnect helper"
 test -x /usr/local/lib/vpnportal/disconnect-session.sh
 
