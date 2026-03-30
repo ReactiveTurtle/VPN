@@ -10,13 +10,7 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Vpn
 {
     public VpnPortalDbContext CreateDbContext(string[] args)
     {
-        var basePath = Directory.GetCurrentDirectory();
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(basePath)
-            .AddJsonFile("appsettings.json", optional: true)
-            .AddJsonFile("appsettings.Development.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
+        var configuration = ConfigurationLoader.Build("Development", Directory.GetCurrentDirectory());
 
         var databaseOptions = configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
         if (string.IsNullOrWhiteSpace(databaseOptions.ConnectionString))

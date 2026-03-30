@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using VpnPortal.Infrastructure.Security;
 using VpnPortal.Infrastructure.Options;
 using VpnPortal.Infrastructure.Persistence.Ef;
+using VpnPortal.Migrations;
 
 if (args.Length > 0 && string.Equals(args[0], "hash-password", StringComparison.OrdinalIgnoreCase))
 {
@@ -20,10 +21,7 @@ if (args.Length > 0 && string.Equals(args[0], "hash-password", StringComparison.
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
-    .AddEnvironmentVariables();
+builder.Configuration.AddConfiguration(ConfigurationLoader.Build(builder.Environment.EnvironmentName));
 
 var databaseOptions = builder.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
 if (string.IsNullOrWhiteSpace(databaseOptions.ConnectionString))
