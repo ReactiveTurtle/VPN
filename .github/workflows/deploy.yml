@@ -18,23 +18,23 @@ on:
     tags:
       - 'v*'
 
-env:
-  PACKAGE_BASENAME: vpnportal-package
-
 jobs:
-  package:
+  build:
     runs-on: ubuntu-latest
     outputs:
-      artifact-name: ${{ steps.meta.outputs.artifact_name }}
-      package-file: ${{ steps.meta.outputs.package_file }}
       version: ${{ steps.meta.outputs.version }}
       target: ${{ steps.meta.outputs.target }}
+      host_port: ${{ steps.meta.outputs.host_port }}
+      runtime_env_file: ${{ steps.meta.outputs.runtime_env_file }}
+      compose_project: ${{ steps.meta.outputs.compose_project }}
+      api_image: ${{ steps.images.outputs.api_image }}
+      migrations_image: ${{ steps.images.outputs.migrations_image }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Compute package metadata
+      - name: Compute deployment metadata
         id: meta
         shell: bash
         run: |
@@ -52,141 +52,81 @@ jobs:
             TARGET="staging"
           fi
 
-          PACKAGE_FILE="${PACKAGE_BASENAME}-${TARGET}-${VERSION}.tar.gz"
-          ARTIFACT_NAME="${PACKAGE_BASENAME}-${TARGET}-${VERSION}"
-
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "target=${TARGET}" >> "$GITHUB_OUTPUT"
-          echo "package_file=${PACKAGE_FILE}" >> "$GITHUB_OUTPUT"
-          echo "artifact_name=${ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: src/VpnPortal.Web/package-lock.json
-
-      - name: Restore backend
-        run: dotnet restore VpnPortal.slnx
-
-      - name: Publish API
-        run: dotnet publish src/VpnPortal.Api/VpnPortal.Api.csproj -c Release -o artifacts/publish/api
-
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: src/VpnPortal.Web
-
-      - name: Build frontend
-        run: npm run build
-        working-directory: src/VpnPortal.Web
-
-      - name: Copy SPA into wwwroot
-        run: |
-          mkdir -p artifacts/publish/api/wwwroot
-          cp -R src/VpnPortal.Web/dist/VpnPortal.Web/browser/. artifacts/publish/api/wwwroot/
-
-      - name: Render deployment appsettings
-        shell: bash
-        run: |
-          case "${{ steps.meta.outputs.target }}" in
+          case "$TARGET" in
             production)
-              APPSETTINGS_ENVIRONMENT="Production"
+              HOST_PORT="5000"
+              RUNTIME_ENV_FILE="/etc/vpnportal/vpnportal.production.container.env"
+              COMPOSE_PROJECT="vpnportal-production"
               ;;
             staging)
-              APPSETTINGS_ENVIRONMENT="Staging"
+              HOST_PORT="5001"
+              RUNTIME_ENV_FILE="/etc/vpnportal/vpnportal.staging.container.env"
+              COMPOSE_PROJECT="vpnportal-staging"
               ;;
             *)
-              echo "Unsupported deployment target: ${{ steps.meta.outputs.target }}" >&2
+              echo "Unsupported target: $TARGET" >&2
               exit 1
               ;;
           esac
 
-          jq -n \
-            --arg dbConnectionString "${{ secrets.APP_DATABASE_CONNECTION_STRING }}" \
-            --arg emailHost "${{ secrets.APP_EMAIL_HOST }}" \
-            --arg emailUsername "${{ secrets.APP_EMAIL_USERNAME }}" \
-            --arg emailPassword "${{ secrets.APP_EMAIL_PASSWORD }}" \
-            --arg emailFromEmail "${{ secrets.APP_EMAIL_FROM_EMAIL }}" \
-            --arg emailFromName "${{ secrets.APP_EMAIL_FROM_NAME }}" \
-            --arg emailPublicBaseUrl "${{ secrets.APP_EMAIL_PUBLIC_BASE_URL }}" \
-            --arg internalApiSharedSecret "${{ secrets.APP_INTERNAL_API_SHARED_SECRET }}" \
-            --arg vpnAccessServerAddress "${{ secrets.APP_VPN_ACCESS_SERVER_ADDRESS }}" \
-            --arg vpnRuntimeDisconnectScriptPath "${{ secrets.APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH }}" \
-            '{
-              Database: {
-                Provider: "PostgreSql",
-                ConnectionString: $dbConnectionString
-              },
-              Email: {
-                Enabled: true,
-                Provider: "Smtp",
-                Host: $emailHost,
-                Port: 587,
-                UseSsl: true,
-                Username: $emailUsername,
-                Password: $emailPassword,
-                FromEmail: $emailFromEmail,
-                FromName: $emailFromName,
-                PublicBaseUrl: $emailPublicBaseUrl
-              },
-              InternalApi: {
-                SharedSecret: $internalApiSharedSecret
-              },
-              VpnAccess: {
-                ServerAddress: $vpnAccessServerAddress
-              },
-              VpnRuntime: {
-                DisconnectScriptPath: $vpnRuntimeDisconnectScriptPath
-              }
-            }' > "artifacts/publish/api/appsettings.${APPSETTINGS_ENVIRONMENT}.json"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "target=${TARGET}" >> "$GITHUB_OUTPUT"
+          echo "host_port=${HOST_PORT}" >> "$GITHUB_OUTPUT"
+          echo "runtime_env_file=${RUNTIME_ENV_FILE}" >> "$GITHUB_OUTPUT"
+          echo "compose_project=${COMPOSE_PROJECT}" >> "$GITHUB_OUTPUT"
 
-      - name: Add deployment assets
+      - name: Compute image names
+        id: images
+        shell: bash
         run: |
-          mkdir -p artifacts/publish/deploy
-          mkdir -p artifacts/publish/infrastructure/vpn-host/tools
-          cp deploy/systemd/vpnportal-api.production.service artifacts/publish/deploy/
-          cp deploy/systemd/vpnportal-api.staging.service artifacts/publish/deploy/
-          cp deploy/nginx/vpnportal.conf artifacts/publish/deploy/
-          cp deploy/env/vpnportal.production.env.example artifacts/publish/deploy/
-          cp deploy/env/vpnportal.staging.env.example artifacts/publish/deploy/
-          cp deploy/remote/deploy-package.sh artifacts/publish/deploy/
-          cp -R infrastructure/vpn-host/tools/. artifacts/publish/infrastructure/vpn-host/tools/
+          if [[ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]]; then
+            echo "Missing required secret: DOCKERHUB_USERNAME" >&2
+            exit 1
+          fi
 
-      - name: Write package metadata
-        run: |
-          cat > artifacts/publish/VERSION <<EOF
-          ${{ steps.meta.outputs.version }}
-          EOF
-          cat > artifacts/publish/DEPLOY_TARGET <<EOF
-          ${{ steps.meta.outputs.target }}
-          EOF
+          API_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/vpnportal-api:${{ steps.meta.outputs.version }}"
+          MIGRATIONS_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/vpnportal-migrations:${{ steps.meta.outputs.version }}"
 
-      - name: Archive package
-        run: tar -czf "${{ steps.meta.outputs.package_file }}" -C artifacts/publish .
+          echo "api_image=${API_IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "migrations_image=${MIGRATIONS_IMAGE}" >> "$GITHUB_OUTPUT"
 
-      - name: Upload package artifact
-        uses: actions/upload-artifact@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
-          name: ${{ steps.meta.outputs.artifact_name }}
-          path: ${{ steps.meta.outputs.package_file }}
-          if-no-files-found: error
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/VpnPortal.Api/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.images.outputs.api_image }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/vpnportal-api:${{ steps.meta.outputs.target }}
+
+      - name: Build and push migrations image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/VpnPortal.Migrations/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.images.outputs.migrations_image }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/vpnportal-migrations:${{ steps.meta.outputs.target }}
 
   deploy:
     runs-on: ubuntu-latest
-    needs: package
-    environment: ${{ needs.package.outputs.target }}
+    needs: build
+    environment: ${{ needs.build.outputs.target }}
 
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.package.outputs.artifact-name }}
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Validate deployment secrets
         shell: bash
@@ -208,9 +148,21 @@ jobs:
           require_secret DEPLOY_USER "${{ secrets.DEPLOY_USER }}"
           require_secret DEPLOY_PATH "${{ secrets.DEPLOY_PATH }}"
           require_secret DEPLOY_SSH_PRIVATE_KEY "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}"
+          require_secret DOCKERHUB_USERNAME "${{ secrets.DOCKERHUB_USERNAME }}"
+          require_secret DOCKERHUB_TOKEN "${{ secrets.DOCKERHUB_TOKEN }}"
+          require_secret APP_DATABASE_CONNECTION_STRING "${{ secrets.APP_DATABASE_CONNECTION_STRING }}"
+          require_secret APP_EMAIL_HOST "${{ secrets.APP_EMAIL_HOST }}"
+          require_secret APP_EMAIL_USERNAME "${{ secrets.APP_EMAIL_USERNAME }}"
+          require_secret APP_EMAIL_PASSWORD "${{ secrets.APP_EMAIL_PASSWORD }}"
+          require_secret APP_EMAIL_FROM_EMAIL "${{ secrets.APP_EMAIL_FROM_EMAIL }}"
+          require_secret APP_EMAIL_FROM_NAME "${{ secrets.APP_EMAIL_FROM_NAME }}"
+          require_secret APP_EMAIL_PUBLIC_BASE_URL "${{ secrets.APP_EMAIL_PUBLIC_BASE_URL }}"
+          require_secret APP_INTERNAL_API_SHARED_SECRET "${{ secrets.APP_INTERNAL_API_SHARED_SECRET }}"
+          require_secret APP_VPN_ACCESS_SERVER_ADDRESS "${{ secrets.APP_VPN_ACCESS_SERVER_ADDRESS }}"
+          require_secret APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH "${{ secrets.APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH }}"
 
           if [[ "$missing" -ne 0 ]]; then
-            echo "Configure the missing secrets in the GitHub Environment: ${{ needs.package.outputs.target }}" >&2
+            echo "Configure the missing secrets in the GitHub Environment: ${{ needs.build.outputs.target }}" >&2
             exit 1
           fi
 
@@ -224,27 +176,67 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Upload package
+      - name: Render runtime env file
+        shell: bash
         run: |
-          scp -P "${{ secrets.DEPLOY_PORT }}" "${{ needs.package.outputs.package-file }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/${{ needs.package.outputs.package-file }}"
+          case "${{ needs.build.outputs.target }}" in
+            production)
+              ASPNETCORE_ENVIRONMENT="Production"
+              ;;
+            staging)
+              ASPNETCORE_ENVIRONMENT="Staging"
+              ;;
+            *)
+              echo "Unsupported deployment target: ${{ needs.build.outputs.target }}" >&2
+              exit 1
+              ;;
+          esac
 
-      - name: Invoke packaged deployment script
+          cat > vpnportal.container.env <<EOF
+          ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+          Database__ConnectionString=${{ secrets.APP_DATABASE_CONNECTION_STRING }}
+          Email__Enabled=true
+          Email__Provider=Smtp
+          Email__Host=${{ secrets.APP_EMAIL_HOST }}
+          Email__Port=587
+          Email__UseSsl=true
+          Email__Username=${{ secrets.APP_EMAIL_USERNAME }}
+          Email__Password=${{ secrets.APP_EMAIL_PASSWORD }}
+          Email__FromEmail=${{ secrets.APP_EMAIL_FROM_EMAIL }}
+          Email__FromName=${{ secrets.APP_EMAIL_FROM_NAME }}
+          Email__PublicBaseUrl=${{ secrets.APP_EMAIL_PUBLIC_BASE_URL }}
+          InternalApi__SharedSecret=${{ secrets.APP_INTERNAL_API_SHARED_SECRET }}
+          VpnAccess__ServerAddress=${{ secrets.APP_VPN_ACCESS_SERVER_ADDRESS }}
+          VpnRuntime__DisconnectScriptPath=${{ secrets.APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH }}
+          EOF
+
+      - name: Upload compose and env assets
+        run: |
+          scp -P "${{ secrets.DEPLOY_PORT }}" deploy/docker/docker-compose.yml "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/docker-compose.yml"
+          scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal.container.env "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal.container.env.tmp"
+
+      - name: Deploy Docker images
         run: |
           ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-          "PACKAGE_PATH='${{ secrets.DEPLOY_PATH }}/${{ needs.package.outputs.package-file }}' TARGET='${{ needs.package.outputs.target }}' VERSION='${{ needs.package.outputs.version }}' bash -s" <<'EOF'
+          "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' RUNTIME_ENV_FILE='${{ needs.build.outputs.runtime_env_file }}' HOST_PORT='${{ needs.build.outputs.host_port }}' COMPOSE_PROJECT='${{ needs.build.outputs.compose_project }}' API_IMAGE='${{ needs.build.outputs.api_image }}' MIGRATIONS_IMAGE='${{ needs.build.outputs.migrations_image }}' DOCKERHUB_USERNAME='${{ secrets.DOCKERHUB_USERNAME }}' DOCKERHUB_TOKEN='${{ secrets.DOCKERHUB_TOKEN }}' bash -s" <<'EOF'
           set -euo pipefail
 
-          temp_dir="$(mktemp -d)"
-          trap 'rm -rf "$temp_dir"' EXIT
+          test -d "$DEPLOY_PATH"
+          test -f "$DEPLOY_PATH/docker-compose.yml"
+          test -f "$DEPLOY_PATH/vpnportal.container.env.tmp"
 
-          test -f "$PACKAGE_PATH"
+          sudo install -d -m 0755 /etc/vpnportal
+          sudo install -m 0640 "$DEPLOY_PATH/vpnportal.container.env.tmp" "$RUNTIME_ENV_FILE"
+          rm -f "$DEPLOY_PATH/vpnportal.container.env.tmp"
 
-          script_member="$(tar -tzf "$PACKAGE_PATH" | grep -E '^(\./)?deploy/deploy-package\.sh$' | head -n 1)"
-          if [[ -z "$script_member" ]]; then
-            echo "Packaged deploy script not found in archive: $PACKAGE_PATH" >&2
-            exit 1
-          fi
+          echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-          tar -xzf "$PACKAGE_PATH" -C "$temp_dir" "$script_member"
-          bash "$temp_dir/deploy/deploy-package.sh" "$PACKAGE_PATH" "$TARGET" "$VERSION"
+          export VPNPORTAL_API_IMAGE="$API_IMAGE"
+          export VPNPORTAL_MIGRATIONS_IMAGE="$MIGRATIONS_IMAGE"
+          export VPNPORTAL_RUNTIME_ENV_FILE="$RUNTIME_ENV_FILE"
+          export VPNPORTAL_HOST_PORT="$HOST_PORT"
+
+          docker compose --project-name "$COMPOSE_PROJECT" -f "$DEPLOY_PATH/docker-compose.yml" pull api migrations
+          docker compose --project-name "$COMPOSE_PROJECT" -f "$DEPLOY_PATH/docker-compose.yml" run --rm migrations
+          docker compose --project-name "$COMPOSE_PROJECT" -f "$DEPLOY_PATH/docker-compose.yml" up -d api
           EOF

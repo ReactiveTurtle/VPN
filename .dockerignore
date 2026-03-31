@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/node_modules/
+artifacts/
+.git/
+.github/
+.vs/
+.idea/
+.vscode/
+TestResults/

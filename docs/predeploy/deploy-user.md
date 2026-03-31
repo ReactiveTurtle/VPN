@@ -10,7 +10,8 @@
 
 - принимать SSH-подключение по ключу
 - иметь доступ к каталогу деплоя
-- при необходимости выполнять ограниченный набор `sudo`-действий, которые использует deploy-скрипт
+- входить в группу `docker`, если deploy будет запускать `docker compose` без `sudo`
+- при необходимости выполнять ограниченный набор `sudo`-действий, которые использует rollout для записи env-файла в `/etc/vpnportal`
 
 ## Пример Создания Пользователя
 
@@ -62,16 +63,21 @@ sudo install -d -m 755 /opt/vpnportal
 sudo chown -R deploy:deploy /opt/vpnportal
 ```
 
-Этого достаточно для upload path. Target app roots вроде `/opt/vpnportal-staging` и их `releases/` каталог теперь создаются самим `deploy/remote/deploy-package.sh` во время первого deploy.
+Этого достаточно для upload path и размещения `docker-compose.yml`.
+
+Если вы переходите на Docker-based rollout, дополнительно добавьте пользователя в группу `docker`:
+
+```bash
+sudo usermod -aG docker deploy
+```
+
+После этого перелогиньтесь под пользователем `deploy` или выполните `newgrp docker`.
 
 ## Sudo-Права Для Деплоя
 
-Текущий `deploy/remote/deploy-package.sh` использует `sudo` для:
+Текущий Docker-based rollout использует `sudo` для:
 
-- `install` в `/usr/local/bin`
-- `systemctl daemon-reload`
-- `systemctl restart <service>`
-- `systemctl reload nginx`
+- `install` env-файла в `/etc/vpnportal`
 
 Если вы хотите использовать отдельного deploy-пользователя без полного root-доступа, настройте ограниченное правило в `/etc/sudoers.d/`.
 
@@ -79,7 +85,7 @@ sudo chown -R deploy:deploy /opt/vpnportal
 
 ```bash
 sudo tee /etc/sudoers.d/vpnportal-deploy >/dev/null <<'EOF'
-deploy ALL=(root) NOPASSWD: /usr/bin/install, /usr/bin/systemctl daemon-reload, /usr/bin/systemctl restart vpnportal-api, /usr/bin/systemctl restart vpnportal-api-staging, /usr/bin/systemctl reload nginx
+deploy ALL=(root) NOPASSWD: /usr/bin/install
 EOF
 sudo chmod 440 /etc/sudoers.d/vpnportal-deploy
 ```
@@ -106,7 +112,9 @@ sudo visudo -cf /etc/sudoers.d/vpnportal-deploy
 ```bash
 ssh -i ./vpnportal-deploy-key -p <port> deploy@<host>
 test -w /opt/vpnportal
-sudo -n systemctl daemon-reload
+docker version
+docker compose version
+sudo -n install -m 0640 /dev/null /etc/vpnportal/deploy-user-check.tmp && sudo rm -f /etc/vpnportal/deploy-user-check.tmp
 ```
 
 Если `sudo -n` завершается ошибкой, значит для пользователя еще не настроены нужные `sudoers`-права.

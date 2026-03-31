@@ -1,0 +1,23 @@
+services:
+  api:
+    image: ${VPNPORTAL_API_IMAGE:?VPNPORTAL_API_IMAGE is required}
+    restart: unless-stopped
+    env_file:
+      - ${VPNPORTAL_RUNTIME_ENV_FILE:?VPNPORTAL_RUNTIME_ENV_FILE is required}
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+    ports:
+      - 127.0.0.1:${VPNPORTAL_HOST_PORT:?VPNPORTAL_HOST_PORT is required}:8080
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - /usr/local/lib/vpnportal:/usr/local/lib/vpnportal:ro
+
+  migrations:
+    image: ${VPNPORTAL_MIGRATIONS_IMAGE:?VPNPORTAL_MIGRATIONS_IMAGE is required}
+    env_file:
+      - ${VPNPORTAL_RUNTIME_ENV_FILE:?VPNPORTAL_RUNTIME_ENV_FILE is required}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    profiles:
+      - tools

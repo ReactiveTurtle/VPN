@@ -6,7 +6,7 @@
 
 Сначала выполните начальные host-level шаги:
 
-1. Установите необходимые runtime-компоненты, такие как `.NET 10 runtime`, `nginx` и поддержка `systemd`.
+1. Установите необходимые host-компоненты, такие как `Docker Engine`, `Docker Compose plugin`, `nginx` и поддержка `systemd`.
 2. Создайте корневую директорию деплоя, например `/opt/vpnportal`.
 3. Подготовьте `/etc/vpnportal/` для env-файлов.
 4. Убедитесь, что SSH-доступ уже работает, как описано в `docs/predeploy/ssh-access.md`.
@@ -16,8 +16,9 @@
 Ожидаемый layout на целевой машине включает:
 
 - app root: `/opt/vpnportal`
-- API files: `/opt/vpnportal/current/api`
-- static SPA: `/opt/vpnportal/current/api/wwwroot`
+- compose file: `/opt/vpnportal/docker-compose.yml`
+- runtime env file: `/etc/vpnportal/vpnportal.production.container.env`
+- published container port via host loopback: `127.0.0.1:5000` or `127.0.0.1:5001`
 - deploy-managed operational tools: `/usr/local/bin`
 - bootstrap-managed VPN runtime helpers: `/usr/local/lib/vpnportal`
 
@@ -33,7 +34,7 @@
 sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vpn.example.com
 ```
 
-Скрипт подготавливает директории, ставит базовые пакеты, устанавливает `systemd` unit, `nginx` config и runtime env-файл из example.
+Скрипт подготавливает директории, ставит `Docker Engine`, `Docker Compose plugin` и `nginx`, добавляет deploy user в группу `docker`, настраивает `nginx` config и container env-файл из example.
 
 Если целевая машина одновременно является VPN-хостом, скрипт можно запустить с уже заполненным env-файлом bootstrap:
 
@@ -43,16 +44,18 @@ sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vp
 
 В этом режиме он дополнительно запускает `infrastructure/vpn-host/bootstrap/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
 
-При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub secrets для рендера `appsettings.{Environment}.json`, миграций БД и создания первого администратора.
+При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub secrets для Docker Hub и container env-файла, миграций БД и создания первого администратора.
 
-1. Скопируйте `deploy/systemd/vpnportal-api.production.service` и/или `deploy/systemd/vpnportal-api.staging.service` в `/etc/systemd/system/` и при необходимости поправьте пути или пользователя.
-2. Скопируйте `deploy/nginx/vpnportal.conf` в конфигурацию nginx и обновите `server_name`.
-3. Скопируйте `deploy/env/vpnportal.production.env.example` или `deploy/env/vpnportal.staging.env.example` в `/etc/vpnportal/`.
+1. Скопируйте `deploy/nginx/vpnportal.conf` в конфигурацию nginx и обновите `server_name`.
+2. Скопируйте `deploy/env/vpnportal.production.container.env.example` или `deploy/env/vpnportal.staging.container.env.example` в `/etc/vpnportal/`.
+3. Скопируйте `deploy/docker/docker-compose.yml` на сервер, например в `/opt/vpnportal/docker-compose.yml`.
 4. Убедитесь, что `DEPLOY_PATH` существует на сервере и доступен для записи пользователю деплоя.
-5. Убедитесь, что в `/usr/local/bin` можно писать через `sudo install` из packaged deploy-скрипта, если вы хотите автоматически обновлять packaged operational tools.
-6. Включите нужный systemd-сервис.
+5. Убедитесь, что в `/usr/local/bin` можно писать через `sudo install`, если вы хотите отдельно обновлять host-managed operational tools.
+6. Убедитесь, что `nginx` включен и может проксировать в контейнер на loopback-порт целевого окружения.
 
-`deploy/remote/deploy-package.sh` сам создаст target app root и каталог `releases`, если их еще нет, поэтому для первого deploy не нужно отдельно раскладывать `/opt/vpnportal-staging` вручную.
+Docker rollout использует один `docker-compose.yml` и environment-specific container env-файлы. `staging` и `production` разделяются через project name, loopback-port и разные env-файлы.
+
+Если `prepare-app-host.sh` добавил пользователя деплоя в группу `docker`, после этого нужно перелогиниться под этим пользователем или выполнить `newgrp docker`, иначе новые права группы не применятся в текущей сессии.
 
 ## Bootstrap VPN-Хоста
 
@@ -78,7 +81,7 @@ sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vp
 
 - `dotnet run --project src/VpnPortal.Migrations -- hash-password "<plaintext>"`
 
-Для runtime-конфигурации API боевые значения теперь должны попадать из GitHub deployment secrets в `appsettings.{Environment}.json` во время workflow, а не храниться в tracked env-файлах репозитория.
+Для runtime-конфигурации API боевые значения теперь должны попадать из GitHub deployment secrets в container env-файл во время workflow, а не храниться в tracked env-файлах репозитория.
 
 ## Критерии Готовности
 
@@ -86,8 +89,9 @@ sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vp
 
 - SSH-доступ работает для пользователя деплоя
 - директории деплоя существуют
-- конфигурации systemd и nginx установлены
-- env-файл подготовлен в `/etc/vpnportal/`
-- удаленный deploy-скрипт установлен и исполняем
+- Docker Engine и Compose plugin установлены
+- конфигурация nginx установлена
+- container env-файл подготовлен в `/etc/vpnportal/`
+- compose file подготовлен в `DEPLOY_PATH`
 - bootstrap VPN-хоста завершен, если этого требует целевая топология
 - шаги по схеме БД и первому администратору понятны и запланированы до первого production-использования

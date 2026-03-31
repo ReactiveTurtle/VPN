@@ -4,20 +4,19 @@
 
 Deployment assets already exist under `deploy/`.
 
-- `deploy/systemd/`
+- `deploy/docker/`
 - `deploy/nginx/`
 - `deploy/env/`
-- `deploy/remote/`
 - `.github/workflows/`
 
 VPN host bootstrap assets now also live under `infrastructure/vpn-host/`.
 
 ## Shape
 
-- API is intended to run on Linux under `systemd`.
-- `nginx` is expected to front the application.
-- Frontend build output is served as static files from the API host.
-- CI and deploy workflows package and ship the application.
+- API is intended to run in Docker.
+- `nginx` is expected to remain on the host and reverse proxy into the API container.
+- Frontend build output is served from the API container.
+- CI builds and pushes Docker images, then deploys them over SSH with `docker compose`.
 
 ## Predeploy
 
@@ -35,15 +34,15 @@ The current target deployment for the first production-oriented stage is one `Ub
 - `strongSwan`
 - `FreeRADIUS`
 - `PostgreSQL`
-- `VpnPortal.Api`
-- static SPA assets
 - `nginx`
+- Docker Engine / Docker Compose plugin
+- `VpnPortal.Api` container
 
 Use `infrastructure/vpn-host/README.md` and the `bootstrap/*.sh` scripts to prepare that host.
 
-The portal application delivery assets under `deploy/` remain the source for packaging and release rollout, while `infrastructure/vpn-host/` covers host preparation and local service integration.
+The portal application delivery assets under `deploy/` remain the source for container rollout, while `infrastructure/vpn-host/` covers host preparation and local service integration.
 
-Operational helper scripts that live on the VPN host should also be tracked under `infrastructure/vpn-host/tools/`. The current helper is `vpn-speed.py`, intended to be installed at `/usr/local/bin/vpn-speed.py`, updated from the packaged repository copy during each deploy, and run with `sudo /usr/local/bin/vpn-speed.py` for live VPN session throughput monitoring.
+Operational helper scripts that live on the VPN host should also be tracked under `infrastructure/vpn-host/tools/`. The current helper is `vpn-speed.py`, intended to be installed at `/usr/local/bin/vpn-speed.py` and run with `sudo /usr/local/bin/vpn-speed.py` for live VPN session throughput monitoring.
 
 ## Current Runtime Contract
 
@@ -52,7 +51,7 @@ The current target runtime flow on the host is:
 - `strongSwan` terminates IKEv2
 - `FreeRADIUS` validates password-based device credentials from PostgreSQL
 - `FreeRADIUS` forwards accounting events into `POST /api/internal/radius/accounting-events`
-- the portal updates `vpn_sessions` and auto-binds the first source IP to the device
+- the portal container updates `vpn_sessions` and auto-binds the first source IP to the device
 - admin disconnect can request best-effort runtime session teardown through `/usr/local/lib/vpnportal/disconnect-session.sh`
 
 ## Host-Installed Runtime Helpers
@@ -102,7 +101,7 @@ The bootstrap creates separate database roles for the portal application and Fre
 
 See these references:
 
-- `deploy/README.md` for API and SPA deployment packaging
+- `deploy/README.md` for Docker image rollout and host preparation
 - `infrastructure/vpn-host/README.md` for first-time host preparation
 - `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md` for end-to-end runtime validation
 - `docs/runbooks/create-first-superadmin.md` for first admin creation
