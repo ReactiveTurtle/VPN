@@ -238,6 +238,13 @@ jobs:
           trap 'rm -rf "$temp_dir"' EXIT
 
           test -f "$PACKAGE_PATH"
-          tar -xzf "$PACKAGE_PATH" -C "$temp_dir" deploy/deploy-package.sh
+
+          script_member="$(tar -tzf "$PACKAGE_PATH" | grep -E '^(\./)?deploy/deploy-package\.sh$' | head -n 1)"
+          if [[ -z "$script_member" ]]; then
+            echo "Packaged deploy script not found in archive: $PACKAGE_PATH" >&2
+            exit 1
+          fi
+
+          tar -xzf "$PACKAGE_PATH" -C "$temp_dir" "$script_member"
           bash "$temp_dir/deploy/deploy-package.sh" "$PACKAGE_PATH" "$TARGET" "$VERSION"
           EOF
