@@ -12,6 +12,7 @@ This directory contains project documentation and architecture decision records 
 - `security.md` - security controls and known constraints
 - `integrations.md` - strongSwan, FreeRADIUS, PostgreSQL, SMTP integration boundaries
 - `deployment.md` - deployment topology and operational notes
+- `predeploy/` - prerequisites and first-time host preparation before first deployment
 - `roadmap.md` - implemented vs missing capabilities relative to the brief
 - `adr/` - architecture decision records
 

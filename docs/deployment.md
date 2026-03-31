@@ -19,6 +19,15 @@ VPN host bootstrap assets now also live under `infrastructure/vpn-host/`.
 - Frontend build output is served as static files from the API host.
 - CI and deploy workflows package and ship the application.
 
+## Predeploy
+
+First-time preparation for a new machine is documented separately under `docs/predeploy/`.
+
+Read these documents before the first deployment to a fresh host:
+
+- `docs/predeploy/ssh-access.md`
+- `docs/predeploy/new-host-checklist.md`
+
 ## Ubuntu 24.04 Single-Host Topology
 
 The current target deployment for the first production-oriented stage is one `Ubuntu 24.04` server running:

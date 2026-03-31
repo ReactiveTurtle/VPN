@@ -35,6 +35,14 @@ Recommended:
 
 ## First-time server prep
 
+You can automate most application-host setup steps with:
+
+- `sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vpn.example.com`
+
+This helper installs base packages, prepares directories, installs the systemd unit, renders nginx config, writes the example env file when missing, and installs `deploy-package.sh` onto the host.
+
+It does not configure SSH access, fill real secrets, run schema migrations, or create the first `superadmin`.
+
 1. Install `.NET 10 runtime`, `nginx`, and `systemd` support.
 2. Create deployment directory, for example `/opt/vpnportal`.
 3. Copy `deploy/systemd/vpnportal-api.production.service` and/or `deploy/systemd/vpnportal-api.staging.service` to `/etc/systemd/system/` and adjust paths/user if needed.
