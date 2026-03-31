@@ -23,10 +23,21 @@ builder.Services.Configure<VpnAccessOptions>(builder.Configuration.GetSection(Vp
 builder.Services.Configure<VpnRuntimeOptions>(builder.Configuration.GetSection(VpnRuntimeOptions.SectionName));
 
 var databaseOptions = builder.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
+var vpnAccessOptions = builder.Configuration.GetSection(VpnAccessOptions.SectionName).Get<VpnAccessOptions>() ?? new VpnAccessOptions();
 
 if (string.IsNullOrWhiteSpace(databaseOptions.ConnectionString))
 {
     throw new InvalidOperationException("Database:ConnectionString must be configured.");
+}
+
+if (string.IsNullOrWhiteSpace(vpnAccessOptions.ServerAddress))
+{
+    throw new InvalidOperationException("VpnAccess:ServerAddress must be configured.");
+}
+
+if (string.Equals(vpnAccessOptions.ServerAddress.Trim(), "vpn.example.com", StringComparison.OrdinalIgnoreCase))
+{
+    throw new InvalidOperationException("VpnAccess:ServerAddress must be set to the real VPN server IP or hostname, not the example placeholder.");
 }
 
 builder.Services.AddSingleton(databaseOptions);

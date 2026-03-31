@@ -36,7 +36,7 @@ The original brief allowed `Blazor/ASP.NET Core`, but the current repository imp
 ### User portal
 
 1. User authenticates with cookie-based auth.
-2. `Личный кабинет` loads issued device access records, platform setup guides, and recent sessions.
+2. `Личный кабинет` loads active device access records for the signed-in user, platform setup guides, and recent sessions.
 3. User can create or rotate a per-device VPN credential, revoke a device, and unbind the currently attached source IP from that device.
 4. The first successful VPN connection for a device auto-binds the current source IP to that device; later IP changes require unbinding in the portal before reconnecting.
 

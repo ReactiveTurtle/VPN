@@ -55,6 +55,12 @@ export interface VpnOnboardingInstruction {
   summary: string;
   steps: string[];
   credentialLabel: string;
+  fields: VpnOnboardingField[];
+}
+
+export interface VpnOnboardingField {
+  label: string;
+  value: string;
 }
 
 export interface TrustedDevice {

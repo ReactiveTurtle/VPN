@@ -7,14 +7,14 @@ namespace VpnPortal.Infrastructure.Services;
 
 public sealed class VpnOnboardingInstructionService(IOptions<VpnAccessOptions> vpnAccessOptions) : IVpnOnboardingInstructionService
 {
+    private const string CatalogUsernamePlaceholder = "<device-username>";
     private static readonly string[] SupportedPlatforms = ["ios", "android", "windows", "macos"];
 
     public VpnOnboardingInstructionDto Create(string platform, string vpnUsername)
     {
         var normalized = NormalizePlatform(platform);
-        var serverAddress = string.IsNullOrWhiteSpace(vpnAccessOptions.Value.ServerAddress)
-            ? "vpn.example.com"
-            : vpnAccessOptions.Value.ServerAddress.Trim();
+        var serverAddress = vpnAccessOptions.Value.ServerAddress.Trim();
+        var fields = CreateFields(normalized, serverAddress, vpnUsername);
 
         return normalized switch
         {
@@ -29,7 +29,8 @@ public sealed class VpnOnboardingInstructionService(IOptions<VpnAccessOptions> v
                     $"Если клиент запрашивает Remote ID, укажите {serverAddress}.",
                     "После сохранения профиля выполните первое подключение: этот вход автоматически привяжет текущий IP к устройству."
                 ],
-                "Используйте логин и пароль устройства из портала."),
+                "Используйте логин и пароль устройства из портала.",
+                fields),
             "ios" => new VpnOnboardingInstructionDto(
                 "ios",
                 "Ручная настройка IKEv2 на iPhone или iPad",
@@ -41,7 +42,8 @@ public sealed class VpnOnboardingInstructionService(IOptions<VpnAccessOptions> v
                     $"Имя пользователя: {vpnUsername}. Пароль: VPN-пароль устройства, выданный в портале.",
                     "Сохраните профиль и подключитесь один раз, чтобы убедиться, что туннель поднимается."
                 ],
-                "Используйте VPN-имя пользователя и пароль устройства, указанные выше."),
+                "Используйте VPN-имя пользователя и пароль устройства, указанные выше.",
+                fields),
             "android" => new VpnOnboardingInstructionDto(
                 "android",
                 "Настройка IKEv2 на Android",
@@ -53,7 +55,8 @@ public sealed class VpnOnboardingInstructionService(IOptions<VpnAccessOptions> v
                     "Сохраните профиль и подключитесь. Если Android-клиент запрашивает IPSec-идентификаторы, используйте адрес сервера как Remote ID.",
                     "Если позже в развертывании появятся QR-коды или управляемые профили, используйте их вместо ручного ввода."
                 ],
-                "Используйте VPN-имя пользователя и пароль устройства, указанные выше."),
+                "Используйте VPN-имя пользователя и пароль устройства, указанные выше.",
+                fields),
             "windows" => new VpnOnboardingInstructionDto(
                 "windows",
                 "Настройка встроенного VPN в Windows",
@@ -66,7 +69,8 @@ public sealed class VpnOnboardingInstructionService(IOptions<VpnAccessOptions> v
                     $"Имя пользователя: {vpnUsername}. Пароль: VPN-пароль устройства, выданный в портале.",
                     "Сохраните профиль, затем подключитесь из экрана настроек VPN в Windows."
                 ],
-                "Используйте VPN-имя пользователя и пароль устройства, указанные выше."),
+                "Используйте VPN-имя пользователя и пароль устройства, указанные выше.",
+                fields),
             _ => new VpnOnboardingInstructionDto(
                 "macos",
                 "Настройка встроенного IKEv2 в macOS",
@@ -78,13 +82,36 @@ public sealed class VpnOnboardingInstructionService(IOptions<VpnAccessOptions> v
                     "Оставьте Local ID пустым, если ваше развертывание не требует конкретного значения.",
                     "Сохраните профиль и подключитесь один раз, чтобы проверить доступ."
                 ],
-                "Используйте VPN-имя пользователя и пароль устройства, указанные выше.")
+                "Используйте VPN-имя пользователя и пароль устройства, указанные выше.",
+                fields)
         };
     }
 
     public IReadOnlyCollection<VpnOnboardingInstructionDto> CreateCatalog()
     {
-        return SupportedPlatforms.Select(platform => Create(platform, "<device-username>")).ToArray();
+        return SupportedPlatforms.Select(platform => Create(platform, CatalogUsernamePlaceholder)).ToArray();
+    }
+
+    private static IReadOnlyCollection<VpnOnboardingFieldDto> CreateFields(string platform, string serverAddress, string vpnUsername)
+    {
+        var fields = new List<VpnOnboardingFieldDto>();
+
+        if (!string.IsNullOrWhiteSpace(serverAddress))
+        {
+            fields.Add(new VpnOnboardingFieldDto("Сервер", serverAddress));
+
+            if (platform is "manual" or "ios" or "android" or "macos")
+            {
+                fields.Add(new VpnOnboardingFieldDto("Remote ID", serverAddress));
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(vpnUsername) && !string.Equals(vpnUsername, CatalogUsernamePlaceholder, StringComparison.Ordinal))
+        {
+            fields.Add(new VpnOnboardingFieldDto("Имя пользователя", vpnUsername));
+        }
+
+        return fields;
     }
 
     private static string NormalizePlatform(string platform)

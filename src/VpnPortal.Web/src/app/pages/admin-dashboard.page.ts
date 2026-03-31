@@ -1,6 +1,7 @@
 import { DatePipe, NgIf } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { NotificationService } from '../core/notification.service';
 import { PortalApiService } from '../core/portal-api.service';
 import { AdminSession, AdminUser, AuditLogEntry, VpnRequest } from '../core/models';
 import { actorTypeLabel, auditActionLabel, entityTypeLabel, requestStatusLabel, userStatusLabel } from './admin-shared';
@@ -11,53 +12,35 @@ import { SectionMenuComponent, SectionMenuItem } from './section-menu.component'
   standalone: true,
   imports: [DatePipe, NgIf, FormsModule, SectionMenuComponent],
   template: `
-    <section class="hero hero-single">
-      <div class="hero-main">
-        <p class="eyebrow">Суперадминка</p>
-        <h1>Рабочая панель</h1>
-        <p class="lead">Все основные потоки собраны на одном экране: новые заявки, история решений, аудит, VPN-сессии и учетные записи.</p>
+    <div class="dashboard-page-shell">
+      <section class="hero hero-single">
+        <div class="hero-main">
+          <p class="eyebrow">Суперадминка</p>
+          <h1>Операционный кабинет</h1>
+          <p class="lead">Работайте с заявками, аудитом, VPN-сессиями и учетными записями в том же формате, что и в личном кабинете: один экран, секции и быстрые действия по месту.</p>
 
-        <div class="compact-stats section-block">
-          <article class="compact-stat">
-            <span class="metric-label">Новые заявки</span>
-            <strong>{{ pendingRequestCount() }}</strong>
-          </article>
-          <article class="compact-stat">
-            <span class="metric-label">Аудит</span>
-            <strong>{{ auditLog().length }}</strong>
-          </article>
-          <article class="compact-stat">
-            <span class="metric-label">Активные сессии</span>
-            <strong>{{ activeSessionCount() }}</strong>
-          </article>
-          <article class="compact-stat">
-            <span class="metric-label">Пользователи</span>
-            <strong>{{ users().length }}</strong>
-          </article>
+          <div class="hero-inline-summary">
+            <span class="hero-summary-pill">Новых заявок: {{ pendingRequestCount() }}</span>
+            <span class="hero-summary-pill">Активных сессий: {{ activeSessionCount() }}</span>
+            <span class="hero-summary-pill">Активных пользователей: {{ activeUserCount() }}</span>
+            @if (systemEventCount() > 0) {
+              <span class="hero-summary-pill hero-summary-pill-warning">Системных событий в аудите: {{ systemEventCount() }}</span>
+            }
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <app-section-menu
-      [eyebrow]="'Разделы суперадминки'"
-      [title]="'Рабочие разделы'"
-      [description]="'Переходите к нужному потоку без переключения между отдельными экранами.'"
-      [ariaLabel]="'Разделы суперадминки'"
-      [activeSectionId]="activeSectionId()"
-      (sectionChange)="activeSectionId.set($event)"
-      [sections]="adminSections()" />
+      <app-section-menu
+        class="dashboard-tabs"
+        [compact]="true"
+        [ariaLabel]="'Разделы суперадминки'"
+        [activeSectionId]="activeSectionId()"
+        (sectionChange)="activeSectionId.set($event)"
+        [sections]="adminSections()" />
 
-    <section class="panel request-panel" *ngIf="message() as message">
-      <div class="feedback success">{{ message }}</div>
-    </section>
-
-    <section class="panel request-panel" *ngIf="error() as error">
-      <div class="feedback error">{{ error }}</div>
-    </section>
-
-    <section class="content-section section-shell">
       @if (activeSectionId() === 'admin-pending-requests') {
-      <article class="panel data-panel">
+      <section class="content-section section-shell dashboard-tab-content">
+        <article class="panel data-panel">
         <div class="content-section-header content-section-header-single">
           <div>
             <p class="eyebrow">Новые заявки</p>
@@ -114,13 +97,13 @@ import { SectionMenuComponent, SectionMenuItem } from './section-menu.component'
             <p class="muted-note">Публичная форма пока не создала элементов для модерации.</p>
           </div>
         </ng-template>
-      </article>
+        </article>
+      </section>
       }
-    </section>
 
-    <section class="content-section section-shell">
       @if (activeSectionId() === 'admin-request-history') {
-      <article class="panel data-panel">
+      <section class="content-section section-shell dashboard-tab-content">
+        <article class="panel data-panel">
         <div class="content-section-header content-section-header-single">
           <div>
             <p class="eyebrow">История</p>
@@ -153,13 +136,13 @@ import { SectionMenuComponent, SectionMenuItem } from './section-menu.component'
             <p class="muted-note">После первого одобрения или отклонения заявки раздел начнет заполняться.</p>
           </div>
         </ng-template>
-      </article>
+        </article>
+      </section>
       }
-    </section>
 
-    <section class="content-section section-shell">
       @if (activeSectionId() === 'admin-audit-log') {
-      <article class="panel data-panel">
+      <section class="content-section section-shell dashboard-tab-content">
+        <article class="panel data-panel">
         <div class="content-section-header content-section-header-single">
           <div>
             <p class="eyebrow">Аудит</p>
@@ -203,13 +186,13 @@ import { SectionMenuComponent, SectionMenuItem } from './section-menu.component'
             <p class="muted-note">События появятся после действий пользователей, суперадминистратора или внутренних VPN-интеграций.</p>
           </div>
         </ng-template>
-      </article>
+        </article>
+      </section>
       }
-    </section>
 
-    <section class="content-section section-shell">
       @if (activeSectionId() === 'admin-sessions') {
-      <article class="panel data-panel">
+      <section class="content-section section-shell dashboard-tab-content">
+        <article class="panel data-panel">
         <div class="content-section-header content-section-header-single">
           <div>
             <p class="eyebrow">Сессии</p>
@@ -260,13 +243,13 @@ import { SectionMenuComponent, SectionMenuItem } from './section-menu.component'
             <p class="muted-note">Активность появится здесь после поступления accounting-событий с VPN-хоста.</p>
           </div>
         </ng-template>
-      </article>
+        </article>
+      </section>
       }
-    </section>
 
-    <section class="content-section section-shell">
       @if (activeSectionId() === 'admin-accounts') {
-      <article class="panel data-panel">
+      <section class="content-section section-shell dashboard-tab-content">
+        <article class="panel data-panel">
         <div class="content-section-header content-section-header-single">
           <div>
             <p class="eyebrow">Учетные записи</p>
@@ -323,13 +306,15 @@ import { SectionMenuComponent, SectionMenuItem } from './section-menu.component'
             <p class="muted-note">Пользователи появляются здесь после одобрения заявок и активации учетных записей.</p>
           </div>
         </ng-template>
-      </article>
+        </article>
+      </section>
       }
-    </section>
+    </div>
   `
 })
 export class AdminDashboardPage {
   private readonly api = inject(PortalApiService);
+  private readonly notifications = inject(NotificationService);
 
   protected readonly userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   protected readonly requests = signal<VpnRequest[]>([]);
@@ -339,8 +324,6 @@ export class AdminDashboardPage {
   protected readonly busyRequestId = signal<number | null>(null);
   protected readonly busySessionId = signal<number | null>(null);
   protected readonly busyUserId = signal<number | null>(null);
-  protected readonly message = signal<string | null>(null);
-  protected readonly error = signal<string | null>(null);
   protected readonly activeSectionId = signal<string>('admin-pending-requests');
   protected readonly comments: Record<number, string> = {};
   protected readonly userLimits: Record<number, number> = {};
@@ -407,90 +390,80 @@ export class AdminDashboardPage {
 
   protected approve(request: VpnRequest): void {
     this.busyRequestId.set(request.id);
-    this.message.set(null);
-    this.error.set(null);
 
     this.api.approveRequest(request.id, this.comments[request.id]).subscribe({
       next: (updated) => {
         this.mergeRequest(updated);
         this.busyRequestId.set(null);
-        this.message.set(`Заявка #${updated.id} одобрена. Ссылка активации готова.`);
+        this.showSuccess(`Заявка #${updated.id} одобрена. Ссылка активации готова.`);
       },
       error: () => {
         this.busyRequestId.set(null);
-        this.error.set(`Не удалось одобрить заявку #${request.id}.`);
+        this.showError(`Не удалось одобрить заявку #${request.id}.`);
       }
     });
   }
 
   protected reject(request: VpnRequest): void {
     this.busyRequestId.set(request.id);
-    this.message.set(null);
-    this.error.set(null);
 
     this.api.rejectRequest(request.id, this.comments[request.id]).subscribe({
       next: (updated) => {
         this.mergeRequest(updated);
         this.busyRequestId.set(null);
-        this.message.set(`Заявка #${updated.id} отклонена.`);
+        this.showSuccess(`Заявка #${updated.id} отклонена.`);
       },
       error: () => {
         this.busyRequestId.set(null);
-        this.error.set(`Не удалось отклонить заявку #${request.id}.`);
+        this.showError(`Не удалось отклонить заявку #${request.id}.`);
       }
     });
   }
 
   protected disconnectSession(sessionId: number): void {
     this.busySessionId.set(sessionId);
-    this.message.set(null);
-    this.error.set(null);
 
     this.api.disconnectAdminSession(sessionId).subscribe({
       next: () => {
         this.busySessionId.set(null);
-        this.message.set(`Сессия #${sessionId} отключена.`);
+        this.showSuccess(`Сессия #${sessionId} отключена.`);
         this.loadSessions();
       },
       error: () => {
         this.busySessionId.set(null);
-        this.error.set(`Не удалось отключить сессию #${sessionId}.`);
+        this.showError(`Не удалось отключить сессию #${sessionId}.`);
       }
     });
   }
 
   protected saveUser(user: AdminUser): void {
     this.busyUserId.set(user.id);
-    this.message.set(null);
-    this.error.set(null);
 
     this.api.updateAdminUser(user.id, { maxDevices: this.userLimits[user.id] ?? user.maxDevices }).subscribe({
       next: (updated) => {
         this.busyUserId.set(null);
         this.mergeUser(updated);
-        this.message.set(`Пользователь ${updated.username} обновлен.`);
+        this.showSuccess(`Пользователь ${updated.username} обновлен.`);
       },
       error: () => {
         this.busyUserId.set(null);
-        this.error.set(`Не удалось обновить пользователя ${user.username}.`);
+        this.showError(`Не удалось обновить пользователя ${user.username}.`);
       }
     });
   }
 
   protected toggleUser(user: AdminUser): void {
     this.busyUserId.set(user.id);
-    this.message.set(null);
-    this.error.set(null);
 
     this.api.setAdminUserStatus(user.id, !user.active).subscribe({
       next: (updated) => {
         this.busyUserId.set(null);
         this.mergeUser(updated);
-        this.message.set(`Пользователь ${updated.username} теперь ${updated.active ? 'активен' : 'неактивен'}.`);
+        this.showSuccess(`Пользователь ${updated.username} теперь ${updated.active ? 'активен' : 'неактивен'}.`);
       },
       error: () => {
         this.busyUserId.set(null);
-        this.error.set(`Не удалось изменить статус пользователя ${user.username}.`);
+        this.showError(`Не удалось изменить статус пользователя ${user.username}.`);
       }
     });
   }
@@ -498,21 +471,21 @@ export class AdminDashboardPage {
   private loadRequests(): void {
     this.api.getAdminRequests().subscribe({
       next: (requests) => this.requests.set(requests),
-      error: () => this.error.set('Не удалось загрузить очередь модерации.')
+      error: () => this.showError('Не удалось загрузить очередь модерации.')
     });
   }
 
   private loadSessions(): void {
     this.api.getAdminSessions().subscribe({
       next: (sessions) => this.sessions.set(sessions),
-      error: () => this.error.set('Не удалось загрузить VPN-сессии.')
+      error: () => this.showError('Не удалось загрузить VPN-сессии.')
     });
   }
 
   private loadAuditLog(): void {
     this.api.getAuditLog().subscribe({
       next: (entries) => this.auditLog.set(entries),
-      error: () => this.error.set('Не удалось загрузить журнал аудита.')
+      error: () => this.showError('Не удалось загрузить журнал аудита.')
     });
   }
 
@@ -524,7 +497,7 @@ export class AdminDashboardPage {
           this.userLimits[user.id] = user.maxDevices;
         });
       },
-      error: () => this.error.set('Не удалось загрузить пользователей.')
+      error: () => this.showError('Не удалось загрузить пользователей.')
     });
   }
 
@@ -535,5 +508,13 @@ export class AdminDashboardPage {
   private mergeUser(updated: AdminUser): void {
     this.userLimits[updated.id] = updated.maxDevices;
     this.users.update((users) => users.map((user) => user.id === updated.id ? updated : user));
+  }
+
+  private showSuccess(message: string): void {
+    this.notifications.success(message);
+  }
+
+  private showError(message: string): void {
+    this.notifications.error(message);
   }
 }

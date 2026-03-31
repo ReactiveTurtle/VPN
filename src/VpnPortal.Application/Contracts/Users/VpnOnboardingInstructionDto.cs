@@ -5,4 +5,9 @@ public sealed record VpnOnboardingInstructionDto(
     string Title,
     string Summary,
     IReadOnlyCollection<string> Steps,
-    string CredentialLabel);
+    string CredentialLabel,
+    IReadOnlyCollection<VpnOnboardingFieldDto> Fields);
+
+public sealed record VpnOnboardingFieldDto(
+    string Label,
+    string Value);

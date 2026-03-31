@@ -16,7 +16,7 @@ import { AuthService } from '../core/auth.service';
 
           <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
             <label>
-              <span>Имя пользователя или email</span>
+              <span>Логин или email</span>
               <input type="text" formControlName="login" placeholder="alex или alex@example.com" [ngClass]="{ 'field-invalid': isInvalid('login') }" />
             </label>
 

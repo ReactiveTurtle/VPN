@@ -32,6 +32,7 @@ public sealed class UserPortalService(
                 x => x.OrderByDescending(y => y.LastSeenAt ?? y.ApprovedAt ?? y.FirstSeenAt).First());
 
         var devices = user.Devices
+            .Where(x => x.Status == DeviceStatus.Active)
             .OrderByDescending(x => x.LastSeenAt ?? x.FirstSeenAt)
             .Select(x =>
             {
