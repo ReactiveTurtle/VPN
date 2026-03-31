@@ -55,16 +55,14 @@ sudo chmod 600 /home/deploy/.ssh/authorized_keys
 
 ## Доступ К Каталогам Деплоя
 
-Минимально подготовьте layout, с которым будет работать deploy:
+Минимально подготовьте upload path, в который GitHub Actions будет складывать tarball пакета:
 
 ```bash
 sudo install -d -m 755 /opt/vpnportal
-sudo install -d -m 755 /opt/vpnportal/bin
-sudo install -d -m 755 /opt/vpnportal/releases
 sudo chown -R deploy:deploy /opt/vpnportal
 ```
 
-Если используется `staging`, подготовьте отдельный root, например `/opt/vpnportal-staging`.
+Этого достаточно для upload path. Target app roots вроде `/opt/vpnportal-staging` и их `releases/` каталог теперь создаются самим `deploy/remote/deploy-package.sh` во время первого deploy.
 
 ## Sudo-Права Для Деплоя
 

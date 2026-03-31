@@ -25,7 +25,11 @@ TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 TARGET_DIR="$RELEASE_ROOT/${TIMESTAMP}-${PACKAGE_VERSION}"
 TOOLS_SOURCE_DIR="$TARGET_DIR/infrastructure/vpn-host/tools"
 TOOLS_TARGET_DIR="/usr/local/bin"
+CURRENT_USER="$(id -un)"
+CURRENT_GROUP="$(id -gn)"
 
+sudo install -d -m 0755 -o "$CURRENT_USER" -g "$CURRENT_GROUP" "$APP_ROOT"
+sudo install -d -m 0755 -o "$CURRENT_USER" -g "$CURRENT_GROUP" "$RELEASE_ROOT"
 mkdir -p "$TARGET_DIR"
 tar -xzf "$PACKAGE_PATH" -C "$TARGET_DIR"
 

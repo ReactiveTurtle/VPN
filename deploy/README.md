@@ -74,6 +74,8 @@ The checked-in files under `deploy/env/` now carry only process-level runtime va
 10. Create the first `superadmin` manually using `docs/runbooks/create-first-superadmin.md`.
 11. Enable the correct systemd service.
 
+The packaged deploy script now creates target app roots such as `/opt/vpnportal` and `/opt/vpnportal-staging` together with their `releases/` directories when they do not exist yet.
+
 ## Workflow behavior
 
 - `ci.yml` builds backend and frontend on push/PR.

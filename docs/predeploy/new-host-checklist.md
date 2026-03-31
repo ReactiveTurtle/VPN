@@ -52,6 +52,8 @@ sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vp
 5. Убедитесь, что в `/usr/local/bin` можно писать через `sudo install` из packaged deploy-скрипта, если вы хотите автоматически обновлять packaged operational tools.
 6. Включите нужный systemd-сервис.
 
+`deploy/remote/deploy-package.sh` сам создаст target app root и каталог `releases`, если их еще нет, поэтому для первого deploy не нужно отдельно раскладывать `/opt/vpnportal-staging` вручную.
+
 ## Bootstrap VPN-Хоста
 
 Если эта же машина одновременно хостит `strongSwan`, `FreeRADIUS` и `PostgreSQL`, выполните отдельный bootstrap, описанный в `infrastructure/vpn-host/README.md`.
