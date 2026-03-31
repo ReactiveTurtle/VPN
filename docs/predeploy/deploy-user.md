@@ -10,7 +10,6 @@
 
 - принимать SSH-подключение по ключу
 - иметь доступ к каталогу деплоя
-- иметь возможность запускать `DEPLOY_COMMAND`
 - при необходимости выполнять ограниченный набор `sudo`-действий, которые использует deploy-скрипт
 
 ## Пример Создания Пользователя
@@ -99,9 +98,8 @@ sudo visudo -cf /etc/sudoers.d/vpnportal-deploy
 
 - `DEPLOY_USER=deploy`
 - `DEPLOY_PATH=/opt/vpnportal`
-- `DEPLOY_COMMAND=/opt/vpnportal/bin/deploy-package.sh`
 
-Если используется отдельный staging layout, укажите соответствующий путь и команду под staging-конвенцию.
+Если используется отдельный staging layout, укажите соответствующий путь под staging-конвенцию.
 
 ## Проверка
 

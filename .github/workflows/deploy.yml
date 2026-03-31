@@ -208,7 +208,6 @@ jobs:
           require_secret DEPLOY_USER "${{ secrets.DEPLOY_USER }}"
           require_secret DEPLOY_PATH "${{ secrets.DEPLOY_PATH }}"
           require_secret DEPLOY_SSH_PRIVATE_KEY "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}"
-          require_secret DEPLOY_COMMAND "${{ secrets.DEPLOY_COMMAND }}"
 
           if [[ "$missing" -ne 0 ]]; then
             echo "Configure the missing secrets in the GitHub Environment: ${{ needs.package.outputs.target }}" >&2
@@ -229,7 +228,16 @@ jobs:
         run: |
           scp -P "${{ secrets.DEPLOY_PORT }}" "${{ needs.package.outputs.package-file }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/${{ needs.package.outputs.package-file }}"
 
-      - name: Invoke remote deployment command
+      - name: Invoke packaged deployment script
         run: |
           ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-          "${{ secrets.DEPLOY_COMMAND }} '${{ secrets.DEPLOY_PATH }}/${{ needs.package.outputs.package-file }}' '${{ needs.package.outputs.target }}' '${{ needs.package.outputs.version }}'"
+          "PACKAGE_PATH='${{ secrets.DEPLOY_PATH }}/${{ needs.package.outputs.package-file }}' TARGET='${{ needs.package.outputs.target }}' VERSION='${{ needs.package.outputs.version }}' bash -s" <<'EOF'
+          set -euo pipefail
+
+          temp_dir="$(mktemp -d)"
+          trap 'rm -rf "$temp_dir"' EXIT
+
+          test -f "$PACKAGE_PATH"
+          tar -xzf "$PACKAGE_PATH" -C "$temp_dir" deploy/deploy-package.sh
+          bash "$temp_dir/deploy/deploy-package.sh" "$PACKAGE_PATH" "$TARGET" "$VERSION"
+          EOF

@@ -29,7 +29,6 @@ Options:
 What the script does:
   - installs nginx and ASP.NET Core runtime on Ubuntu via apt
   - creates deployment directories under /opt and /etc/vpnportal
-  - installs deploy-package.sh onto the host
   - installs the target systemd unit
   - creates the target runtime env file from the example if it does not exist yet
   - renders nginx config with the target root and upstream port
@@ -124,7 +123,6 @@ esac
 
 APP_CURRENT_ROOT="${APP_ROOT}/current/api"
 APP_PUBLIC_ROOT="${APP_CURRENT_ROOT}/wwwroot"
-DEPLOY_SCRIPT_TARGET="${APP_ROOT}/bin/deploy-package.sh"
 SYSTEMD_TARGET="/etc/systemd/system/${SERVICE_NAME}.service"
 NGINX_AVAILABLE_PATH="/etc/nginx/sites-available/${NGINX_SITE_NAME}"
 NGINX_ENABLED_PATH="/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
@@ -154,15 +152,9 @@ create_directories() {
     log_step "Creating application directories"
     install -d -m 0755 /etc/vpnportal
     install -d -m 0755 "${APP_ROOT}"
-    install -d -m 0755 "${APP_ROOT}/bin"
     install -d -m 0755 "${APP_ROOT}/releases"
     install -d -m 0755 /usr/local/bin
     install -d -m 0755 /usr/local/lib/vpnportal
-}
-
-install_deploy_script() {
-    log_step "Installing remote deploy script"
-    install -m 0755 "${REPO_ROOT}/deploy/remote/deploy-package.sh" "${DEPLOY_SCRIPT_TARGET}"
 }
 
 install_service() {
@@ -231,13 +223,12 @@ App root: ${APP_ROOT}
 Service: ${SERVICE_NAME}
 Env file: ${ENV_FILE}
 nginx site: ${NGINX_AVAILABLE_PATH}
-Deploy command path: ${DEPLOY_SCRIPT_TARGET}
 VPN host bootstrap: ${vpn_host_note}
 
 Next manual steps:
   1. Configure SSH access for the deployment user.
   2. Configure GitHub deployment secrets for appsettings rendering.
-  3. Set DEPLOY_COMMAND to ${DEPLOY_SCRIPT_TARGET}.
+  3. Ensure DEPLOY_PATH points to ${APP_ROOT} or another writable upload directory on the server.
   4. Run schema migration before the first real API start.
   5. Create the first superadmin manually.
 EOF
@@ -271,7 +262,6 @@ if [[ "${INSTALL_PACKAGES}" -eq 1 ]]; then
 fi
 
 create_directories
-install_deploy_script
 install_service
 install_env_file
 install_nginx_site

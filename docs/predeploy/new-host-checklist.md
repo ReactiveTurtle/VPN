@@ -33,7 +33,7 @@
 sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vpn.example.com
 ```
 
-Скрипт подготавливает директории, ставит базовые пакеты, устанавливает `systemd` unit, `nginx` config, runtime env-файл из example и удаленный deploy-скрипт.
+Скрипт подготавливает директории, ставит базовые пакеты, устанавливает `systemd` unit, `nginx` config и runtime env-файл из example.
 
 Если целевая машина одновременно является VPN-хостом, скрипт можно запустить с уже заполненным env-файлом bootstrap:
 
@@ -48,10 +48,9 @@ sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vp
 1. Скопируйте `deploy/systemd/vpnportal-api.production.service` и/или `deploy/systemd/vpnportal-api.staging.service` в `/etc/systemd/system/` и при необходимости поправьте пути или пользователя.
 2. Скопируйте `deploy/nginx/vpnportal.conf` в конфигурацию nginx и обновите `server_name`.
 3. Скопируйте `deploy/env/vpnportal.production.env.example` или `deploy/env/vpnportal.staging.env.example` в `/etc/vpnportal/`.
-4. Установите `deploy/remote/deploy-package.sh` на сервер, например в `/opt/vpnportal/bin/deploy-package.sh`, и сделайте его исполняемым.
-5. Настройте `DEPLOY_COMMAND` так, чтобы он указывал на установленный удаленный deploy-скрипт.
-6. Убедитесь, что в `/usr/local/bin` можно писать через `sudo install` из deploy-команды, если вы хотите автоматически обновлять packaged operational tools.
-7. Включите нужный systemd-сервис.
+4. Убедитесь, что `DEPLOY_PATH` существует на сервере и доступен для записи пользователю деплоя.
+5. Убедитесь, что в `/usr/local/bin` можно писать через `sudo install` из packaged deploy-скрипта, если вы хотите автоматически обновлять packaged operational tools.
+6. Включите нужный systemd-сервис.
 
 ## Bootstrap VPN-Хоста
 

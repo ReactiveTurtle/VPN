@@ -18,7 +18,6 @@ Store environment-specific secrets in each environment.
 - `DEPLOY_USER`
 - `DEPLOY_PATH`
 - `DEPLOY_SSH_PRIVATE_KEY`
-- `DEPLOY_COMMAND`
 - `APP_DATABASE_CONNECTION_STRING`
 - `APP_EMAIL_HOST`
 - `APP_EMAIL_USERNAME`
@@ -49,7 +48,7 @@ You can automate most application-host setup steps with:
 
 - `sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vpn.example.com`
 
-This helper installs base packages, prepares directories, installs the systemd unit, renders nginx config, writes the example env file when missing, and installs `deploy-package.sh` onto the host.
+This helper installs base packages, prepares directories, installs the systemd unit, renders nginx config, and writes the example env file when missing.
 
 If the same server also acts as the VPN host, you can additionally pass `--vpn-host-env /etc/vpnportal/vpn-host.env` to run the repository bootstrap flow for `strongSwan`, `FreeRADIUS`, and `PostgreSQL`.
 
@@ -69,18 +68,17 @@ The checked-in files under `deploy/env/` now carry only process-level runtime va
 4. Copy `deploy/nginx/vpnportal.conf` to your nginx sites config and update `server_name`.
 5. Copy `deploy/env/vpnportal.production.env.example` or `deploy/env/vpnportal.staging.env.example` into `/etc/vpnportal/`.
 6. Bootstrap the VPN host separately with `infrastructure/vpn-host/README.md` if this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL.
-7. Install `deploy/remote/deploy-package.sh` on the server, for example at `/opt/vpnportal/bin/deploy-package.sh`, and make it executable.
-8. Ensure `/usr/local/bin` is writable by `sudo install` from the deploy command if you want packaged operational tools refreshed automatically.
+7. Ensure `DEPLOY_PATH` already exists on the server and is writable by the deployment user so the uploaded package can be stored there.
+8. Ensure `/usr/local/bin` is writable by `sudo install` from the packaged deploy script if you want packaged operational tools refreshed automatically.
 9. Run the schema migration program before the first API start: `dotnet run --project src/VpnPortal.Migrations`.
 10. Create the first `superadmin` manually using `docs/runbooks/create-first-superadmin.md`.
-11. Configure `DEPLOY_COMMAND`, for example `/opt/vpnportal/bin/deploy-package.sh`.
-12. Enable the correct systemd service.
+11. Enable the correct systemd service.
 
 ## Workflow behavior
 
 - `ci.yml` builds backend and frontend on push/PR.
-- `deploy.yml` publishes the API, copies Angular build output to `wwwroot`, versions the package with a git tag or commit SHA, uploads a tarball to the server, and then calls your remote deployment command.
-- The remote command is responsible for unpacking the package, switching the current release, refreshing executable files from packaged `infrastructure/vpn-host/tools/` into `/usr/local/bin`, and restarting services.
+- `deploy.yml` publishes the API, copies Angular build output to `wwwroot`, versions the package with a git tag or commit SHA, uploads a tarball to the server, extracts the packaged `deploy/deploy-package.sh` to a temporary location on the host, and runs it there.
+- The packaged deploy script is responsible for unpacking the package, switching the current release, refreshing executable files from packaged `infrastructure/vpn-host/tools/` into `/usr/local/bin`, and restarting services.
 - Runtime helpers under `/usr/local/lib/vpnportal` are not refreshed by the remote deploy script; they are managed by the VPN host bootstrap scripts under `infrastructure/vpn-host/bootstrap/`.
 - Database schema changes are applied separately through `VpnPortal.Migrations`; the deploy script does not migrate the database automatically.
 
