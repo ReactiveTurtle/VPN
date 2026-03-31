@@ -188,13 +188,42 @@ jobs:
         with:
           name: ${{ needs.package.outputs.artifact-name }}
 
+      - name: Validate deployment secrets
+        shell: bash
+        run: |
+          missing=0
+
+          require_secret() {
+            local name="$1"
+            local value="$2"
+
+            if [[ -z "$value" ]]; then
+              echo "Missing required secret: $name" >&2
+              missing=1
+            fi
+          }
+
+          require_secret DEPLOY_HOST "${{ secrets.DEPLOY_HOST }}"
+          require_secret DEPLOY_PORT "${{ secrets.DEPLOY_PORT }}"
+          require_secret DEPLOY_USER "${{ secrets.DEPLOY_USER }}"
+          require_secret DEPLOY_PATH "${{ secrets.DEPLOY_PATH }}"
+          require_secret DEPLOY_SSH_PRIVATE_KEY "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}"
+          require_secret DEPLOY_COMMAND "${{ secrets.DEPLOY_COMMAND }}"
+
+          if [[ "$missing" -ne 0 ]]; then
+            echo "Configure the missing secrets in the GitHub Environment: ${{ needs.package.outputs.target }}" >&2
+            exit 1
+          fi
+
       - name: Setup SSH agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
 
       - name: Add target host to known_hosts
-        run: ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Upload package
         run: |
