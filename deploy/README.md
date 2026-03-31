@@ -19,6 +19,16 @@ Store environment-specific secrets in each environment.
 - `DEPLOY_PATH`
 - `DEPLOY_SSH_PRIVATE_KEY`
 - `DEPLOY_COMMAND`
+- `APP_DATABASE_CONNECTION_STRING`
+- `APP_EMAIL_HOST`
+- `APP_EMAIL_USERNAME`
+- `APP_EMAIL_PASSWORD`
+- `APP_EMAIL_FROM_EMAIL`
+- `APP_EMAIL_FROM_NAME`
+- `APP_EMAIL_PUBLIC_BASE_URL`
+- `APP_INTERNAL_API_SHARED_SECRET`
+- `APP_VPN_ACCESS_SERVER_ADDRESS`
+- `APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH`
 
 Recommended:
 
@@ -41,13 +51,23 @@ You can automate most application-host setup steps with:
 
 This helper installs base packages, prepares directories, installs the systemd unit, renders nginx config, writes the example env file when missing, and installs `deploy-package.sh` onto the host.
 
-It does not configure SSH access, fill real secrets, run schema migrations, or create the first `superadmin`.
+If the same server also acts as the VPN host, you can additionally pass `--vpn-host-env /etc/vpnportal/vpn-host.env` to run the repository bootstrap flow for `strongSwan`, `FreeRADIUS`, and `PostgreSQL`.
+
+It does not configure SSH access, configure GitHub deployment secrets, run schema migrations, or create the first `superadmin`.
+
+## Runtime Configuration
+
+The repository now keeps only the base `appsettings.json` files in git.
+
+Environment-specific `appsettings.{Environment}.json` files are ignored by git and rendered during `deploy.yml` from GitHub environment secrets. These rendered files are included in the deployment package.
+
+The checked-in files under `deploy/env/` now carry only process-level runtime variables such as `ASPNETCORE_ENVIRONMENT` and `ASPNETCORE_URLS`. They are no longer the source of truth for application secrets.
 
 1. Install `.NET 10 runtime`, `nginx`, and `systemd` support.
 2. Create deployment directory, for example `/opt/vpnportal`.
 3. Copy `deploy/systemd/vpnportal-api.production.service` and/or `deploy/systemd/vpnportal-api.staging.service` to `/etc/systemd/system/` and adjust paths/user if needed.
 4. Copy `deploy/nginx/vpnportal.conf` to your nginx sites config and update `server_name`.
-5. Copy `deploy/env/vpnportal.production.env.example` or `deploy/env/vpnportal.staging.env.example` into `/etc/vpnportal/` and fill real values.
+5. Copy `deploy/env/vpnportal.production.env.example` or `deploy/env/vpnportal.staging.env.example` into `/etc/vpnportal/`.
 6. Bootstrap the VPN host separately with `infrastructure/vpn-host/README.md` if this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL.
 7. Install `deploy/remote/deploy-package.sh` on the server, for example at `/opt/vpnportal/bin/deploy-package.sh`, and make it executable.
 8. Ensure `/usr/local/bin` is writable by `sudo install` from the deploy command if you want packaged operational tools refreshed automatically.

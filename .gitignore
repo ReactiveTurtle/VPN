@@ -16,6 +16,10 @@ TestResults/
 # Logs
 *.log
 
+# Environment-specific app settings
+**/appsettings.*.json
+!**/appsettings.json
+
 # OS files
 .DS_Store
 Thumbs.db

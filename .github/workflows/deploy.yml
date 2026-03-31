@@ -91,6 +91,61 @@ jobs:
           mkdir -p artifacts/publish/api/wwwroot
           cp -R src/VpnPortal.Web/dist/VpnPortal.Web/browser/. artifacts/publish/api/wwwroot/
 
+      - name: Render deployment appsettings
+        shell: bash
+        run: |
+          case "${{ steps.meta.outputs.target }}" in
+            production)
+              APPSETTINGS_ENVIRONMENT="Production"
+              ;;
+            staging)
+              APPSETTINGS_ENVIRONMENT="Staging"
+              ;;
+            *)
+              echo "Unsupported deployment target: ${{ steps.meta.outputs.target }}" >&2
+              exit 1
+              ;;
+          esac
+
+          jq -n \
+            --arg dbConnectionString "${{ secrets.APP_DATABASE_CONNECTION_STRING }}" \
+            --arg emailHost "${{ secrets.APP_EMAIL_HOST }}" \
+            --arg emailUsername "${{ secrets.APP_EMAIL_USERNAME }}" \
+            --arg emailPassword "${{ secrets.APP_EMAIL_PASSWORD }}" \
+            --arg emailFromEmail "${{ secrets.APP_EMAIL_FROM_EMAIL }}" \
+            --arg emailFromName "${{ secrets.APP_EMAIL_FROM_NAME }}" \
+            --arg emailPublicBaseUrl "${{ secrets.APP_EMAIL_PUBLIC_BASE_URL }}" \
+            --arg internalApiSharedSecret "${{ secrets.APP_INTERNAL_API_SHARED_SECRET }}" \
+            --arg vpnAccessServerAddress "${{ secrets.APP_VPN_ACCESS_SERVER_ADDRESS }}" \
+            --arg vpnRuntimeDisconnectScriptPath "${{ secrets.APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH }}" \
+            '{
+              Database: {
+                Provider: "PostgreSql",
+                ConnectionString: $dbConnectionString
+              },
+              Email: {
+                Enabled: true,
+                Provider: "Smtp",
+                Host: $emailHost,
+                Port: 587,
+                UseSsl: true,
+                Username: $emailUsername,
+                Password: $emailPassword,
+                FromEmail: $emailFromEmail,
+                FromName: $emailFromName,
+                PublicBaseUrl: $emailPublicBaseUrl
+              },
+              InternalApi: {
+                SharedSecret: $internalApiSharedSecret
+              },
+              VpnAccess: {
+                ServerAddress: $vpnAccessServerAddress
+              },
+              VpnRuntime: {
+                DisconnectScriptPath: $vpnRuntimeDisconnectScriptPath
+              }
+            }' > "artifacts/publish/api/appsettings.${APPSETTINGS_ENVIRONMENT}.json"
+
       - name: Add deployment assets
         run: |
           mkdir -p artifacts/publish/deploy

@@ -12,10 +12,11 @@
 
 Читайте документы в таком порядке:
 
-1. `docs/predeploy/ssh-access.md`
-2. `docs/predeploy/new-host-checklist.md`
-3. `docs/deployment.md`
-4. `deploy/README.md`
+1. `docs/predeploy/deploy-user.md`
+2. `docs/predeploy/ssh-access.md`
+3. `docs/predeploy/new-host-checklist.md`
+4. `docs/deployment.md`
+5. `deploy/README.md`
 
 ## Связанные материалы
 

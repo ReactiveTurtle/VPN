@@ -33,13 +33,21 @@
 sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vpn.example.com
 ```
 
-Скрипт подготавливает директории, ставит базовые пакеты, устанавливает `systemd` unit, `nginx` config, env-файл из example и удаленный deploy-скрипт.
+Скрипт подготавливает директории, ставит базовые пакеты, устанавливает `systemd` unit, `nginx` config, runtime env-файл из example и удаленный deploy-скрипт.
 
-При этом он не заменяет ручные шаги для SSH-доступа, заполнения реальных секретов, миграций БД и создания первого администратора.
+Если целевая машина одновременно является VPN-хостом, скрипт можно запустить с уже заполненным env-файлом bootstrap:
+
+```bash
+sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.env
+```
+
+В этом режиме он дополнительно запускает `infrastructure/vpn-host/bootstrap/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
+
+При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub secrets для рендера `appsettings.{Environment}.json`, миграций БД и создания первого администратора.
 
 1. Скопируйте `deploy/systemd/vpnportal-api.production.service` и/или `deploy/systemd/vpnportal-api.staging.service` в `/etc/systemd/system/` и при необходимости поправьте пути или пользователя.
 2. Скопируйте `deploy/nginx/vpnportal.conf` в конфигурацию nginx и обновите `server_name`.
-3. Скопируйте `deploy/env/vpnportal.production.env.example` или `deploy/env/vpnportal.staging.env.example` в `/etc/vpnportal/` и заполните реальными значениями.
+3. Скопируйте `deploy/env/vpnportal.production.env.example` или `deploy/env/vpnportal.staging.env.example` в `/etc/vpnportal/`.
 4. Установите `deploy/remote/deploy-package.sh` на сервер, например в `/opt/vpnportal/bin/deploy-package.sh`, и сделайте его исполняемым.
 5. Настройте `DEPLOY_COMMAND` так, чтобы он указывал на установленный удаленный deploy-скрипт.
 6. Убедитесь, что в `/usr/local/bin` можно писать через `sudo install` из deploy-команды, если вы хотите автоматически обновлять packaged operational tools.
@@ -48,6 +56,8 @@ sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vp
 ## Bootstrap VPN-Хоста
 
 Если эта же машина одновременно хостит `strongSwan`, `FreeRADIUS` и `PostgreSQL`, выполните отдельный bootstrap, описанный в `infrastructure/vpn-host/README.md`.
+
+Это можно сделать либо вручную по порядку из `infrastructure/vpn-host/README.md`, либо через `deploy/predeploy/prepare-app-host.sh --vpn-host-env <path>`.
 
 Этот документ остается источником истины для:
 
@@ -66,6 +76,8 @@ sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vp
 Программа миграций также может сгенерировать совместимый хэш пароля:
 
 - `dotnet run --project src/VpnPortal.Migrations -- hash-password "<plaintext>"`
+
+Для runtime-конфигурации API боевые значения теперь должны попадать из GitHub deployment secrets в `appsettings.{Environment}.json` во время workflow, а не храниться в tracked env-файлах репозитория.
 
 ## Критерии Готовности
 

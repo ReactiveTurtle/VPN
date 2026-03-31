@@ -10,6 +10,7 @@ SERVER_NAME="_"
 INSTALL_PACKAGES=1
 ENABLE_NGINX=1
 ENABLE_SERVICE=1
+VPN_HOST_ENV_FILE=""
 
 usage() {
     cat <<'EOF'
@@ -22,6 +23,7 @@ Options:
   --skip-packages                Do not install nginx or ASP.NET runtime
   --skip-enable-nginx            Do not enable/restart nginx
   --skip-enable-service          Do not enable the systemd service
+  --vpn-host-env <path>          Run infrastructure/vpn-host bootstrap with this env file
   --help                         Show this help
 
 What the script does:
@@ -29,15 +31,16 @@ What the script does:
   - creates deployment directories under /opt and /etc/vpnportal
   - installs deploy-package.sh onto the host
   - installs the target systemd unit
-  - creates the target env file from the example if it does not exist yet
+  - creates the target runtime env file from the example if it does not exist yet
   - renders nginx config with the target root and upstream port
+  - optionally runs the repository VPN host bootstrap flow
 
 What the script does not do:
   - configure SSH access
-  - fill real secrets into the env file
+  - inject GitHub deployment secrets into appsettings.{Environment}.json
   - run database migrations
   - create the first superadmin
-  - bootstrap strongSwan, FreeRADIUS, or PostgreSQL
+  - bootstrap strongSwan, FreeRADIUS, or PostgreSQL unless --vpn-host-env is provided
 EOF
 }
 
@@ -77,6 +80,10 @@ while [[ $# -gt 0 ]]; do
         --skip-enable-service)
             ENABLE_SERVICE=0
             shift
+            ;;
+        --vpn-host-env)
+            VPN_HOST_ENV_FILE="${2:?vpn host env path is required}"
+            shift 2
             ;;
         --help)
             usage
@@ -178,7 +185,7 @@ install_env_file() {
 
     install -m 0640 "${ENV_EXAMPLE}" "${ENV_FILE}"
     printf 'Created env file from example: %s\n' "${ENV_FILE}"
-    printf 'Fill real values before the first real application start.\n'
+    printf 'This file only carries runtime process variables such as ASPNETCORE environment settings.\n'
 }
 
 install_nginx_site() {
@@ -209,6 +216,12 @@ install_nginx_site() {
 }
 
 print_summary() {
+    local vpn_host_note="not requested"
+
+    if [[ -n "${VPN_HOST_ENV_FILE}" ]]; then
+        vpn_host_note="completed with ${VPN_HOST_ENV_FILE}"
+    fi
+
     cat <<EOF
 
 Preparation complete.
@@ -219,14 +232,38 @@ Service: ${SERVICE_NAME}
 Env file: ${ENV_FILE}
 nginx site: ${NGINX_AVAILABLE_PATH}
 Deploy command path: ${DEPLOY_SCRIPT_TARGET}
+VPN host bootstrap: ${vpn_host_note}
 
 Next manual steps:
   1. Configure SSH access for the deployment user.
-  2. Fill real values into ${ENV_FILE}.
+  2. Configure GitHub deployment secrets for appsettings rendering.
   3. Set DEPLOY_COMMAND to ${DEPLOY_SCRIPT_TARGET}.
   4. Run schema migration before the first real API start.
   5. Create the first superadmin manually.
 EOF
+}
+
+run_vpn_host_bootstrap() {
+    local bootstrap_dir
+
+    if [[ -z "${VPN_HOST_ENV_FILE}" ]]; then
+        return
+    fi
+
+    if [[ ! -f "${VPN_HOST_ENV_FILE}" ]]; then
+        printf 'VPN host env file not found: %s\n' "${VPN_HOST_ENV_FILE}" >&2
+        exit 1
+    fi
+
+    bootstrap_dir="${REPO_ROOT}/infrastructure/vpn-host/bootstrap"
+
+    log_step "Running VPN host bootstrap"
+    "${bootstrap_dir}/01-install-packages.sh" "${VPN_HOST_ENV_FILE}"
+    "${bootstrap_dir}/02-create-users-and-directories.sh" "${VPN_HOST_ENV_FILE}"
+    "${bootstrap_dir}/03-install-and-init-postgres.sh" "${VPN_HOST_ENV_FILE}"
+    "${bootstrap_dir}/04-configure-strongswan.sh" "${VPN_HOST_ENV_FILE}"
+    "${bootstrap_dir}/05-configure-freeradius.sh" "${VPN_HOST_ENV_FILE}"
+    "${bootstrap_dir}/06-configure-portal-host.sh" "${VPN_HOST_ENV_FILE}"
 }
 
 if [[ "${INSTALL_PACKAGES}" -eq 1 ]]; then
@@ -238,4 +275,5 @@ install_deploy_script
 install_service
 install_env_file
 install_nginx_site
+run_vpn_host_bootstrap
 print_summary
