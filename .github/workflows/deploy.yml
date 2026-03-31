@@ -19,7 +19,7 @@ on:
       - 'v*'
 
 jobs:
-  build:
+  package:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.meta.outputs.version }}
@@ -27,8 +27,8 @@ jobs:
       host_port: ${{ steps.meta.outputs.host_port }}
       runtime_env_file: ${{ steps.meta.outputs.runtime_env_file }}
       compose_project: ${{ steps.meta.outputs.compose_project }}
-      api_image: ${{ steps.images.outputs.api_image }}
-      migrations_image: ${{ steps.images.outputs.migrations_image }}
+      source_archive: ${{ steps.meta.outputs.source_archive }}
+      artifact_name: ${{ steps.meta.outputs.artifact_name }}
 
     steps:
       - name: Checkout
@@ -69,64 +69,37 @@ jobs:
               ;;
           esac
 
+          SOURCE_ARCHIVE="vpnportal-source-${TARGET}-${VERSION}.tar.gz"
+          ARTIFACT_NAME="vpnportal-source-${TARGET}-${VERSION}"
+
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "target=${TARGET}" >> "$GITHUB_OUTPUT"
           echo "host_port=${HOST_PORT}" >> "$GITHUB_OUTPUT"
           echo "runtime_env_file=${RUNTIME_ENV_FILE}" >> "$GITHUB_OUTPUT"
           echo "compose_project=${COMPOSE_PROJECT}" >> "$GITHUB_OUTPUT"
+          echo "source_archive=${SOURCE_ARCHIVE}" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=${ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
 
-      - name: Compute image names
-        id: images
-        shell: bash
-        run: |
-          if [[ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]]; then
-            echo "Missing required secret: DOCKERHUB_USERNAME" >&2
-            exit 1
-          fi
+      - name: Create source archive
+        run: git archive --format=tar.gz --output "${{ steps.meta.outputs.source_archive }}" HEAD
 
-          API_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/vpnportal-api:${{ steps.meta.outputs.version }}"
-          MIGRATIONS_IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/vpnportal-migrations:${{ steps.meta.outputs.version }}"
-
-          echo "api_image=${API_IMAGE}" >> "$GITHUB_OUTPUT"
-          echo "migrations_image=${MIGRATIONS_IMAGE}" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push API image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: src/VpnPortal.Api/Dockerfile
-          push: true
-          tags: |
-            ${{ steps.images.outputs.api_image }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/vpnportal-api:${{ steps.meta.outputs.target }}
-
-      - name: Build and push migrations image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: src/VpnPortal.Migrations/Dockerfile
-          push: true
-          tags: |
-            ${{ steps.images.outputs.migrations_image }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/vpnportal-migrations:${{ steps.meta.outputs.target }}
+          name: ${{ steps.meta.outputs.artifact_name }}
+          path: ${{ steps.meta.outputs.source_archive }}
+          if-no-files-found: error
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
-    environment: ${{ needs.build.outputs.target }}
+    needs: package
+    environment: ${{ needs.package.outputs.target }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Download source artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.package.outputs.artifact_name }}
 
       - name: Validate deployment secrets
         shell: bash
@@ -148,8 +121,6 @@ jobs:
           require_secret DEPLOY_USER "${{ secrets.DEPLOY_USER }}"
           require_secret DEPLOY_PATH "${{ secrets.DEPLOY_PATH }}"
           require_secret DEPLOY_SSH_PRIVATE_KEY "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}"
-          require_secret DOCKERHUB_USERNAME "${{ secrets.DOCKERHUB_USERNAME }}"
-          require_secret DOCKERHUB_TOKEN "${{ secrets.DOCKERHUB_TOKEN }}"
           require_secret APP_DATABASE_CONNECTION_STRING "${{ secrets.APP_DATABASE_CONNECTION_STRING }}"
           require_secret APP_EMAIL_HOST "${{ secrets.APP_EMAIL_HOST }}"
           require_secret APP_EMAIL_USERNAME "${{ secrets.APP_EMAIL_USERNAME }}"
@@ -162,7 +133,7 @@ jobs:
           require_secret APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH "${{ secrets.APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH }}"
 
           if [[ "$missing" -ne 0 ]]; then
-            echo "Configure the missing secrets in the GitHub Environment: ${{ needs.build.outputs.target }}" >&2
+            echo "Configure the missing secrets in the GitHub Environment: ${{ needs.package.outputs.target }}" >&2
             exit 1
           fi
 
@@ -179,7 +150,7 @@ jobs:
       - name: Render runtime env file
         shell: bash
         run: |
-          case "${{ needs.build.outputs.target }}" in
+          case "${{ needs.package.outputs.target }}" in
             production)
               ASPNETCORE_ENVIRONMENT="Production"
               ;;
@@ -187,7 +158,7 @@ jobs:
               ASPNETCORE_ENVIRONMENT="Staging"
               ;;
             *)
-              echo "Unsupported deployment target: ${{ needs.build.outputs.target }}" >&2
+              echo "Unsupported deployment target: ${{ needs.package.outputs.target }}" >&2
               exit 1
               ;;
           esac
@@ -210,33 +181,44 @@ jobs:
           VpnRuntime__DisconnectScriptPath=${{ secrets.APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH }}
           EOF
 
-      - name: Upload compose and env assets
+      - name: Upload source and env assets
         run: |
-          scp -P "${{ secrets.DEPLOY_PORT }}" deploy/docker/docker-compose.yml "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/docker-compose.yml"
+          scp -P "${{ secrets.DEPLOY_PORT }}" "${{ needs.package.outputs.source_archive }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/${{ needs.package.outputs.source_archive }}"
           scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal.container.env "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal.container.env.tmp"
 
-      - name: Deploy Docker images
+      - name: Build and deploy on target host
         run: |
           ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-          "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' RUNTIME_ENV_FILE='${{ needs.build.outputs.runtime_env_file }}' HOST_PORT='${{ needs.build.outputs.host_port }}' COMPOSE_PROJECT='${{ needs.build.outputs.compose_project }}' API_IMAGE='${{ needs.build.outputs.api_image }}' MIGRATIONS_IMAGE='${{ needs.build.outputs.migrations_image }}' DOCKERHUB_USERNAME='${{ secrets.DOCKERHUB_USERNAME }}' DOCKERHUB_TOKEN='${{ secrets.DOCKERHUB_TOKEN }}' bash -s" <<'EOF'
+          "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' SOURCE_ARCHIVE='${{ needs.package.outputs.source_archive }}' RUNTIME_ENV_FILE='${{ needs.package.outputs.runtime_env_file }}' HOST_PORT='${{ needs.package.outputs.host_port }}' COMPOSE_PROJECT='${{ needs.package.outputs.compose_project }}' VERSION='${{ needs.package.outputs.version }}' bash -s" <<'EOF'
           set -euo pipefail
 
+          RELEASE_ROOT="$DEPLOY_PATH/releases"
+          RELEASE_DIR="$RELEASE_ROOT/$VERSION"
+
           test -d "$DEPLOY_PATH"
-          test -f "$DEPLOY_PATH/docker-compose.yml"
+          test -f "$DEPLOY_PATH/$SOURCE_ARCHIVE"
           test -f "$DEPLOY_PATH/vpnportal.container.env.tmp"
+
+          install -d -m 0755 "$RELEASE_ROOT"
+          rm -rf "$RELEASE_DIR"
+          install -d -m 0755 "$RELEASE_DIR"
+          tar -xzf "$DEPLOY_PATH/$SOURCE_ARCHIVE" -C "$RELEASE_DIR"
+
+          install -m 0644 "$RELEASE_DIR/deploy/docker/docker-compose.yml" "$DEPLOY_PATH/docker-compose.yml"
 
           sudo install -d -m 0755 /etc/vpnportal
           sudo install -m 0640 "$DEPLOY_PATH/vpnportal.container.env.tmp" "$RUNTIME_ENV_FILE"
           rm -f "$DEPLOY_PATH/vpnportal.container.env.tmp"
 
-          echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-
-          export VPNPORTAL_API_IMAGE="$API_IMAGE"
-          export VPNPORTAL_MIGRATIONS_IMAGE="$MIGRATIONS_IMAGE"
+          export VPNPORTAL_BUILD_CONTEXT="$RELEASE_DIR"
+          export VPNPORTAL_API_IMAGE="vpnportal-api:$VERSION"
+          export VPNPORTAL_MIGRATIONS_IMAGE="vpnportal-migrations:$VERSION"
           export VPNPORTAL_RUNTIME_ENV_FILE="$RUNTIME_ENV_FILE"
           export VPNPORTAL_HOST_PORT="$HOST_PORT"
 
-          docker compose --project-name "$COMPOSE_PROJECT" -f "$DEPLOY_PATH/docker-compose.yml" pull api migrations
+          docker compose --project-name "$COMPOSE_PROJECT" -f "$DEPLOY_PATH/docker-compose.yml" build api migrations
           docker compose --project-name "$COMPOSE_PROJECT" -f "$DEPLOY_PATH/docker-compose.yml" run --rm migrations
           docker compose --project-name "$COMPOSE_PROJECT" -f "$DEPLOY_PATH/docker-compose.yml" up -d api
+
+          ln -sfn "$RELEASE_DIR" "$DEPLOY_PATH/current"
           EOF

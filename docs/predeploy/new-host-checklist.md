@@ -44,7 +44,7 @@ sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vp
 
 В этом режиме он дополнительно запускает `infrastructure/vpn-host/bootstrap/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
 
-При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub secrets для Docker Hub и container env-файла, миграций БД и создания первого администратора.
+При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub secrets для container env-файла, миграций БД и создания первого администратора.
 
 1. Скопируйте `deploy/nginx/vpnportal.conf` в конфигурацию nginx и обновите `server_name`.
 2. Скопируйте `deploy/env/vpnportal.production.container.env.example` или `deploy/env/vpnportal.staging.container.env.example` в `/etc/vpnportal/`.

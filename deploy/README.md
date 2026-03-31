@@ -1,6 +1,6 @@
 # Deployment Notes
 
-This repository builds Docker images in GitHub Actions, pushes them to Docker Hub, and deploys them over SSH with `docker compose`.
+This repository archives a source snapshot in GitHub Actions and deploys it over SSH with `docker compose build` on the target host.
 
 ## GitHub environments
 
@@ -18,8 +18,6 @@ Store environment-specific secrets in each environment.
 - `DEPLOY_USER`
 - `DEPLOY_PATH`
 - `DEPLOY_SSH_PRIVATE_KEY`
-- `DOCKERHUB_USERNAME`
-- `DOCKERHUB_TOKEN`
 - `APP_DATABASE_CONNECTION_STRING`
 - `APP_EMAIL_HOST`
 - `APP_EMAIL_USERNAME`
@@ -55,7 +53,7 @@ This helper installs base packages, including Docker Engine, Docker Compose plug
 
 If the same server also acts as the VPN host, you can additionally pass `--vpn-host-env /etc/vpnportal/vpn-host.env` to run the repository bootstrap flow for `strongSwan`, `FreeRADIUS`, and `PostgreSQL`.
 
-It does not configure SSH access, configure GitHub deployment secrets, run schema migrations, or create the first `superadmin`.
+It does not configure SSH access, configure GitHub deployment secrets, run schema migrations outside the deploy workflow, or create the first `superadmin`.
 
 ## Runtime Configuration
 
@@ -81,7 +79,7 @@ If the deploy user was just added to the `docker` group, re-login before running
 ## Workflow behavior
 
 - `ci.yml` builds backend and frontend on push/PR.
-- `deploy.yml` builds separate Docker images for `vpnportal-api` and `vpnportal-migrations`, pushes them to Docker Hub, uploads `docker-compose.yml` and a rendered runtime env file to the target host, and then runs `docker compose` remotely.
+- `deploy.yml` archives the current repository source, uploads the source snapshot and a rendered runtime env file to the target host, and then runs `docker compose build` remotely.
 - `docker compose run --rm migrations` applies schema changes before `docker compose up -d api` updates the application container.
 - Runtime helpers under `/usr/local/lib/vpnportal` remain host-managed and are mounted into the app container read-only.
 
@@ -89,8 +87,8 @@ If the deploy user was just added to the `docker` group, re-login before running
 
 The Docker rollout currently includes:
 
-- `vpnportal-api` image with published API output and built Angular SPA copied into `wwwroot`
-- `vpnportal-migrations` image for explicit schema application
+- host-built `vpnportal-api` image with published API output and built Angular SPA copied into `wwwroot`
+- host-built `vpnportal-migrations` image for explicit schema application
 - `deploy/docker/docker-compose.yml` on the host
 
 The Docker rollout does not replace bootstrap-managed runtime helpers such as:

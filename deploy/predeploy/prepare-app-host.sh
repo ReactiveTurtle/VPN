@@ -219,7 +219,7 @@ VPN host bootstrap: ${vpn_host_note}
 
 Next manual steps:
   1. Configure SSH access for the deployment user.
-  2. Configure GitHub deployment secrets for Docker Hub and container env rendering.
+  2. Configure GitHub deployment secrets for container env rendering.
   3. Re-login as ${DEPLOY_USER} or run 'newgrp docker' so docker group membership takes effect.
   4. Ensure DEPLOY_PATH points to ${APP_ROOT} or another writable upload directory on the server.
   5. Run the Docker-based deployment workflow to pull and start the containers.

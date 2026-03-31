@@ -1,6 +1,9 @@
 services:
   api:
-    image: ${VPNPORTAL_API_IMAGE:?VPNPORTAL_API_IMAGE is required}
+    image: ${VPNPORTAL_API_IMAGE:-vpnportal-api:local}
+    build:
+      context: ${VPNPORTAL_BUILD_CONTEXT:?VPNPORTAL_BUILD_CONTEXT is required}
+      dockerfile: src/VpnPortal.Api/Dockerfile
     restart: unless-stopped
     env_file:
       - ${VPNPORTAL_RUNTIME_ENV_FILE:?VPNPORTAL_RUNTIME_ENV_FILE is required}
@@ -14,7 +17,10 @@ services:
       - /usr/local/lib/vpnportal:/usr/local/lib/vpnportal:ro
 
   migrations:
-    image: ${VPNPORTAL_MIGRATIONS_IMAGE:?VPNPORTAL_MIGRATIONS_IMAGE is required}
+    image: ${VPNPORTAL_MIGRATIONS_IMAGE:-vpnportal-migrations:local}
+    build:
+      context: ${VPNPORTAL_BUILD_CONTEXT:?VPNPORTAL_BUILD_CONTEXT is required}
+      dockerfile: src/VpnPortal.Migrations/Dockerfile
     env_file:
       - ${VPNPORTAL_RUNTIME_ENV_FILE:?VPNPORTAL_RUNTIME_ENV_FILE is required}
     extra_hosts:
