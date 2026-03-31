@@ -16,8 +16,6 @@ import { SectionMenuComponent, SectionMenuItem } from './section-menu.component'
     <div class="dashboard-page-shell">
     <section class="hero hero-single" *ngIf="dashboard$ | async as dashboard">
       <div class="hero-main">
-        <p class="eyebrow">Личный кабинет</p>
-        <h1>Устройства и VPN-доступ</h1>
         <p class="lead">Создавайте доступы для своих устройств, храните свежевыданный пароль и при необходимости отвязывайте IP без лишних шагов.</p>
 
         <div class="hero-inline-summary">

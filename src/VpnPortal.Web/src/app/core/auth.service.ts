@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, map, switchMap, tap } from 'rxjs';
+import { Observable, map, of, switchMap, tap, catchError } from 'rxjs';
 import { SessionUser } from './models';
 import { PortalApiService } from './portal-api.service';
 import { CsrfService } from './csrf.service';
@@ -38,9 +38,12 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    return this.api.logout().pipe(tap(() => {
-      this.currentUser.set(null);
-      this.csrf.reset();
-    }));
+    return this.api.logout().pipe(
+      catchError(() => of(void 0)),
+      tap(() => {
+        this.currentUser.set(null);
+        this.csrf.reset();
+      })
+    );
   }
 }
