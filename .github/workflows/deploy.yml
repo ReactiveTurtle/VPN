@@ -101,6 +101,9 @@ jobs:
         with:
           name: ${{ needs.package.outputs.artifact_name }}
 
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Validate deployment secrets
         shell: bash
         run: |
