@@ -6,11 +6,11 @@ on:
       target:
         description: Deployment target
         required: true
-        default: production
+        default: prod
         type: choice
         options:
-          - staging
-          - production
+          - stage
+          - prod
   push:
     branches:
       - main
@@ -47,21 +47,21 @@ jobs:
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             TARGET="${{ github.event.inputs.target }}"
           elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            TARGET="production"
+            TARGET="prod"
           else
-            TARGET="staging"
+            TARGET="stage"
           fi
 
           case "$TARGET" in
-            production)
+            prod)
               HOST_PORT="5000"
-              RUNTIME_ENV_FILE="/etc/vpnportal/vpnportal.production.container.env"
-              COMPOSE_PROJECT="vpnportal-production"
+              RUNTIME_ENV_FILE="/etc/vpnportal/vpnportal.prod.container.env"
+              COMPOSE_PROJECT="vpnportal-prod"
               ;;
-            staging)
+            stage)
               HOST_PORT="5001"
-              RUNTIME_ENV_FILE="/etc/vpnportal/vpnportal.staging.container.env"
-              COMPOSE_PROJECT="vpnportal-staging"
+              RUNTIME_ENV_FILE="/etc/vpnportal/vpnportal.stage.container.env"
+              COMPOSE_PROJECT="vpnportal-stage"
               ;;
             *)
               echo "Unsupported target: $TARGET" >&2
@@ -151,10 +151,10 @@ jobs:
         shell: bash
         run: |
           case "${{ needs.package.outputs.target }}" in
-            production)
+            prod)
               ASPNETCORE_ENVIRONMENT="Production"
               ;;
-            staging)
+            stage)
               ASPNETCORE_ENVIRONMENT="Staging"
               ;;
             *)
@@ -181,7 +181,7 @@ jobs:
           VpnRuntime__DisconnectScriptPath=${{ secrets.APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH }}
           EOF
 
-      - name: Upload source and env assets
+      - name: Upload source artifact
         run: |
           scp -P "${{ secrets.DEPLOY_PORT }}" "${{ needs.package.outputs.source_archive }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/${{ needs.package.outputs.source_archive }}"
           scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal.container.env "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal.container.env.tmp"
@@ -205,7 +205,6 @@ jobs:
           tar -xzf "$DEPLOY_PATH/$SOURCE_ARCHIVE" -C "$RELEASE_DIR"
 
           install -m 0644 "$RELEASE_DIR/deploy/docker/docker-compose.yml" "$DEPLOY_PATH/docker-compose.yml"
-
           sudo install -d -m 0755 /etc/vpnportal
           sudo install -m 0640 "$DEPLOY_PATH/vpnportal.container.env.tmp" "$RUNTIME_ENV_FILE"
           rm -f "$DEPLOY_PATH/vpnportal.container.env.tmp"

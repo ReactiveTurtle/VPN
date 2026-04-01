@@ -6,8 +6,8 @@ This repository archives a source snapshot in GitHub Actions and deploys it over
 
 Create two GitHub Environments if you want separated deployments:
 
-- `staging`
-- `production`
+- `stage`
+- `prod`
 
 Store environment-specific secrets in each environment.
 
@@ -31,15 +31,15 @@ Store environment-specific secrets in each environment.
 
 Recommended:
 
-- use `staging` secrets for branch deployments
-- use `production` secrets for tag/manual production deployments
+- use `stage` secrets for branch deployments
+- use `prod` secrets for tag/manual production deployments
 
 ## Target host layout
 
 - app root: `/opt/vpnportal`
 - compose file: `/opt/vpnportal/docker-compose.yml`
-- runtime env file: `/etc/vpnportal/vpnportal.production.container.env`
-- container loopback port: `127.0.0.1:5000` for production, `127.0.0.1:5001` for staging
+- runtime env file: `/etc/vpnportal/vpnportal.prod.container.env`
+- container loopback port: `127.0.0.1:5000` for prod, `127.0.0.1:5001` for stage
 - deploy-managed operational tools: `/usr/local/bin`
 - bootstrap-managed VPN runtime helpers: `/usr/local/lib/vpnportal`
 
@@ -47,7 +47,7 @@ Recommended:
 
 You can automate most application-host setup steps with:
 
-- `sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vpn.example.com`
+- `sudo ./deploy/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com`
 
 This helper installs base packages, including Docker Engine, Docker Compose plugin, and nginx, prepares directories, adds the deploy user to the `docker` group, renders nginx config, and writes the example container env file when missing.
 
@@ -59,14 +59,19 @@ It does not configure SSH access, configure GitHub deployment secrets, run schem
 
 The repository keeps only the base `appsettings.json` files in git.
 
-Environment-specific runtime values are rendered during `deploy.yml` into a container env file that is installed on the host under `/etc/vpnportal/`.
+Environment-specific runtime values are rendered from GitHub Environment Secrets during `deploy.yml` into a host-side container env file under `/etc/vpnportal/`.
 
 The checked-in files under `deploy/env/*.container.env.example` are templates only. They are not the source of truth for production secrets.
+
+Runtime application secrets such as database credentials, SMTP credentials, `InternalApi__SharedSecret`, and `VpnAccess__ServerAddress` should be stored in GitHub Environment Secrets and materialized onto the host-side container env file during deploy:
+
+- `/etc/vpnportal/vpnportal.prod.container.env`
+- `/etc/vpnportal/vpnportal.stage.container.env`
 
 1. Install `Docker Engine`, `Docker Compose plugin`, `nginx`, and `systemd` support.
 2. Create deployment directory, for example `/opt/vpnportal`.
 3. Copy `deploy/nginx/vpnportal.conf` to your nginx sites config and update `server_name`.
-4. Copy `deploy/env/vpnportal.production.container.env.example` or `deploy/env/vpnportal.staging.container.env.example` into `/etc/vpnportal/`.
+4. Copy `deploy/env/vpnportal.prod.container.env.example` or `deploy/env/vpnportal.stage.container.env.example` into `/etc/vpnportal/`.
 5. Copy `deploy/docker/docker-compose.yml` into `DEPLOY_PATH`.
 6. Bootstrap the VPN host separately with `infrastructure/vpn-host/README.md` if this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL.
 7. Ensure `DEPLOY_PATH` already exists on the server and is writable by the deployment user.
@@ -79,7 +84,7 @@ If the deploy user was just added to the `docker` group, re-login before running
 ## Workflow behavior
 
 - `ci.yml` builds backend and frontend on push/PR.
-- `deploy.yml` archives the current repository source, uploads the source snapshot and a rendered runtime env file to the target host, and then runs `docker compose build` remotely.
+- `deploy.yml` archives the current repository source, uploads the source snapshot to the target host, renders a runtime env file from GitHub Environment Secrets, installs that file under `/etc/vpnportal/`, and then runs `docker compose build` remotely.
 - `docker compose run --rm migrations` applies schema changes before `docker compose up -d api` updates the application container.
 - Runtime helpers under `/usr/local/lib/vpnportal` remain host-managed and are mounted into the app container read-only.
 
@@ -98,6 +103,6 @@ The Docker rollout does not replace bootstrap-managed runtime helpers such as:
 
 ## Deployment strategy
 
-- push to `main` or `master` -> build images and deploy to `staging`
-- push tag like `v1.2.0` -> build images and deploy to `production`
-- manual `workflow_dispatch` -> choose `staging` or `production`
+- push to `main` or `master` -> build images and deploy to `stage`
+- push tag like `v1.2.0` -> build images and deploy to `prod`
+- manual `workflow_dispatch` -> choose `stage` or `prod`

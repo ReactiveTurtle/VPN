@@ -29,7 +29,7 @@ Read these documents before the first deployment to a fresh host:
 
 ## Ubuntu 24.04 Single-Host Topology
 
-The current target deployment for the first production-oriented stage is one `Ubuntu 24.04` server running:
+The current target deployment model for `stage` and `prod` is one `Ubuntu 24.04` server running:
 
 - `strongSwan`
 - `FreeRADIUS`

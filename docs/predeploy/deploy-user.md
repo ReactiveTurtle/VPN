@@ -56,7 +56,7 @@ sudo chmod 600 /home/deploy/.ssh/authorized_keys
 
 ## Доступ К Каталогам Деплоя
 
-Минимально подготовьте upload path, в который GitHub Actions будет складывать tarball пакета:
+Минимально подготовьте upload path, в который GitHub Actions будет складывать source archive деплоя:
 
 ```bash
 sudo install -d -m 755 /opt/vpnportal
@@ -103,7 +103,7 @@ sudo visudo -cf /etc/sudoers.d/vpnportal-deploy
 - `DEPLOY_USER=deploy`
 - `DEPLOY_PATH=/opt/vpnportal`
 
-Если используется отдельный staging layout, укажите соответствующий путь под staging-конвенцию.
+Если используется отдельный `stage` layout, укажите соответствующий путь под `stage`-конвенцию.
 
 ## Проверка
 

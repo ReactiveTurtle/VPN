@@ -17,7 +17,7 @@
 
 - app root: `/opt/vpnportal`
 - compose file: `/opt/vpnportal/docker-compose.yml`
-- runtime env file: `/etc/vpnportal/vpnportal.production.container.env`
+- runtime env file: `/etc/vpnportal/vpnportal.prod.container.env`
 - published container port via host loopback: `127.0.0.1:5000` or `127.0.0.1:5001`
 - deploy-managed operational tools: `/usr/local/bin`
 - bootstrap-managed VPN runtime helpers: `/usr/local/lib/vpnportal`
@@ -31,7 +31,7 @@
 Пример:
 
 ```bash
-sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vpn.example.com
+sudo ./deploy/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com
 ```
 
 Скрипт подготавливает директории, ставит `Docker Engine`, `Docker Compose plugin` и `nginx`, добавляет deploy user в группу `docker`, настраивает `nginx` config и container env-файл из example.
@@ -39,21 +39,21 @@ sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vp
 Если целевая машина одновременно является VPN-хостом, скрипт можно запустить с уже заполненным env-файлом bootstrap:
 
 ```bash
-sudo ./deploy/predeploy/prepare-app-host.sh --target production --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.env
+sudo ./deploy/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.env
 ```
 
 В этом режиме он дополнительно запускает `infrastructure/vpn-host/bootstrap/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
 
-При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub secrets для container env-файла, миграций БД и создания первого администратора.
+При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub Environment Secrets для runtime-конфигурации приложения, миграций БД и создания первого администратора.
 
 1. Скопируйте `deploy/nginx/vpnportal.conf` в конфигурацию nginx и обновите `server_name`.
-2. Скопируйте `deploy/env/vpnportal.production.container.env.example` или `deploy/env/vpnportal.staging.container.env.example` в `/etc/vpnportal/`.
+2. Скопируйте `deploy/env/vpnportal.prod.container.env.example` или `deploy/env/vpnportal.stage.container.env.example` в `/etc/vpnportal/`.
 3. Скопируйте `deploy/docker/docker-compose.yml` на сервер, например в `/opt/vpnportal/docker-compose.yml`.
 4. Убедитесь, что `DEPLOY_PATH` существует на сервере и доступен для записи пользователю деплоя.
 5. Убедитесь, что в `/usr/local/bin` можно писать через `sudo install`, если вы хотите отдельно обновлять host-managed operational tools.
 6. Убедитесь, что `nginx` включен и может проксировать в контейнер на loopback-порт целевого окружения.
 
-Docker rollout использует один `docker-compose.yml` и environment-specific container env-файлы. `staging` и `production` разделяются через project name, loopback-port и разные env-файлы.
+Docker rollout использует один `docker-compose.yml` и environment-specific container env-файлы. `stage` и `prod` разделяются через project name, loopback-port и разные env-файлы.
 
 Если `prepare-app-host.sh` добавил пользователя деплоя в группу `docker`, после этого нужно перелогиниться под этим пользователем или выполнить `newgrp docker`, иначе новые права группы не применятся в текущей сессии.
 
@@ -81,7 +81,7 @@ Docker rollout использует один `docker-compose.yml` и environment
 
 - `dotnet run --project src/VpnPortal.Migrations -- hash-password "<plaintext>"`
 
-Для runtime-конфигурации API боевые значения теперь должны попадать из GitHub deployment secrets в container env-файл во время workflow, а не храниться в tracked env-файлах репозитория.
+Для runtime-конфигурации API боевые значения должны храниться в GitHub Environment Secrets и записываться workflow в host-side container env-файл, а не в tracked env-файлах репозитория.
 
 ## Критерии Готовности
 
@@ -94,4 +94,4 @@ Docker rollout использует один `docker-compose.yml` и environment
 - container env-файл подготовлен в `/etc/vpnportal/`
 - compose file подготовлен в `DEPLOY_PATH`
 - bootstrap VPN-хоста завершен, если этого требует целевая топология
-- шаги по схеме БД и первому администратору понятны и запланированы до первого production-использования
+- шаги по схеме БД и первому администратору понятны и запланированы до первого prod-использования

@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-TARGET="production"
+TARGET="prod"
 SERVER_NAME="_"
 INSTALL_PACKAGES=1
 ENABLE_NGINX=1
@@ -18,7 +18,7 @@ Usage:
   sudo ./deploy/predeploy/prepare-app-host.sh [options]
 
 Options:
-  --target <production|staging>  Deployment target. Default: production
+  --target <prod|stage>          Deployment target. Default: prod
   --server-name <value>          nginx server_name value. Default: _
   --deploy-user <value>          User to add to docker group. Default: deploy
   --skip-packages                Do not install nginx or Docker packages
@@ -96,18 +96,18 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$TARGET" in
-    production)
+    prod)
         APP_ROOT="/opt/vpnportal"
-        ENV_EXAMPLE="${REPO_ROOT}/deploy/env/vpnportal.production.container.env.example"
-        ENV_FILE="/etc/vpnportal/vpnportal.production.container.env"
+        ENV_EXAMPLE="${REPO_ROOT}/deploy/env/vpnportal.prod.container.env.example"
+        ENV_FILE="/etc/vpnportal/vpnportal.prod.container.env"
         NGINX_SITE_NAME="vpnportal.conf"
         APP_PORT="5000"
         ;;
-    staging)
-        APP_ROOT="/opt/vpnportal-staging"
-        ENV_EXAMPLE="${REPO_ROOT}/deploy/env/vpnportal.staging.container.env.example"
-        ENV_FILE="/etc/vpnportal/vpnportal.staging.container.env"
-        NGINX_SITE_NAME="vpnportal-staging.conf"
+    stage)
+        APP_ROOT="/opt/vpnportal-stage"
+        ENV_EXAMPLE="${REPO_ROOT}/deploy/env/vpnportal.stage.container.env.example"
+        ENV_FILE="/etc/vpnportal/vpnportal.stage.container.env"
+        NGINX_SITE_NAME="vpnportal-stage.conf"
         APP_PORT="5001"
         ;;
     *)
@@ -219,7 +219,7 @@ VPN host bootstrap: ${vpn_host_note}
 
 Next manual steps:
   1. Configure SSH access for the deployment user.
-  2. Configure GitHub deployment secrets for container env rendering.
+  2. Configure GitHub Environment Secrets so deploy can render ${ENV_FILE}.
   3. Re-login as ${DEPLOY_USER} or run 'newgrp docker' so docker group membership takes effect.
   4. Ensure DEPLOY_PATH points to ${APP_ROOT} or another writable upload directory on the server.
   5. Run the Docker-based deployment workflow to pull and start the containers.
