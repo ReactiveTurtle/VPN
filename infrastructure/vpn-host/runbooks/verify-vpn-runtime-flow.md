@@ -15,15 +15,15 @@ This verifies the current runtime contract:
 
 ## Preconditions
 
-- `Ubuntu 24.04` host bootstrapped with `infrastructure/vpn-host/bootstrap/*.sh`
+- `Ubuntu 24.04` host bootstrapped with `deploy/predeploy/infrastructure/vpn-host/*.sh`
 - portal reachable at `INTERNAL_API_BASE_URL`
 - `strongSwan`, `FreeRADIUS`, `PostgreSQL`, and `nginx` running
 - at least one activated user with an issued VPN device credential
 
 ## Readiness Checks
 
-1. Run `sudo ./infrastructure/vpn-host/bootstrap/07-verify-stack.sh /etc/vpnportal/vpn-host.env`
-2. Run `sudo ./infrastructure/vpn-host/bootstrap/08-smoke-test-portal.sh /etc/vpnportal/vpn-host.env`
+1. Run `sudo ./deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh /etc/vpnportal/vpn-host.env`
+2. Run `sudo ./deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh /etc/vpnportal/vpn-host.env`
 3. Run `sudo freeradius -CX`
 4. Confirm the helper files exist:
    - `/usr/local/lib/vpnportal/forward-accounting-event.sh`

@@ -42,7 +42,7 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vp
 sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.env
 ```
 
-В этом режиме он дополнительно запускает `deploy/predeploy/infrastructure/vpn-host/bootstrap/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
+В этом режиме он дополнительно запускает `deploy/predeploy/infrastructure/vpn-host/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
 
 При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub Environment Secrets для runtime-конфигурации приложения, миграций БД и создания первого администратора.
 
@@ -61,7 +61,7 @@ Docker rollout использует один `docker-compose.yml` и environment
 
 Если эта же машина одновременно хостит `strongSwan`, `FreeRADIUS` и `PostgreSQL`, выполните отдельный bootstrap, описанный в `infrastructure/vpn-host/README.md`.
 
-Это можно сделать либо вручную по порядку из `deploy/predeploy/infrastructure/vpn-host/README.md`, либо через `/opt/vpnportal/predeploy/prepare-app-host.sh --vpn-host-env <path>`.
+Это можно сделать либо вручную по порядку из `infrastructure/vpn-host/README.md` и `deploy/predeploy/infrastructure/vpn-host/01-08`, либо через `/opt/vpnportal/predeploy/prepare-app-host.sh --vpn-host-env <path>`.
 
 Этот документ остается источником истины для:
 

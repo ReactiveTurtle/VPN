@@ -62,5 +62,5 @@
 
 ## Verification Runbook
 
-- Non-destructive smoke check: `infrastructure/vpn-host/bootstrap/08-smoke-test-portal.sh`
+- Non-destructive smoke check: `deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh`
 - End-to-end server validation guide: `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md`

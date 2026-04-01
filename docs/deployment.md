@@ -5,8 +5,8 @@
 Deployment assets already exist under `deploy/`.
 
 - `deploy/docker/`
-- `deploy/nginx/`
-- `deploy/env/`
+- `deploy/predeploy/nginx/`
+- `deploy/predeploy/env/`
 - `.github/workflows/`
 
 VPN host bootstrap assets now also live under `infrastructure/vpn-host/`.
@@ -38,7 +38,7 @@ The current target deployment model for `stage` and `prod` is one `Ubuntu 24.04`
 - Docker Engine / Docker Compose plugin
 - `VpnPortal.Api` container
 
-Use `infrastructure/vpn-host/README.md` and the `bootstrap/*.sh` scripts to prepare that host.
+Use `infrastructure/vpn-host/README.md` for the current target host layout and `deploy/predeploy/infrastructure/vpn-host/*.sh` for the repository's predeploy bootstrap scripts.
 
 The portal application delivery assets under `deploy/` remain the source for container rollout, while `infrastructure/vpn-host/` covers host preparation and local service integration.
 
@@ -68,8 +68,8 @@ These helpers are versioned in the repository and should be treated as part of t
 
 Use these assets after bootstrap and deploy:
 
-- `infrastructure/vpn-host/bootstrap/07-verify-stack.sh`
-- `infrastructure/vpn-host/bootstrap/08-smoke-test-portal.sh`
+- `deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh`
+- `deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh`
 - `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md`
 
 ## Schema Application

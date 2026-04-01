@@ -3,7 +3,6 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../" && pwd)"
 
 TARGET="prod"
 SERVER_NAME="_"
@@ -98,14 +97,14 @@ done
 case "$TARGET" in
     prod)
         APP_ROOT="/opt/vpnportal"
-        ENV_EXAMPLE="${REPO_ROOT}/deploy/env/vpnportal.prod.container.env.example"
+        ENV_EXAMPLE="${SCRIPT_DIR}/env/vpnportal.prod.container.env.example"
         ENV_FILE="/etc/vpnportal/vpnportal.prod.container.env"
         NGINX_SITE_NAME="vpnportal.conf"
         APP_PORT="5000"
         ;;
     stage)
         APP_ROOT="/opt/vpnportal-stage"
-        ENV_EXAMPLE="${REPO_ROOT}/deploy/env/vpnportal.stage.container.env.example"
+        ENV_EXAMPLE="${SCRIPT_DIR}/env/vpnportal.stage.container.env.example"
         ENV_FILE="/etc/vpnportal/vpnportal.stage.container.env"
         NGINX_SITE_NAME="vpnportal-stage.conf"
         APP_PORT="5001"
@@ -186,7 +185,7 @@ install_nginx_site() {
     sed \
         -e "s|server_name _;|server_name ${escaped_server_name};|" \
         -e "s|proxy_pass http://127.0.0.1:5000;|proxy_pass ${escaped_proxy_pass};|" \
-        "${REPO_ROOT}/deploy/nginx/vpnportal.conf" > "${temp_file}"
+        "${SCRIPT_DIR}/nginx/vpnportal.conf" > "${temp_file}"
 
     install -m 0644 "${temp_file}" "${NGINX_AVAILABLE_PATH}"
     rm -f "${temp_file}"
@@ -239,7 +238,7 @@ run_vpn_host_bootstrap() {
         exit 1
     fi
 
-    bootstrap_dir="${REPO_ROOT}/infrastructure/vpn-host/bootstrap"
+    bootstrap_dir="${SCRIPT_DIR}/infrastructure/vpn-host"
 
     log_step "Running VPN host bootstrap"
     "${bootstrap_dir}/01-install-packages.sh" "${VPN_HOST_ENV_FILE}"

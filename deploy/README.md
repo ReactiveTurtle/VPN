@@ -73,7 +73,7 @@ Runtime application secrets such as database credentials, SMTP credentials, `Int
 3. Copy `deploy/predeploy/nginx/vpnportal.conf` to your nginx sites config and update `server_name`.
 4. Copy `deploy/predeploy/env/vpnportal.prod.container.env.example` or `deploy/predeploy/env/vpnportal.stage.container.env.example` into `/etc/vpnportal/`.
 5. Copy `deploy/docker/docker-compose.yml` into `DEPLOY_PATH`.
-6. Bootstrap the VPN host separately with `deploy/predeploy/infrastructure/vpn-host/README.md` if this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL.
+6. Bootstrap the VPN host separately with `infrastructure/vpn-host/README.md` and `deploy/predeploy/infrastructure/vpn-host/*.sh` if this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL.
 7. Ensure `DEPLOY_PATH` already exists on the server and is writable by the deployment user.
 8. Ensure the application database connection string uses `host.docker.internal` instead of `localhost` if PostgreSQL remains on the host.
 9. Run the schema migration program before the first API start: `dotnet run --project src/VpnPortal.Migrations`.

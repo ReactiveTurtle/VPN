@@ -33,4 +33,4 @@ chmod 0640 "${PORTAL_ENV_FILE}"
 log_step "Portal host configuration prepared"
 printf 'Portal env file written to %s\n' "${PORTAL_ENV_FILE}"
 printf 'This env file is intended for Docker-based rollout and assumes host services are reachable as host.docker.internal from the container.\n'
-printf 'Copy deploy/docker/docker-compose.yml and deploy/nginx/vpnportal.conf manually if they are not already present.\n'
+printf 'Copy deploy/docker/docker-compose.yml and deploy/predeploy/nginx/vpnportal.conf manually if they are not already present.\n'

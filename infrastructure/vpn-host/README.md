@@ -31,7 +31,7 @@ Use these assets to make the server bootstrap reproducible and to establish the 
 ## Files
 
 - `env/vpn-host.env.example` - example environment variables consumed by bootstrap scripts
-- `bootstrap/` - idempotent `bash` scripts for package installation and host setup
+- `deploy/predeploy/infrastructure/vpn-host/` - idempotent `bash` scripts for package installation and host setup
 - `runbooks/` - server-side verification guides for the current runtime flow
 - `postgresql/` - SQL assets for roles and manual superadmin creation example
 - `strongswan/` - template configuration files
@@ -42,21 +42,21 @@ Use these assets to make the server bootstrap reproducible and to establish the 
 
 Run the scripts in this order as `root`:
 
-1. `bootstrap/01-install-packages.sh`
-2. `bootstrap/02-create-users-and-directories.sh`
-3. `bootstrap/03-install-and-init-postgres.sh`
-4. `bootstrap/04-configure-strongswan.sh`
-5. `bootstrap/05-configure-freeradius.sh`
-6. `bootstrap/06-configure-portal-host.sh`
-7. `bootstrap/07-verify-stack.sh`
-8. `bootstrap/08-smoke-test-portal.sh`
+1. `deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh`
+2. `deploy/predeploy/infrastructure/vpn-host/02-create-users-and-directories.sh`
+3. `deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh`
+4. `deploy/predeploy/infrastructure/vpn-host/04-configure-strongswan.sh`
+5. `deploy/predeploy/infrastructure/vpn-host/05-configure-freeradius.sh`
+6. `deploy/predeploy/infrastructure/vpn-host/06-configure-portal-host.sh`
+7. `deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh`
+8. `deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh`
 
 Each script accepts an optional path to the environment file. If omitted, it defaults to `/etc/vpnportal/vpn-host.env`.
 
 Example:
 
 ```bash
-sudo ./infrastructure/vpn-host/bootstrap/01-install-packages.sh ./infrastructure/vpn-host/env/vpn-host.env.example
+sudo ./deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh ./infrastructure/vpn-host/env/vpn-host.env.example
 ```
 
 ## Manual Inputs
@@ -92,7 +92,7 @@ Fill a real environment file before applying configurations:
 
 ## Schema And Admin Bootstrap
 
-1. `bootstrap/03-install-and-init-postgres.sh` creates roles and the database only.
+1. `deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh` creates roles and the database only.
 2. Apply the schema with `dotnet run --project src/VpnPortal.Migrations`.
 3. Create the first `superadmin` manually using `docs/runbooks/create-first-superadmin.md`.
 
@@ -116,7 +116,7 @@ sudo install -m 0755 infrastructure/vpn-host/tools/vpn-speed.py /usr/local/bin/v
 
 ## Validation Runbook
 
-- Non-destructive smoke check: `bootstrap/08-smoke-test-portal.sh`
+- Non-destructive smoke check: `deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh`
 - End-to-end runtime validation: `runbooks/verify-vpn-runtime-flow.md`
 
 ## Verification
