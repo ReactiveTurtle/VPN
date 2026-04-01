@@ -186,11 +186,18 @@ jobs:
           scp -P "${{ secrets.DEPLOY_PORT }}" "${{ needs.package.outputs.source_archive }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/${{ needs.package.outputs.source_archive }}"
           scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal.container.env "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal.container.env.tmp"
 
+      - name: Deploy predeploy scripts
+        run: |
+          tar -czf vpnportal-predeploy.tar.gz deploy/predeploy-scripts/
+          scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal-predeploy.tar.gz "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal-predeploy.tar.gz"
+
       - name: Build and deploy on target host
         run: |
           ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
           "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' SOURCE_ARCHIVE='${{ needs.package.outputs.source_archive }}' RUNTIME_ENV_FILE='${{ needs.package.outputs.runtime_env_file }}' HOST_PORT='${{ needs.package.outputs.host_port }}' COMPOSE_PROJECT='${{ needs.package.outputs.compose_project }}' VERSION='${{ needs.package.outputs.version }}' bash -s" <<'EOF'
           set -euo pipefail
+
+          PREDESPLOY_ROOT="$DEPLOY_PATH/predeploy"
 
           RELEASE_ROOT="$DEPLOY_PATH/releases"
           RELEASE_DIR="$RELEASE_ROOT/$VERSION"
@@ -198,6 +205,12 @@ jobs:
           test -d "$DEPLOY_PATH"
           test -f "$DEPLOY_PATH/$SOURCE_ARCHIVE"
           test -f "$DEPLOY_PATH/vpnportal.container.env.tmp"
+          test -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
+
+          rm -rf "$PREDESPLOY_ROOT"
+          install -d -m 0755 "$PREDESPLOY_ROOT"
+          tar -xzf "$DEPLOY_PATH/vpnportal-predeploy.tar.gz" -C "$PREDESPLOY_ROOT"
+          rm -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
 
           install -d -m 0755 "$RELEASE_ROOT"
           rm -rf "$RELEASE_DIR"

@@ -26,12 +26,12 @@
 
 До первого деплоя подготовьте хост приложения:
 
-Для автоматизации большей части этих шагов можно использовать `deploy/predeploy/prepare-app-host.sh`.
+Для автоматизации большей части этих шагов можно использовать скрипт из `deploy/predeploy-scripts/prepare-app-host.sh`, который автоматически разворачивается в `/opt/vpnportal/predeploy/` при каждом deploy.
 
 Пример:
 
 ```bash
-sudo ./deploy/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com
+sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com
 ```
 
 Скрипт подготавливает директории, ставит `Docker Engine`, `Docker Compose plugin` и `nginx`, добавляет deploy user в группу `docker`, настраивает `nginx` config и container env-файл из example.
@@ -39,7 +39,7 @@ sudo ./deploy/predeploy/prepare-app-host.sh --target prod --server-name vpn.exam
 Если целевая машина одновременно является VPN-хостом, скрипт можно запустить с уже заполненным env-файлом bootstrap:
 
 ```bash
-sudo ./deploy/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.env
+sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.env
 ```
 
 В этом режиме он дополнительно запускает `infrastructure/vpn-host/bootstrap/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
@@ -61,7 +61,7 @@ Docker rollout использует один `docker-compose.yml` и environment
 
 Если эта же машина одновременно хостит `strongSwan`, `FreeRADIUS` и `PostgreSQL`, выполните отдельный bootstrap, описанный в `infrastructure/vpn-host/README.md`.
 
-Это можно сделать либо вручную по порядку из `infrastructure/vpn-host/README.md`, либо через `deploy/predeploy/prepare-app-host.sh --vpn-host-env <path>`.
+Это можно сделать либо вручную по порядку из `infrastructure/vpn-host/README.md`, либо через `/opt/vpnportal/predeploy/prepare-app-host.sh --vpn-host-env <path>`.
 
 Этот документ остается источником истины для:
 

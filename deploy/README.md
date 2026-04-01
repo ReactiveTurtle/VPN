@@ -47,7 +47,7 @@ Recommended:
 
 You can automate most application-host setup steps with:
 
-- `sudo ./deploy/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com`
+- `sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com`
 
 This helper installs base packages, including Docker Engine, Docker Compose plugin, and nginx, prepares directories, adds the deploy user to the `docker` group, renders nginx config, and writes the example container env file when missing.
 
