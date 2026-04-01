@@ -147,6 +147,28 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Deploy predeploy scripts
+        run: |
+          tar -czf vpnportal-predeploy.tar.gz \
+            deploy/predeploy-scripts/ \
+            deploy/env/ \
+            deploy/nginx/ \
+            infrastructure/vpn-host/bootstrap/
+          scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal-predeploy.tar.gz "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal-predeploy.tar.gz"
+
+      - name: Extract predeploy scripts on target
+        run: |
+          ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+          "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' bash -s" <<'EOF'
+          set -euo pipefail
+          test -d "$DEPLOY_PATH"
+          test -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
+          rm -rf "$DEPLOY_PATH/predeploy"
+          install -d -m 0755 "$DEPLOY_PATH/predeploy"
+          tar -xzf "$DEPLOY_PATH/vpnportal-predeploy.tar.gz" -C "$DEPLOY_PATH/predeploy"
+          rm -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
+          EOF
+
       - name: Render runtime env file
         shell: bash
         run: |
@@ -209,12 +231,6 @@ jobs:
           test -d "$DEPLOY_PATH"
           test -f "$DEPLOY_PATH/$SOURCE_ARCHIVE"
           test -f "$DEPLOY_PATH/vpnportal.container.env.tmp"
-          test -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
-
-          rm -rf "$DEPLOY_PATH/predeploy"
-          install -d -m 0755 "$DEPLOY_PATH/predeploy"
-          tar -xzf "$DEPLOY_PATH/vpnportal-predeploy.tar.gz" -C "$DEPLOY_PATH/predeploy"
-          rm -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
 
           install -d -m 0755 "$RELEASE_ROOT"
           rm -rf "$RELEASE_DIR"
