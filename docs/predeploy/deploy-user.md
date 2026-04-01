@@ -56,14 +56,18 @@ sudo chmod 600 /home/deploy/.ssh/authorized_keys
 
 ## Доступ К Каталогам Деплоя
 
-Минимально подготовьте upload path, в который GitHub Actions будет складывать source archive деплоя:
+Создайте директорию для деплоя и выдайте полные права пользователю deploy:
 
 ```bash
-sudo install -d -m 755 /opt/vpnportal
+sudo mkdir -p /opt/vpnportal
 sudo chown -R deploy:deploy /opt/vpnportal
+sudo chmod 755 /opt/vpnportal
 ```
 
-Этого достаточно для upload path и размещения `docker-compose.yml`.
+После этого:
+- Пользователь deploy владеет `/opt/vpnportal`
+- Может создавать подкаталоги (releases/, bin/, predeploy/) без sudo
+- GitHub Actions workflow работает без необходимости sudo для создания папок
 
 Если вы переходите на Docker-based rollout, дополнительно добавьте пользователя в группу `docker`:
 
