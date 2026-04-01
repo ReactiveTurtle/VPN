@@ -121,19 +121,9 @@ jobs:
           require_secret DEPLOY_USER "${{ secrets.DEPLOY_USER }}"
           require_secret DEPLOY_PATH "${{ secrets.DEPLOY_PATH }}"
           require_secret DEPLOY_SSH_PRIVATE_KEY "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}"
-          require_secret APP_DATABASE_CONNECTION_STRING "${{ secrets.APP_DATABASE_CONNECTION_STRING }}"
-          require_secret APP_EMAIL_HOST "${{ secrets.APP_EMAIL_HOST }}"
-          require_secret APP_EMAIL_USERNAME "${{ secrets.APP_EMAIL_USERNAME }}"
-          require_secret APP_EMAIL_PASSWORD "${{ secrets.APP_EMAIL_PASSWORD }}"
-          require_secret APP_EMAIL_FROM_EMAIL "${{ secrets.APP_EMAIL_FROM_EMAIL }}"
-          require_secret APP_EMAIL_FROM_NAME "${{ secrets.APP_EMAIL_FROM_NAME }}"
-          require_secret APP_EMAIL_PUBLIC_BASE_URL "${{ secrets.APP_EMAIL_PUBLIC_BASE_URL }}"
-          require_secret APP_INTERNAL_API_SHARED_SECRET "${{ secrets.APP_INTERNAL_API_SHARED_SECRET }}"
-          require_secret APP_VPN_ACCESS_SERVER_ADDRESS "${{ secrets.APP_VPN_ACCESS_SERVER_ADDRESS }}"
-          require_secret APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH "${{ secrets.APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH }}"
 
           if [[ "$missing" -ne 0 ]]; then
-            echo "Configure the missing secrets in the GitHub Environment: ${{ needs.package.outputs.target }}" >&2
+            echo "Configure the missing deploy secrets in the GitHub Environment: ${{ needs.package.outputs.target }}" >&2
             exit 1
           fi
 
@@ -168,6 +158,37 @@ jobs:
           tar -xzf "$DEPLOY_PATH/vpnportal-predeploy.tar.gz" -C "$DEPLOY_PATH/predeploy"
           rm -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
           EOF
+
+      - name: Validate application secrets
+        shell: bash
+        run: |
+          missing=0
+
+          require_secret() {
+            local name="$1"
+            local value="$2"
+
+            if [[ -z "$value" ]]; then
+              echo "Missing required secret: $name" >&2
+              missing=1
+            fi
+          }
+
+          require_secret APP_DATABASE_CONNECTION_STRING "${{ secrets.APP_DATABASE_CONNECTION_STRING }}"
+          require_secret APP_EMAIL_HOST "${{ secrets.APP_EMAIL_HOST }}"
+          require_secret APP_EMAIL_USERNAME "${{ secrets.APP_EMAIL_USERNAME }}"
+          require_secret APP_EMAIL_PASSWORD "${{ secrets.APP_EMAIL_PASSWORD }}"
+          require_secret APP_EMAIL_FROM_EMAIL "${{ secrets.APP_EMAIL_FROM_EMAIL }}"
+          require_secret APP_EMAIL_FROM_NAME "${{ secrets.APP_EMAIL_FROM_NAME }}"
+          require_secret APP_EMAIL_PUBLIC_BASE_URL "${{ secrets.APP_EMAIL_PUBLIC_BASE_URL }}"
+          require_secret APP_INTERNAL_API_SHARED_SECRET "${{ secrets.APP_INTERNAL_API_SHARED_SECRET }}"
+          require_secret APP_VPN_ACCESS_SERVER_ADDRESS "${{ secrets.APP_VPN_ACCESS_SERVER_ADDRESS }}"
+          require_secret APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH "${{ secrets.APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH }}"
+
+          if [[ "$missing" -ne 0 ]]; then
+            echo "Configure the missing application secrets in the GitHub Environment: ${{ needs.package.outputs.target }}" >&2
+            exit 1
+          fi
 
       - name: Render runtime env file
         shell: bash
