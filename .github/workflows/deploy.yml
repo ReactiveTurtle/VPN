@@ -140,6 +140,11 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Create deploy root directory
+        run: |
+          ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+          "sudo mkdir -p '${{ secrets.DEPLOY_PATH }}' && sudo chown '${{ secrets.DEPLOY_USER }}' '${{ secrets.DEPLOY_PATH }}'"
+
       - name: Deploy predeploy scripts
         run: |
           tar -czf vpnportal-predeploy.tar.gz deploy/predeploy/
