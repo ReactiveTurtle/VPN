@@ -100,14 +100,16 @@ sudo chmod 440 /etc/sudoers.d/vpnportal-deploy
 sudo visudo -cf /etc/sudoers.d/vpnportal-deploy
 ```
 
-## Что Указать В GitHub Secrets
+## Что Указать В GitHub Environment Secrets
 
-После подготовки пользователя используйте его в deployment secrets:
+После подготовки пользователя используйте его в deployment secrets нужного GitHub Environment:
 
 - `DEPLOY_USER=deploy`
 - `DEPLOY_PATH=/opt/vpnportal`
 
-Если используется отдельный `stage` layout, укажите соответствующий путь под `stage`-конвенцию.
+Если используется отдельный `stage` layout, укажите соответствующий путь в secrets окружения `stage`.
+
+`DEPLOY_HOST`, `DEPLOY_PORT`, `DEPLOY_USER`, `DEPLOY_PATH` и `DEPLOY_SSH_PRIVATE_KEY` должны храниться отдельно для `stage` и `prod`, чтобы branch deploy шел на staging host, а tag deploy - на production host.
 
 ## Проверка
 

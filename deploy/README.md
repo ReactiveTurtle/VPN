@@ -11,7 +11,14 @@ Create two GitHub Environments if you want separated deployments:
 
 Store environment-specific secrets in each environment.
 
-## Required GitHub Secrets
+## Required GitHub Environment Secrets
+
+Configure these secrets separately in each GitHub Environment.
+
+For example:
+
+- `stage` should point `DEPLOY_HOST`, `DEPLOY_PATH`, and the application secrets at the staging server
+- `prod` should point `DEPLOY_HOST`, `DEPLOY_PATH`, and the application secrets at the production server
 
 - `DEPLOY_HOST`
 - `DEPLOY_PORT`
