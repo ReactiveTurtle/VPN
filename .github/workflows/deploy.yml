@@ -154,7 +154,7 @@ jobs:
           test -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
           rm -rf "$DEPLOY_PATH/predeploy"
           install -d -m 0755 "$DEPLOY_PATH/predeploy"
-          tar -xzf "$DEPLOY_PATH/vpnportal-predeploy.tar.gz" -C "$DEPLOY_PATH/predeploy"
+          tar -xzf "$DEPLOY_PATH/vpnportal-predeploy.tar.gz" -C "$DEPLOY_PATH/predeploy" --strip-components=2
           rm -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
           EOF
 
