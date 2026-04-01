@@ -58,18 +58,28 @@ SSH и deploy secrets:
 - `DEPLOY_PATH`
 - `DEPLOY_SSH_PRIVATE_KEY`
 
+Рекомендуемые значения для GitHub Environment `stage`:
+
+- `DEPLOY_HOST=<staging-host-or-ip>`
+- `DEPLOY_PORT=<staging-ssh-port>`
+- `DEPLOY_USER=deploy`
+- `DEPLOY_PATH=/opt/vpnportal-stage`
+- `DEPLOY_SSH_PRIVATE_KEY=<private key for the stage deploy user>`
+
+`DEPLOY_COMMAND` в текущем `deploy.yml` не используется, поэтому добавлять его в GitHub Environment `stage` не нужно.
+
 Application runtime secrets в GitHub Environment Secrets:
 
-- `APP_DATABASE_CONNECTION_STRING`
-- `APP_EMAIL_HOST`
-- `APP_EMAIL_USERNAME`
-- `APP_EMAIL_PASSWORD`
-- `APP_EMAIL_FROM_EMAIL`
-- `APP_EMAIL_FROM_NAME`
-- `APP_EMAIL_PUBLIC_BASE_URL`
-- `APP_INTERNAL_API_SHARED_SECRET`
-- `APP_VPN_ACCESS_SERVER_ADDRESS`
-- `APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH`
+- `Database__ConnectionString`
+- `Email__Host`
+- `Email__Username`
+- `Email__Password`
+- `Email__FromEmail`
+- `Email__FromName`
+- `Email__PublicBaseUrl`
+- `InternalApi__SharedSecret`
+- `VpnAccess__ServerAddress`
+- `VpnRuntime__DisconnectScriptPath`
 
 Во время deploy эти значения записываются на хост в один из файлов:
 

@@ -20,21 +20,31 @@ For example:
 - `stage` should point `DEPLOY_HOST`, `DEPLOY_PATH`, and the application secrets at the staging server
 - `prod` should point `DEPLOY_HOST`, `DEPLOY_PATH`, and the application secrets at the production server
 
+Recommended `stage` deploy secret values:
+
+- `DEPLOY_HOST=<staging-host-or-ip>`
+- `DEPLOY_PORT=<staging-ssh-port>`
+- `DEPLOY_USER=deploy`
+- `DEPLOY_PATH=/opt/vpnportal-stage`
+- `DEPLOY_SSH_PRIVATE_KEY=<private key for the stage deploy user>`
+
+`DEPLOY_COMMAND` is not used by the current `deploy.yml` workflow and does not need to be configured.
+
 - `DEPLOY_HOST`
 - `DEPLOY_PORT`
 - `DEPLOY_USER`
 - `DEPLOY_PATH`
 - `DEPLOY_SSH_PRIVATE_KEY`
-- `APP_DATABASE_CONNECTION_STRING`
-- `APP_EMAIL_HOST`
-- `APP_EMAIL_USERNAME`
-- `APP_EMAIL_PASSWORD`
-- `APP_EMAIL_FROM_EMAIL`
-- `APP_EMAIL_FROM_NAME`
-- `APP_EMAIL_PUBLIC_BASE_URL`
-- `APP_INTERNAL_API_SHARED_SECRET`
-- `APP_VPN_ACCESS_SERVER_ADDRESS`
-- `APP_VPN_RUNTIME_DISCONNECT_SCRIPT_PATH`
+- `Database__ConnectionString`
+- `Email__Host`
+- `Email__Username`
+- `Email__Password`
+- `Email__FromEmail`
+- `Email__FromName`
+- `Email__PublicBaseUrl`
+- `InternalApi__SharedSecret`
+- `VpnAccess__ServerAddress`
+- `VpnRuntime__DisconnectScriptPath`
 
 Recommended:
 
@@ -70,7 +80,7 @@ Environment-specific runtime values are rendered from GitHub Environment Secrets
 
 The checked-in files under `deploy/predeploy/env/*.container.env.example` are templates only. They are not the source of truth for production secrets.
 
-Runtime application secrets such as database credentials, SMTP credentials, `InternalApi__SharedSecret`, and `VpnAccess__ServerAddress` should be stored in GitHub Environment Secrets and materialized onto the host-side container env file during deploy:
+Runtime application secrets should be stored in GitHub Environment Secrets using the same .NET configuration-path names that the app reads at runtime, such as `Database__ConnectionString`, `Email__Password`, `InternalApi__SharedSecret`, and `VpnAccess__ServerAddress`. These values are materialized onto the host-side container env file during deploy:
 
 - `/etc/vpnportal/vpnportal.prod.container.env`
 - `/etc/vpnportal/vpnportal.stage.container.env`
