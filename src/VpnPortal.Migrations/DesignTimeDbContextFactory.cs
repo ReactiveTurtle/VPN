@@ -13,10 +13,9 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Vpn
         var configuration = ConfigurationLoader.Build("Development", Directory.GetCurrentDirectory());
 
         var databaseOptions = configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
-        if (string.IsNullOrWhiteSpace(databaseOptions.ConnectionString))
-        {
-            throw new InvalidOperationException("Database:ConnectionString must be configured for design-time DbContext creation.");
-        }
+        databaseOptions.ConnectionString = DatabaseConnectionStringValidator.EnsureValid(
+            databaseOptions.ConnectionString,
+            "Database:ConnectionString must be configured for design-time DbContext creation.");
 
         var optionsBuilder = new DbContextOptionsBuilder<VpnPortalDbContext>();
         optionsBuilder.UseNpgsql(databaseOptions.ConnectionString, npgsql => npgsql.MigrationsAssembly("VpnPortal.Migrations"));

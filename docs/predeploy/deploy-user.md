@@ -109,6 +109,16 @@ sudo visudo -cf /etc/sudoers.d/vpnportal-deploy
 
 Если используется отдельный `stage` layout, укажите соответствующий путь в secrets окружения `stage`.
 
+Рекомендуемые значения для GitHub Environment `stage`:
+
+- `DEPLOY_HOST=<staging-host-or-ip>`
+- `DEPLOY_PORT=<staging-ssh-port>`
+- `DEPLOY_USER=deploy`
+- `DEPLOY_PATH=/opt/vpnportal-stage`
+- `DEPLOY_SSH_PRIVATE_KEY=<private key for the stage deploy user>`
+
+`DEPLOY_COMMAND` для текущего deployment workflow не нужен и не используется.
+
 `DEPLOY_HOST`, `DEPLOY_PORT`, `DEPLOY_USER`, `DEPLOY_PATH` и `DEPLOY_SSH_PRIVATE_KEY` должны храниться отдельно для `stage` и `prod`, чтобы branch deploy шел на staging host, а tag deploy - на production host.
 
 ## Проверка

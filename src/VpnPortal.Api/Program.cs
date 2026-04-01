@@ -26,10 +26,9 @@ builder.Services.Configure<VpnRuntimeOptions>(builder.Configuration.GetSection(V
 var databaseOptions = builder.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
 var vpnAccessOptions = builder.Configuration.GetSection(VpnAccessOptions.SectionName).Get<VpnAccessOptions>() ?? new VpnAccessOptions();
 
-if (string.IsNullOrWhiteSpace(databaseOptions.ConnectionString))
-{
-    throw new InvalidOperationException("Database:ConnectionString must be configured.");
-}
+databaseOptions.ConnectionString = DatabaseConnectionStringValidator.EnsureValid(
+    databaseOptions.ConnectionString,
+    "Database:ConnectionString must be configured.");
 
 if (string.IsNullOrWhiteSpace(vpnAccessOptions.ServerAddress))
 {

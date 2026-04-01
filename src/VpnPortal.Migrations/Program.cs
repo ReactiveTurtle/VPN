@@ -24,10 +24,9 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Configuration.AddConfiguration(ConfigurationLoader.Build(builder.Environment.EnvironmentName));
 
 var databaseOptions = builder.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
-if (string.IsNullOrWhiteSpace(databaseOptions.ConnectionString))
-{
-    throw new InvalidOperationException("Database:ConnectionString must be configured for migrations. Use `hash-password` if you only need an Argon2id hash.");
-}
+databaseOptions.ConnectionString = DatabaseConnectionStringValidator.EnsureValid(
+    databaseOptions.ConnectionString,
+    "Database:ConnectionString must be configured for migrations. Use `hash-password` if you only need an Argon2id hash.");
 
 builder.Services.AddDbContext<VpnPortalDbContext>(options => options.UseNpgsql(databaseOptions.ConnectionString, npgsql => npgsql.MigrationsAssembly("VpnPortal.Migrations")));
 
