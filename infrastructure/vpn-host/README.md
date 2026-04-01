@@ -30,7 +30,8 @@ Use these assets to make the server bootstrap reproducible and to establish the 
 
 ## Files
 
-- `env/vpn-host.env.example` - example environment variables consumed by bootstrap scripts
+- `env/vpn-host.prod.env.example` - example bootstrap environment variables for `prod`
+- `env/vpn-host.stage.env.example` - example bootstrap environment variables for `stage`
 - `deploy/predeploy/infrastructure/vpn-host/` - idempotent `bash` scripts for package installation and host setup
 - `runbooks/` - server-side verification guides for the current runtime flow
 - `postgresql/` - SQL assets for roles and manual superadmin creation example
@@ -51,28 +52,66 @@ Run the scripts in this order as `root`:
 7. `deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh`
 8. `deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh`
 
-Each script accepts an optional path to the environment file. If omitted, it defaults to `/etc/vpnportal/vpn-host.env`.
+Each script accepts an optional path to the bootstrap environment file. If omitted, it defaults to `/etc/vpnportal/vpn-host.prod.env`. Use an explicit path such as `/etc/vpnportal/vpn-host.stage.env` when bootstrapping `stage`.
 
 Example:
 
 ```bash
-sudo ./deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh ./infrastructure/vpn-host/env/vpn-host.env.example
+sudo ./deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh ./infrastructure/vpn-host/env/vpn-host.stage.env.example
 ```
 
 ## Manual Inputs
 
-Fill a real environment file before applying configurations:
+Fill a real bootstrap environment file before applying configurations:
 
 - host public IP or DNS name
-- portal public URL
+- runtime portal URL via `Email__PublicBaseUrl`
 - PostgreSQL passwords
 - RADIUS shared secret
 - strongSwan certificate paths
-- SMTP settings for the portal env file
+- runtime email settings via `Email__Host`, `Email__Port`, `Email__Username`, `Email__Password`, `Email__FromEmail`, and `Email__FromName`
+
+Shared application/runtime values inside `vpn-host.stage.env` and `vpn-host.prod.env` should use the same names that the app consumes at runtime:
+
+- `ASPNETCORE_ENVIRONMENT`
+- `Email__PublicBaseUrl`
+- `InternalApi__SharedSecret`
+- `VpnAccess__ServerAddress`
+- `VpnRuntime__DisconnectScriptPath`
+- `Email__Host`
+- `Email__Port`
+- `Email__Username`
+- `Email__Password`
+- `Email__FromEmail`
+- `Email__FromName`
+
+Bootstrap-only values remain separate because they are consumed by host setup scripts rather than the app runtime:
+
+- `VPN_HOST_FQDN`
+- `VPN_HOST_PUBLIC_IP`
+- `INTERNAL_API_BASE_URL`
+- `PORTAL_DEPLOY_ROOT`
+- `PORTAL_ENV_DIR`
+- `PORTAL_ENV_FILE`
+- `POSTGRES_DB`
+- `POSTGRES_APP_USER`
+- `POSTGRES_APP_PASSWORD`
+- `POSTGRES_RADIUS_USER`
+- `POSTGRES_RADIUS_PASSWORD`
+- `RADIUS_SHARED_SECRET`
+- `RADIUS_CLIENT_ADDRESS`
+- `STRONGSWAN_SERVER_ID`
+- `STRONGSWAN_CERT_PATH`
+- `STRONGSWAN_KEY_PATH`
+- `STRONGSWAN_CA_CERT_PATH`
+- `STRONGSWAN_RIGHT_SOURCE_IP`
+- `STRONGSWAN_DNS`
+- `SUPERADMIN_USERNAME`
+- `SUPERADMIN_PASSWORD_HASH`
 
 ## Expected Host Layout
 
-- `/etc/vpnportal/` - portal and bootstrap env files
+- `/etc/vpnportal/` - bootstrap env files and runtime container env files
 - `/opt/vpnportal/` - application deployment root
 - `/etc/strongswan.conf` and `/etc/ipsec.conf` - strongSwan configuration
 - `/etc/freeradius/3.0/` - FreeRADIUS configuration

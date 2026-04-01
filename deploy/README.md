@@ -35,16 +35,16 @@ Recommended `stage` deploy secret values:
 - `DEPLOY_USER`
 - `DEPLOY_PATH`
 - `DEPLOY_SSH_PRIVATE_KEY`
-- `Database__ConnectionString`
-- `Email__Host`
-- `Email__Username`
-- `Email__Password`
-- `Email__FromEmail`
-- `Email__FromName`
-- `Email__PublicBaseUrl`
-- `InternalApi__SharedSecret`
-- `VpnAccess__ServerAddress`
-- `VpnRuntime__DisconnectScriptPath`
+- `DATABASE__CONNECTIONSTRING`
+- `EMAIL__HOST`
+- `EMAIL__USERNAME`
+- `EMAIL__PASSWORD`
+- `EMAIL__FROMEMAIL`
+- `EMAIL__FROMNAME`
+- `EMAIL__PUBLICBASEURL`
+- `INTERNALAPI__SHAREDSECRET`
+- `VPNACCESS__SERVERADDRESS`
+- `VPNRUNTIME__DISCONNECTSCRIPTPATH`
 
 Recommended:
 
@@ -68,7 +68,7 @@ You can automate most application-host setup steps with:
 
 This helper installs base packages, including Docker Engine, Docker Compose plugin, and nginx, prepares directories, adds the deploy user to the `docker` group, renders nginx config, and writes the example container env file when missing.
 
-If the same server also acts as the VPN host, you can additionally pass `--vpn-host-env /etc/vpnportal/vpn-host.env` to run the repository bootstrap flow for `strongSwan`, `FreeRADIUS`, and `PostgreSQL`.
+If the same server also acts as the VPN host, you can additionally pass `--vpn-host-env /etc/vpnportal/vpn-host.prod.env` or `--vpn-host-env /etc/vpnportal/vpn-host.stage.env` to run the repository bootstrap flow for `strongSwan`, `FreeRADIUS`, and `PostgreSQL`.
 
 It does not configure SSH access, configure GitHub deployment secrets, run schema migrations outside the deploy workflow, or create the first `superadmin`.
 
@@ -80,10 +80,12 @@ Environment-specific runtime values are rendered from GitHub Environment Secrets
 
 The checked-in files under `deploy/predeploy/env/*.container.env.example` are templates only. They are not the source of truth for production secrets.
 
-Runtime application secrets should be stored in GitHub Environment Secrets using the same .NET configuration-path names that the app reads at runtime, such as `Database__ConnectionString`, `Email__Password`, `InternalApi__SharedSecret`, and `VpnAccess__ServerAddress`. These values are materialized onto the host-side container env file during deploy:
+Runtime application secrets in GitHub Environment Secrets should use uppercase names, such as `DATABASE__CONNECTIONSTRING`, `EMAIL__PASSWORD`, `INTERNALAPI__SHAREDSECRET`, and `VPNACCESS__SERVERADDRESS`. During deploy, the workflow materializes them into the host-side container env file using the runtime .NET configuration keys like `Database__ConnectionString` and `Email__Password`:
 
 - `/etc/vpnportal/vpnportal.prod.container.env`
 - `/etc/vpnportal/vpnportal.stage.container.env`
+
+The rendered host-side env file also sets `ASPNETCORE_ENVIRONMENT` explicitly to `prod` or `stage` to match the deployment target names.
 
 1. Install `Docker Engine`, `Docker Compose plugin`, `nginx`, and `systemd` support.
 2. Create deployment directory, for example `/opt/vpnportal`.

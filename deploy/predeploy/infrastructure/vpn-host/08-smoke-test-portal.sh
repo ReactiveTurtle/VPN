@@ -18,8 +18,8 @@ log_step "Checking database status endpoint"
 curl --fail --silent --show-error "${base_url}/api/system/database"
 
 log_step "Checking that internal API secret is configured"
-if [[ -z "${INTERNAL_API_SHARED_SECRET:-}" ]]; then
-    printf 'INTERNAL_API_SHARED_SECRET is empty.\n' >&2
+if [[ -z "${InternalApi__SharedSecret:-}" ]]; then
+    printf 'InternalApi__SharedSecret is empty.\n' >&2
     exit 1
 fi
 

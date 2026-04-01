@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VPN_HOST_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${VPN_HOST_ROOT}/../.." && pwd)"
-DEFAULT_ENV_FILE="/etc/vpnportal/vpn-host.env"
+DEFAULT_ENV_FILE="/etc/vpnportal/vpn-host.prod.env"
 
 load_env() {
     local env_file="${1:-${DEFAULT_ENV_FILE}}"
@@ -19,6 +19,8 @@ load_env() {
     # shellcheck disable=SC1090
     source "${env_file}"
     set +a
+
+    export VPN_HOST_ENV_FILE="${env_file}"
 }
 
 require_root() {

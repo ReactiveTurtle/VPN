@@ -39,8 +39,26 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vp
 Если целевая машина одновременно является VPN-хостом, скрипт можно запустить с уже заполненным env-файлом bootstrap:
 
 ```bash
-sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.env
+sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.prod.env
 ```
+
+Для `stage` используйте отдельный bootstrap env-файл, например `/etc/vpnportal/vpn-host.stage.env`, и отдельный runtime env-файл `/etc/vpnportal/vpnportal.stage.container.env`.
+
+В bootstrap env-файле общие с приложением значения теперь тоже называются как runtime keys приложения, например:
+
+- `ASPNETCORE_ENVIRONMENT=stage`
+- `Email__PublicBaseUrl=https://stage-vpn.example.com`
+- `InternalApi__SharedSecret=...`
+- `VpnAccess__ServerAddress=stage-vpn.example.com`
+- `VpnRuntime__DisconnectScriptPath=/usr/local/lib/vpnportal/disconnect-session.sh`
+- `Email__Host=...`
+- `Email__Port=587`
+- `Email__Username=...`
+- `Email__Password=...`
+- `Email__FromEmail=...`
+- `Email__FromName=VPN Portal Stage`
+
+Отдельно в bootstrap env остаются host-only keys вроде `POSTGRES_*`, `STRONGSWAN_*`, `RADIUS_*`, `PORTAL_DEPLOY_ROOT` и `INTERNAL_API_BASE_URL`.
 
 В этом режиме он дополнительно запускает `deploy/predeploy/infrastructure/vpn-host/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
 

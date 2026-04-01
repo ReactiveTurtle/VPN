@@ -70,16 +70,18 @@ SSH и deploy secrets:
 
 Application runtime secrets в GitHub Environment Secrets:
 
-- `Database__ConnectionString`
-- `Email__Host`
-- `Email__Username`
-- `Email__Password`
-- `Email__FromEmail`
-- `Email__FromName`
-- `Email__PublicBaseUrl`
-- `InternalApi__SharedSecret`
-- `VpnAccess__ServerAddress`
-- `VpnRuntime__DisconnectScriptPath`
+- `DATABASE__CONNECTIONSTRING`
+- `EMAIL__HOST`
+- `EMAIL__USERNAME`
+- `EMAIL__PASSWORD`
+- `EMAIL__FROMEMAIL`
+- `EMAIL__FROMNAME`
+- `EMAIL__PUBLICBASEURL`
+- `INTERNALAPI__SHAREDSECRET`
+- `VPNACCESS__SERVERADDRESS`
+- `VPNRUNTIME__DISCONNECTSCRIPTPATH`
+
+Во время deploy workflow преобразует эти GitHub secret names в runtime env keys приложения, например `Database__ConnectionString`, `Email__Host` и `InternalApi__SharedSecret`.
 
 Во время deploy эти значения записываются на хост в один из файлов:
 

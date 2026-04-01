@@ -54,6 +54,8 @@ The current target runtime flow on the host is:
 - the portal container updates `vpn_sessions` and auto-binds the first source IP to the device
 - admin disconnect can request best-effort runtime session teardown through `/usr/local/lib/vpnportal/disconnect-session.sh`
 
+The host-side container env file under `/etc/vpnportal/` is the current source of runtime application environment variables. It now sets `ASPNETCORE_ENVIRONMENT` to `stage` or `prod` to match the GitHub deployment target names directly. GitHub Environment Secrets use uppercase names, while the rendered container env file keeps the runtime .NET configuration keys expected by the app.
+
 ## Host-Installed Runtime Helpers
 
 The bootstrap currently expects these host-local runtime helpers:

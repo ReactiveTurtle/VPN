@@ -173,16 +173,16 @@ jobs:
             fi
           }
 
-          require_secret Database__ConnectionString "${{ secrets.Database__ConnectionString }}"
-          require_secret Email__Host "${{ secrets.Email__Host }}"
-          require_secret Email__Username "${{ secrets.Email__Username }}"
-          require_secret Email__Password "${{ secrets.Email__Password }}"
-          require_secret Email__FromEmail "${{ secrets.Email__FromEmail }}"
-          require_secret Email__FromName "${{ secrets.Email__FromName }}"
-          require_secret Email__PublicBaseUrl "${{ secrets.Email__PublicBaseUrl }}"
-          require_secret InternalApi__SharedSecret "${{ secrets.InternalApi__SharedSecret }}"
-          require_secret VpnAccess__ServerAddress "${{ secrets.VpnAccess__ServerAddress }}"
-          require_secret VpnRuntime__DisconnectScriptPath "${{ secrets.VpnRuntime__DisconnectScriptPath }}"
+          require_secret DATABASE__CONNECTIONSTRING "${{ secrets.DATABASE__CONNECTIONSTRING }}"
+          require_secret EMAIL__HOST "${{ secrets.EMAIL__HOST }}"
+          require_secret EMAIL__USERNAME "${{ secrets.EMAIL__USERNAME }}"
+          require_secret EMAIL__PASSWORD "${{ secrets.EMAIL__PASSWORD }}"
+          require_secret EMAIL__FROMEMAIL "${{ secrets.EMAIL__FROMEMAIL }}"
+          require_secret EMAIL__FROMNAME "${{ secrets.EMAIL__FROMNAME }}"
+          require_secret EMAIL__PUBLICBASEURL "${{ secrets.EMAIL__PUBLICBASEURL }}"
+          require_secret INTERNALAPI__SHAREDSECRET "${{ secrets.INTERNALAPI__SHAREDSECRET }}"
+          require_secret VPNACCESS__SERVERADDRESS "${{ secrets.VPNACCESS__SERVERADDRESS }}"
+          require_secret VPNRUNTIME__DISCONNECTSCRIPTPATH "${{ secrets.VPNRUNTIME__DISCONNECTSCRIPTPATH }}"
 
           if [[ "$missing" -ne 0 ]]; then
             echo "Configure the missing application secrets in the GitHub Environment: ${{ needs.package.outputs.target }}" >&2
@@ -194,10 +194,10 @@ jobs:
         run: |
           case "${{ needs.package.outputs.target }}" in
             prod)
-              ASPNETCORE_ENVIRONMENT="Production"
+              ASPNETCORE_ENVIRONMENT="prod"
               ;;
             stage)
-              ASPNETCORE_ENVIRONMENT="Staging"
+              ASPNETCORE_ENVIRONMENT="stage"
               ;;
             *)
               echo "Unsupported deployment target: ${{ needs.package.outputs.target }}" >&2
@@ -207,20 +207,20 @@ jobs:
 
           cat > vpnportal.container.env <<EOF
           ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-          Database__ConnectionString=${{ secrets.Database__ConnectionString }}
+          Database__ConnectionString=${{ secrets.DATABASE__CONNECTIONSTRING }}
           Email__Enabled=true
           Email__Provider=Smtp
-          Email__Host=${{ secrets.Email__Host }}
+          Email__Host=${{ secrets.EMAIL__HOST }}
           Email__Port=587
           Email__UseSsl=true
-          Email__Username=${{ secrets.Email__Username }}
-          Email__Password=${{ secrets.Email__Password }}
-          Email__FromEmail=${{ secrets.Email__FromEmail }}
-          Email__FromName=${{ secrets.Email__FromName }}
-          Email__PublicBaseUrl=${{ secrets.Email__PublicBaseUrl }}
-          InternalApi__SharedSecret=${{ secrets.InternalApi__SharedSecret }}
-          VpnAccess__ServerAddress=${{ secrets.VpnAccess__ServerAddress }}
-          VpnRuntime__DisconnectScriptPath=${{ secrets.VpnRuntime__DisconnectScriptPath }}
+          Email__Username=${{ secrets.EMAIL__USERNAME }}
+          Email__Password=${{ secrets.EMAIL__PASSWORD }}
+          Email__FromEmail=${{ secrets.EMAIL__FROMEMAIL }}
+          Email__FromName=${{ secrets.EMAIL__FROMNAME }}
+          Email__PublicBaseUrl=${{ secrets.EMAIL__PUBLICBASEURL }}
+          InternalApi__SharedSecret=${{ secrets.INTERNALAPI__SHAREDSECRET }}
+          VpnAccess__ServerAddress=${{ secrets.VPNACCESS__SERVERADDRESS }}
+          VpnRuntime__DisconnectScriptPath=${{ secrets.VPNRUNTIME__DISCONNECTSCRIPTPATH }}
           EOF
 
       - name: Upload source artifact

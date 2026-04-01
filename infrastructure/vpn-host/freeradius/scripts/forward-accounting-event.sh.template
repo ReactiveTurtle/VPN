@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-ENV_FILE="${VPN_HOST_ENV_FILE:-/etc/vpnportal/vpn-host.env}"
+ENV_FILE="${VPN_HOST_ENV_FILE}"
 
 if [[ ! -f "${ENV_FILE}" ]]; then
     printf 'VPN host env file not found: %s\n' "${ENV_FILE}" >&2
@@ -57,6 +57,6 @@ EOF
 curl --fail --silent --show-error \
     -X POST \
     -H "Content-Type: application/json" \
-    -H "X-Internal-Api-Key: ${INTERNAL_API_SHARED_SECRET}" \
+    -H "X-Internal-Api-Key: ${InternalApi__SharedSecret}" \
     --data "${payload}" \
     "${INTERNAL_API_BASE_URL%/}/api/internal/radius/accounting-events"
