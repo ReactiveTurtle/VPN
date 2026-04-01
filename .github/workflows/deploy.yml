@@ -231,7 +231,7 @@ jobs:
       - name: Build and deploy on target host
         run: |
           ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-          "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' SOURCE_ARCHIVE='${{ needs.package.outputs.source_archive }}' RUNTIME_ENV_FILE='${{ needs.package.outputs.runtime_env_file }}' HOST_PORT='${{ needs.package.outputs.host_port }}' COMPOSE_PROJECT='${{ needs.package.outputs.compose_project }}' VERSION='${{ needs.package.outputs.version }}' bash -s" <<'EOF'
+          "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' TARGET='${{ needs.package.outputs.target }}' SOURCE_ARCHIVE='${{ needs.package.outputs.source_archive }}' RUNTIME_ENV_FILE='${{ needs.package.outputs.runtime_env_file }}' HOST_PORT='${{ needs.package.outputs.host_port }}' COMPOSE_PROJECT='${{ needs.package.outputs.compose_project }}' VERSION='${{ needs.package.outputs.version }}' bash -s" <<'EOF'
           set -euo pipefail
 
           PREDESPLOY_ROOT="$DEPLOY_PATH/predeploy"
@@ -258,6 +258,15 @@ jobs:
           export VPNPORTAL_MIGRATIONS_IMAGE="vpnportal-migrations:$VERSION"
           export VPNPORTAL_RUNTIME_ENV_FILE="$RUNTIME_ENV_FILE"
           export VPNPORTAL_HOST_PORT="$HOST_PORT"
+
+          VPN_HOST_ENV_FILE="/etc/vpnportal/vpn-host.$TARGET.env"
+          VPN_BOOTSTRAP_DIR="$RELEASE_DIR/deploy/predeploy/infrastructure/vpn-host"
+
+          if [ -f "$VPN_HOST_ENV_FILE" ]; then
+            sudo "$VPN_BOOTSTRAP_DIR/04-configure-strongswan.sh" "$VPN_HOST_ENV_FILE"
+          else
+            echo "Skipping strongSwan config refresh; bootstrap env not found at $VPN_HOST_ENV_FILE"
+          fi
 
           docker compose --project-name "$COMPOSE_PROJECT" -f "$DEPLOY_PATH/docker-compose.yml" build api migrations
           docker compose --project-name "$COMPOSE_PROJECT" -f "$DEPLOY_PATH/docker-compose.yml" run --rm migrations

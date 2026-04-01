@@ -60,7 +60,9 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vp
 
 Отдельно в bootstrap env остаются host-only keys вроде `POSTGRES_*`, `STRONGSWAN_*`, `RADIUS_*`, `PORTAL_DEPLOY_ROOT` и `INTERNAL_API_BASE_URL`.
 
-В этом режиме он дополнительно запускает `deploy/predeploy/infrastructure/vpn-host/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
+В этом режиме он дополнительно запускает predeploy-часть `deploy/predeploy/infrastructure/vpn-host/01-03` и `05-06`, включая установку пакетов, настройку `FreeRADIUS`, `PostgreSQL` и подготовку runtime env-файла портала.
+
+`strongSwan` конфиг из репозитория не применяется на шаге predeploy. Он обновляется отдельным шагом обычного deploy workflow.
 
 При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub Environment Secrets для runtime-конфигурации приложения, миграций БД и создания первого администратора.
 

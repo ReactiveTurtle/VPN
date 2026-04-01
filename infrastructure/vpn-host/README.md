@@ -24,6 +24,8 @@ They still do not complete the full VPN integration by themselves, because runti
 
 Use these assets to make the server bootstrap reproducible and to establish the target operational layout.
 
+After bootstrap, the standard `deploy.yml` workflow reapplies the repository version of the `strongSwan` configuration on each deploy when the matching host bootstrap env file exists under `/etc/vpnportal/`.
+
 ## Supported OS
 
 - `Ubuntu 24.04`
@@ -41,16 +43,17 @@ Use these assets to make the server bootstrap reproducible and to establish the 
 
 ## Script Order
 
-Run the scripts in this order as `root`:
+Run these predeploy scripts in this order as `root`:
 
 1. `deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh`
 2. `deploy/predeploy/infrastructure/vpn-host/02-create-users-and-directories.sh`
 3. `deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh`
-4. `deploy/predeploy/infrastructure/vpn-host/04-configure-strongswan.sh`
-5. `deploy/predeploy/infrastructure/vpn-host/05-configure-freeradius.sh`
-6. `deploy/predeploy/infrastructure/vpn-host/06-configure-portal-host.sh`
-7. `deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh`
-8. `deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh`
+4. `deploy/predeploy/infrastructure/vpn-host/05-configure-freeradius.sh`
+5. `deploy/predeploy/infrastructure/vpn-host/06-configure-portal-host.sh`
+6. `deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh`
+7. `deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh`
+
+`deploy/predeploy/infrastructure/vpn-host/04-configure-strongswan.sh` is intentionally excluded from the predeploy flow. The repository treats `strongSwan` configuration rollout as a deploy-time host update step, and `deploy.yml` applies it from the current release snapshot.
 
 Each script accepts an optional path to the bootstrap environment file. If omitted, it defaults to `/etc/vpnportal/vpn-host.prod.env`. Use an explicit path such as `/etc/vpnportal/vpn-host.stage.env` when bootstrapping `stage`.
 

@@ -104,6 +104,7 @@ If the deploy user was just added to the `docker` group, re-login before running
 
 - `ci.yml` builds backend and frontend on push/PR.
 - `deploy.yml` archives the current repository source, uploads the source snapshot to the target host, renders a runtime env file from GitHub Environment Secrets, installs that file under `/etc/vpnportal/`, and then runs `docker compose build` remotely.
+- When `/etc/vpnportal/vpn-host.stage.env` or `/etc/vpnportal/vpn-host.prod.env` exists for the current target, `deploy.yml` reapplies the repository version of the `strongSwan` configuration before updating the API container.
 - `docker compose run --rm migrations` applies schema changes before `docker compose up -d api` updates the application container.
 - Runtime helpers under `/usr/local/lib/vpnportal` remain host-managed and are mounted into the app container read-only.
 

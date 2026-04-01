@@ -244,7 +244,6 @@ run_vpn_host_bootstrap() {
     "${bootstrap_dir}/01-install-packages.sh" "${VPN_HOST_ENV_FILE}"
     "${bootstrap_dir}/02-create-users-and-directories.sh" "${VPN_HOST_ENV_FILE}"
     "${bootstrap_dir}/03-install-and-init-postgres.sh" "${VPN_HOST_ENV_FILE}"
-    "${bootstrap_dir}/04-configure-strongswan.sh" "${VPN_HOST_ENV_FILE}"
     "${bootstrap_dir}/05-configure-freeradius.sh" "${VPN_HOST_ENV_FILE}"
     "${bootstrap_dir}/06-configure-portal-host.sh" "${VPN_HOST_ENV_FILE}"
 }
