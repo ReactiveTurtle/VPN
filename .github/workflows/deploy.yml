@@ -188,7 +188,11 @@ jobs:
 
       - name: Deploy predeploy scripts
         run: |
-          tar -czf vpnportal-predeploy.tar.gz deploy/predeploy-scripts/
+          tar -czf vpnportal-predeploy.tar.gz \
+            deploy/predeploy-scripts/ \
+            deploy/env/ \
+            deploy/nginx/ \
+            infrastructure/vpn-host/bootstrap/
           scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal-predeploy.tar.gz "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal-predeploy.tar.gz"
 
       - name: Build and deploy on target host
