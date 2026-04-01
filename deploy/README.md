@@ -61,7 +61,7 @@ The repository keeps only the base `appsettings.json` files in git.
 
 Environment-specific runtime values are rendered from GitHub Environment Secrets during `deploy.yml` into a host-side container env file under `/etc/vpnportal/`.
 
-The checked-in files under `deploy/env/*.container.env.example` are templates only. They are not the source of truth for production secrets.
+The checked-in files under `deploy/predeploy/env/*.container.env.example` are templates only. They are not the source of truth for production secrets.
 
 Runtime application secrets such as database credentials, SMTP credentials, `InternalApi__SharedSecret`, and `VpnAccess__ServerAddress` should be stored in GitHub Environment Secrets and materialized onto the host-side container env file during deploy:
 
@@ -70,10 +70,10 @@ Runtime application secrets such as database credentials, SMTP credentials, `Int
 
 1. Install `Docker Engine`, `Docker Compose plugin`, `nginx`, and `systemd` support.
 2. Create deployment directory, for example `/opt/vpnportal`.
-3. Copy `deploy/nginx/vpnportal.conf` to your nginx sites config and update `server_name`.
-4. Copy `deploy/env/vpnportal.prod.container.env.example` or `deploy/env/vpnportal.stage.container.env.example` into `/etc/vpnportal/`.
+3. Copy `deploy/predeploy/nginx/vpnportal.conf` to your nginx sites config and update `server_name`.
+4. Copy `deploy/predeploy/env/vpnportal.prod.container.env.example` or `deploy/predeploy/env/vpnportal.stage.container.env.example` into `/etc/vpnportal/`.
 5. Copy `deploy/docker/docker-compose.yml` into `DEPLOY_PATH`.
-6. Bootstrap the VPN host separately with `infrastructure/vpn-host/README.md` if this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL.
+6. Bootstrap the VPN host separately with `deploy/predeploy/infrastructure/vpn-host/README.md` if this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL.
 7. Ensure `DEPLOY_PATH` already exists on the server and is writable by the deployment user.
 8. Ensure the application database connection string uses `host.docker.internal` instead of `localhost` if PostgreSQL remains on the host.
 9. Run the schema migration program before the first API start: `dotnet run --project src/VpnPortal.Migrations`.

@@ -26,7 +26,7 @@
 
 До первого деплоя подготовьте хост приложения:
 
-Для автоматизации большей части этих шагов можно использовать скрипт из `deploy/predeploy-scripts/prepare-app-host.sh`, который автоматически разворачивается в `/opt/vpnportal/predeploy/` при каждом deploy.
+Для автоматизации большей части этих шагов можно использовать скрипт из `deploy/predeploy/prepare-app-host.sh`, который автоматически разворачивается в `/opt/vpnportal/predeploy/` при каждом deploy.
 
 Пример:
 
@@ -42,12 +42,12 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vp
 sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.env
 ```
 
-В этом режиме он дополнительно запускает `infrastructure/vpn-host/bootstrap/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
+В этом режиме он дополнительно запускает `deploy/predeploy/infrastructure/vpn-host/bootstrap/01-06`, включая установку и настройку `strongSwan`, `FreeRADIUS` и `PostgreSQL`.
 
 При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub Environment Secrets для runtime-конфигурации приложения, миграций БД и создания первого администратора.
 
-1. Скопируйте `deploy/nginx/vpnportal.conf` в конфигурацию nginx и обновите `server_name`.
-2. Скопируйте `deploy/env/vpnportal.prod.container.env.example` или `deploy/env/vpnportal.stage.container.env.example` в `/etc/vpnportal/`.
+1. Скопируйте `deploy/predeploy/nginx/vpnportal.conf` в конфигурацию nginx и обновите `server_name`.
+2. Скопируйте `deploy/predeploy/env/vpnportal.prod.container.env.example` или `deploy/predeploy/env/vpnportal.stage.container.env.example` в `/etc/vpnportal/`.
 3. Скопируйте `deploy/docker/docker-compose.yml` на сервер, например в `/opt/vpnportal/docker-compose.yml`.
 4. Убедитесь, что `DEPLOY_PATH` существует на сервере и доступен для записи пользователю деплоя.
 5. Убедитесь, что в `/usr/local/bin` можно писать через `sudo install`, если вы хотите отдельно обновлять host-managed operational tools.
@@ -61,7 +61,7 @@ Docker rollout использует один `docker-compose.yml` и environment
 
 Если эта же машина одновременно хостит `strongSwan`, `FreeRADIUS` и `PostgreSQL`, выполните отдельный bootstrap, описанный в `infrastructure/vpn-host/README.md`.
 
-Это можно сделать либо вручную по порядку из `infrastructure/vpn-host/README.md`, либо через `/opt/vpnportal/predeploy/prepare-app-host.sh --vpn-host-env <path>`.
+Это можно сделать либо вручную по порядку из `deploy/predeploy/infrastructure/vpn-host/README.md`, либо через `/opt/vpnportal/predeploy/prepare-app-host.sh --vpn-host-env <path>`.
 
 Этот документ остается источником истины для:
 
