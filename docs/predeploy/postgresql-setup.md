@@ -12,6 +12,10 @@
 
 ## Предварительные Требования
 
+Для текущей single-host topology основной путь подготовки PostgreSQL уже автоматизирован шагом `deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh`. Перед ним рекомендуется запускать `deploy/predeploy/infrastructure/vpn-host/00-validate-env.sh`, чтобы сразу увидеть, каких переменных не хватает.
+
+Ручной SQL-сценарий ниже нужен, если вы настраиваете PostgreSQL вне стандартного bootstrap потока или хотите воспроизвести тот же результат вручную.
+
 1. PostgreSQL уже установлен на машине
 2. У вас есть доступ с правами `postgres` пользователя или `sudo` для запуска `psql`
 

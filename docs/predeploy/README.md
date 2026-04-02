@@ -14,14 +14,18 @@
 
 1. `docs/predeploy/deploy-user.md`
 2. `docs/predeploy/ssh-access.md`
-3. `docs/predeploy/postgresql-setup.md`
+3. `docs/predeploy/variables.md`
 4. `docs/predeploy/new-host-checklist.md`
-5. `docs/deployment.md`
-6. `deploy/README.md`
+5. `docs/predeploy/operator-cheatsheet.md`
+6. `docs/predeploy/postgresql-setup.md`
+7. `docs/deployment.md`
+8. `deploy/README.md`
 
 ## Связанные материалы
 
 - `deploy/README.md` - упаковка, поведение GitHub Actions workflow и удаленная deploy-команда
+- `docs/predeploy/variables.md` - какие переменные нужны на каждом шаге bootstrap и где они валидируются
+- `docs/predeploy/operator-cheatsheet.md` - короткая последовательность команд для `prod` и `stage`
 - `infrastructure/vpn-host/README.md` - подготовка single-host VPN-сервера, bootstrap и операционный layout
 - `docs/deployment.md` - текущая схема деплоя и runtime contract
 - `docs/runbooks/create-first-superadmin.md` - ручное создание первого `superadmin`

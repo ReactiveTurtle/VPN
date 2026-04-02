@@ -30,7 +30,7 @@ What the script does:
   - creates deployment directories under /opt and /etc/vpnportal
   - creates the target container env file from the example if it does not exist yet
   - renders nginx config with the target root and upstream port
-  - optionally runs the repository VPN host bootstrap flow
+  - optionally validates and runs the repository VPN host bootstrap flow
 
 What the script does not do:
   - configure SSH access
@@ -241,11 +241,12 @@ run_vpn_host_bootstrap() {
     bootstrap_dir="${SCRIPT_DIR}/infrastructure/vpn-host"
 
     log_step "Running VPN host bootstrap"
+    "${bootstrap_dir}/00-validate-env.sh" "${VPN_HOST_ENV_FILE}"
     "${bootstrap_dir}/01-install-packages.sh" "${VPN_HOST_ENV_FILE}"
     "${bootstrap_dir}/02-create-users-and-directories.sh" "${VPN_HOST_ENV_FILE}"
     "${bootstrap_dir}/03-install-and-init-postgres.sh" "${VPN_HOST_ENV_FILE}"
-    "${bootstrap_dir}/05-configure-freeradius.sh" "${VPN_HOST_ENV_FILE}"
-    "${bootstrap_dir}/06-configure-portal-host.sh" "${VPN_HOST_ENV_FILE}"
+    "${bootstrap_dir}/04-configure-freeradius.sh" "${VPN_HOST_ENV_FILE}"
+    "${bootstrap_dir}/05-configure-portal-host.sh" "${VPN_HOST_ENV_FILE}"
 }
 
 if [[ "${INSTALL_PACKAGES}" -eq 1 ]]; then

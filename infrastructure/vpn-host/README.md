@@ -45,15 +45,18 @@ After bootstrap, the standard `deploy.yml` workflow reapplies the repository ver
 
 Run these predeploy scripts in this order as `root`:
 
-1. `deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh`
-2. `deploy/predeploy/infrastructure/vpn-host/02-create-users-and-directories.sh`
-3. `deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh`
-4. `deploy/predeploy/infrastructure/vpn-host/05-configure-freeradius.sh`
-5. `deploy/predeploy/infrastructure/vpn-host/06-configure-portal-host.sh`
-6. `deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh`
-7. `deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh`
+1. `deploy/predeploy/infrastructure/vpn-host/00-validate-env.sh`
+2. `deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh`
+3. `deploy/predeploy/infrastructure/vpn-host/02-create-users-and-directories.sh`
+4. `deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh`
+5. `deploy/predeploy/infrastructure/vpn-host/04-configure-freeradius.sh`
+6. `deploy/predeploy/infrastructure/vpn-host/05-configure-portal-host.sh`
+7. `deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh`
+8. `deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh`
 
-There is no separate predeploy strongSwan configuration step. Predeploy only installs the `strongSwan` packages as part of `deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh`.
+There is no separate predeploy strongSwan configuration step. Predeploy only validates the bootstrap env in step `00` and installs the `strongSwan` packages as part of `deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh`.
+
+Run step `07-smoke-test-portal.sh` only after the first application deploy has completed and the API is already reachable.
 
 ## Deploy-Time strongSwan Rollout
 
@@ -64,14 +67,14 @@ Each script accepts an optional path to the bootstrap environment file. If omitt
 Example:
 
 ```bash
-sudo ./deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh ./infrastructure/vpn-host/env/vpn-host.stage.env.example
+sudo ./deploy/predeploy/infrastructure/vpn-host/00-validate-env.sh ./infrastructure/vpn-host/env/vpn-host.stage.env.example
 ```
 
 ## Manual Inputs
 
-Fill a real bootstrap environment file before applying configurations:
+Fill a real bootstrap environment file before applying configurations. For the full per-step variable matrix, see `docs/predeploy/variables.md`.
 
-- deployment target via `TARGET=prod|stage`
+- deployment target via `TARGET=prod|stage`, or use an env filename that lets the loader infer `stage` or `prod`
 - public portal URL via `PUBLIC_BASE_URL`
 - VPN endpoint via `VPN_SERVER_ADDRESS`
 - PostgreSQL passwords
@@ -101,7 +104,7 @@ You only need to set the derived values explicitly when your host layout or nami
 
 Required bootstrap variables:
 
-- `TARGET`
+- `TARGET`, or an env filename that lets the loader infer `stage` or `prod`
 - `PUBLIC_BASE_URL`
 - `VPN_SERVER_ADDRESS`
 - `InternalApi__SharedSecret`
@@ -184,7 +187,7 @@ sudo install -m 0755 infrastructure/vpn-host/tools/vpn-speed.py /usr/local/bin/v
 
 ## Validation Runbook
 
-- Non-destructive smoke check: `deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh`
+- Non-destructive smoke check: `deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh`
 - End-to-end runtime validation: `runbooks/verify-vpn-runtime-flow.md`
 
 ## Verification

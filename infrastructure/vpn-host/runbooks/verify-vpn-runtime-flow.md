@@ -22,8 +22,8 @@ This verifies the current runtime contract:
 
 ## Readiness Checks
 
-1. Run `sudo ./deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh /etc/vpnportal/vpn-host.stage.env` for `stage` or `/etc/vpnportal/vpn-host.prod.env` for `prod`
-2. Run `sudo ./deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh /etc/vpnportal/vpn-host.stage.env` for `stage` or `/etc/vpnportal/vpn-host.prod.env` for `prod`
+1. Run `sudo ./deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh /etc/vpnportal/vpn-host.stage.env` for `stage` or `/etc/vpnportal/vpn-host.prod.env` for `prod`
+2. Run `sudo ./deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh /etc/vpnportal/vpn-host.stage.env` for `stage` or `/etc/vpnportal/vpn-host.prod.env` for `prod`
 3. Run `sudo freeradius -CX`
 4. Confirm the helper files exist:
    - `/usr/local/lib/vpnportal/forward-accounting-event.sh`

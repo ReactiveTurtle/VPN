@@ -22,6 +22,16 @@
 - deploy-managed operational tools: `/usr/local/bin`
 - bootstrap-managed VPN runtime helpers: `/usr/local/lib/vpnportal`
 
+## Какие Переменные Где Живут
+
+Перед запуском шагов разделите переменные на три группы:
+
+1. GitHub Environment Secrets для обычного deploy workflow
+2. bootstrap env-файл VPN-хоста `/etc/vpnportal/vpn-host.<target>.env`
+3. runtime env-файл контейнера `/etc/vpnportal/vpnportal.<target>.container.env`
+
+Полная матрица переменных по шагам и местам валидации описана в `docs/predeploy/variables.md`.
+
 ## Подготовка Сервисов Приложения
 
 До первого деплоя подготовьте хост приложения:
@@ -66,9 +76,18 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vp
 
 Если у хоста нестандартный layout или адреса различаются, можно явно переопределить `INTERNAL_API_BASE_URL`, `PORTAL_DEPLOY_ROOT`, `PORTAL_ENV_FILE`, `STRONGSWAN_SERVER_ID`, `VpnAccess__ServerAddress`, `Email__Port` и другие optional keys из example-файла.
 
-В этом режиме он дополнительно запускает predeploy-часть `deploy/predeploy/infrastructure/vpn-host/01-03` и `05-06`, включая установку пакетов, настройку `FreeRADIUS`, `PostgreSQL` и подготовку runtime env-файла портала.
+В этом режиме он дополнительно запускает VPN bootstrap шаги `00-05`, то есть:
 
-Конфиг `strongSwan` из репозитория не является шагом predeploy. Он обновляется отдельным deploy-скриптом `deploy/host/apply-strongswan-config.sh` во время обычного deploy workflow.
+1. `00-validate-env.sh`
+2. `01-install-packages.sh`
+3. `02-create-users-and-directories.sh`
+4. `03-install-and-init-postgres.sh`
+5. `04-configure-freeradius.sh`
+6. `05-configure-portal-host.sh`
+
+Это даёт раннюю валидацию bootstrap env-файла до начала изменений на хосте и затем выполняет установку пакетов, подготовку каталогов, `PostgreSQL`, `FreeRADIUS` и runtime env-файла портала.
+
+Конфиг `strongSwan` из репозитория не является отдельным шагом predeploy. Пакет `strongSwan` ставится в `01-install-packages.sh`, а конфиг обновляется отдельным deploy-скриптом `deploy/host/apply-strongswan-config.sh` во время обычного deploy workflow.
 
 При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub Environment Secrets для runtime-конфигурации приложения, миграций БД и создания первого администратора.
 
@@ -87,7 +106,20 @@ Docker rollout использует один `docker-compose.yml` и environment
 
 Если эта же машина одновременно хостит `strongSwan`, `FreeRADIUS` и `PostgreSQL`, выполните отдельный bootstrap, описанный в `infrastructure/vpn-host/README.md`.
 
-Это можно сделать либо вручную по порядку из `infrastructure/vpn-host/README.md` и `deploy/predeploy/infrastructure/vpn-host/01-08`, либо через `/opt/vpnportal/predeploy/prepare-app-host.sh --vpn-host-env <path>`.
+Это можно сделать либо вручную по порядку из `infrastructure/vpn-host/README.md` и `deploy/predeploy/infrastructure/vpn-host/00-07`, либо через `/opt/vpnportal/predeploy/prepare-app-host.sh --vpn-host-env <path>`.
+
+Рекомендуемый ручной порядок такой:
+
+1. `sudo ./deploy/predeploy/infrastructure/vpn-host/00-validate-env.sh /etc/vpnportal/vpn-host.prod.env`
+2. `sudo ./deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh /etc/vpnportal/vpn-host.prod.env`
+3. `sudo ./deploy/predeploy/infrastructure/vpn-host/02-create-users-and-directories.sh /etc/vpnportal/vpn-host.prod.env`
+4. `sudo ./deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh /etc/vpnportal/vpn-host.prod.env`
+5. `sudo ./deploy/predeploy/infrastructure/vpn-host/04-configure-freeradius.sh /etc/vpnportal/vpn-host.prod.env`
+6. `sudo ./deploy/predeploy/infrastructure/vpn-host/05-configure-portal-host.sh /etc/vpnportal/vpn-host.prod.env`
+7. `sudo ./deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh /etc/vpnportal/vpn-host.prod.env`
+8. После первого deploy и запуска API: `sudo ./deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh /etc/vpnportal/vpn-host.prod.env`
+
+Для `stage` используйте `/etc/vpnportal/vpn-host.stage.env`.
 
 Этот документ остается источником истины для:
 
@@ -119,5 +151,6 @@ Docker rollout использует один `docker-compose.yml` и environment
 - конфигурация nginx установлена
 - container env-файл подготовлен в `/etc/vpnportal/`
 - compose file подготовлен в `DEPLOY_PATH`
-- bootstrap VPN-хоста завершен, если этого требует целевая топология
+- bootstrap VPN-хоста проходит шаги `00-06`, если этого требует целевая топология
+- smoke test `07-smoke-test-portal.sh` запланирован после первого deploy и запуска API
 - шаги по схеме БД и первому администратору понятны и запланированы до первого prod-использования
