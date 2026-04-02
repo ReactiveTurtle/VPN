@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/common.sh"
 
 require_root
 load_env "${1:-}"
+require_env_vars PORTAL_ENV_FILE ASPNETCORE_ENVIRONMENT POSTGRES_DB POSTGRES_APP_USER POSTGRES_APP_PASSWORD Email__Host Email__Port Email__Username Email__Password Email__FromEmail Email__FromName Email__PublicBaseUrl InternalApi__SharedSecret VpnAccess__ServerAddress VpnRuntime__DisconnectScriptPath
 
 log_step "Writing runtime environment file for portal"
 cat > "${PORTAL_ENV_FILE}" <<EOF

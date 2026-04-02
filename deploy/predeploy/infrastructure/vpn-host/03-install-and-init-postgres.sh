@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/common.sh"
 
 require_root
 load_env "${1:-}"
+require_env_vars PORTAL_ENV_DIR POSTGRES_DB POSTGRES_APP_USER POSTGRES_APP_PASSWORD POSTGRES_RADIUS_USER POSTGRES_RADIUS_PASSWORD
 
 log_step "Starting PostgreSQL"
 systemctl enable postgresql

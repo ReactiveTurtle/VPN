@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/common.sh"
 
 require_root
 load_env "${1:-}"
+require_env_vars POSTGRES_DB
 
 log_step "Checking PostgreSQL connectivity"
 sudo -u postgres psql -d "${POSTGRES_DB}" -c 'select current_database(), current_user;'

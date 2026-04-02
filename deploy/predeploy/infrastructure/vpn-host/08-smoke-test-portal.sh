@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/common.sh"
 
 require_root
 load_env "${1:-}"
+require_env_vars INTERNAL_API_BASE_URL InternalApi__SharedSecret
 
 base_url="${INTERNAL_API_BASE_URL%/}"
 

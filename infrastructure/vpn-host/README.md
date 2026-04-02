@@ -41,7 +41,7 @@ After bootstrap, the standard `deploy.yml` workflow reapplies the repository ver
 - `freeradius/` - template configuration files
 - `tools/` - host-side helper scripts that should also be versioned in this repository
 
-## Script Order
+## Predeploy Order
 
 Run these predeploy scripts in this order as `root`:
 
@@ -53,7 +53,11 @@ Run these predeploy scripts in this order as `root`:
 6. `deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh`
 7. `deploy/predeploy/infrastructure/vpn-host/08-smoke-test-portal.sh`
 
-`deploy/predeploy/infrastructure/vpn-host/04-configure-strongswan.sh` is intentionally excluded from the predeploy flow. The repository treats `strongSwan` configuration rollout as a deploy-time host update step, and `deploy.yml` applies it from the current release snapshot.
+There is no separate predeploy strongSwan configuration step. Predeploy only installs the `strongSwan` packages as part of `deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh`.
+
+## Deploy-Time strongSwan Rollout
+
+`deploy/host/apply-strongswan-config.sh` is a deploy-only host step. `deploy.yml` applies it from the current release snapshot when the matching `/etc/vpnportal/vpn-host.<target>.env` file exists.
 
 Each script accepts an optional path to the bootstrap environment file. If omitted, it defaults to `/etc/vpnportal/vpn-host.prod.env`. Use an explicit path such as `/etc/vpnportal/vpn-host.stage.env` when bootstrapping `stage`.
 
@@ -67,41 +71,61 @@ sudo ./deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh ./infrast
 
 Fill a real bootstrap environment file before applying configurations:
 
-- host public IP or DNS name
-- runtime portal URL via `Email__PublicBaseUrl`
+- deployment target via `TARGET=prod|stage`
+- public portal URL via `PUBLIC_BASE_URL`
+- VPN endpoint via `VPN_SERVER_ADDRESS`
 - PostgreSQL passwords
 - RADIUS shared secret
 - strongSwan certificate paths
-- runtime email settings via `Email__Host`, `Email__Port`, `Email__Username`, `Email__Password`, `Email__FromEmail`, and `Email__FromName`
+- runtime email settings via `Email__Host`, `Email__Username`, `Email__Password`, and `Email__FromEmail`
 
-Shared application/runtime values inside `vpn-host.stage.env` and `vpn-host.prod.env` should use the same names that the app consumes at runtime:
+The bootstrap loader derives the usual `prod`/`stage` values automatically. By default it computes:
 
 - `ASPNETCORE_ENVIRONMENT`
-- `Email__PublicBaseUrl`
-- `InternalApi__SharedSecret`
-- `VpnAccess__ServerAddress`
+- `Email__PublicBaseUrl` from `PUBLIC_BASE_URL`
+- `INTERNAL_API_BASE_URL` from `PUBLIC_BASE_URL` unless overridden
+- `VpnAccess__ServerAddress` from `VPN_SERVER_ADDRESS` unless overridden
+- `STRONGSWAN_SERVER_ID` from `VPN_SERVER_ADDRESS` unless overridden
+- `PORTAL_DEPLOY_ROOT`
+- `PORTAL_ENV_DIR`
+- `PORTAL_ENV_FILE`
+- `POSTGRES_DB`
+- `POSTGRES_APP_USER`
+- `POSTGRES_RADIUS_USER`
+- `RADIUS_CLIENT_ADDRESS`
 - `VpnRuntime__DisconnectScriptPath`
-- `Email__Host`
 - `Email__Port`
+- `Email__FromName`
+
+You only need to set the derived values explicitly when your host layout or naming differs from the defaults.
+
+Required bootstrap variables:
+
+- `TARGET`
+- `PUBLIC_BASE_URL`
+- `VPN_SERVER_ADDRESS`
+- `InternalApi__SharedSecret`
+- `POSTGRES_APP_PASSWORD`
+- `POSTGRES_RADIUS_PASSWORD`
+- `RADIUS_SHARED_SECRET`
+- `STRONGSWAN_CERT_PATH`
+- `STRONGSWAN_KEY_PATH`
+- `STRONGSWAN_RIGHT_SOURCE_IP`
+- `STRONGSWAN_DNS`
+- `Email__Host`
 - `Email__Username`
 - `Email__Password`
 - `Email__FromEmail`
-- `Email__FromName`
 
-Bootstrap-only values remain separate because they are consumed by host setup scripts rather than the app runtime:
+Optional overrides remain available for non-default layouts:
 
-- `VPN_HOST_FQDN`
-- `VPN_HOST_PUBLIC_IP`
 - `INTERNAL_API_BASE_URL`
 - `PORTAL_DEPLOY_ROOT`
 - `PORTAL_ENV_DIR`
 - `PORTAL_ENV_FILE`
 - `POSTGRES_DB`
 - `POSTGRES_APP_USER`
-- `POSTGRES_APP_PASSWORD`
 - `POSTGRES_RADIUS_USER`
-- `POSTGRES_RADIUS_PASSWORD`
-- `RADIUS_SHARED_SECRET`
 - `RADIUS_CLIENT_ADDRESS`
 - `STRONGSWAN_SERVER_ID`
 - `STRONGSWAN_CERT_PATH`
@@ -109,8 +133,10 @@ Bootstrap-only values remain separate because they are consumed by host setup sc
 - `STRONGSWAN_CA_CERT_PATH`
 - `STRONGSWAN_RIGHT_SOURCE_IP`
 - `STRONGSWAN_DNS`
-- `SUPERADMIN_USERNAME`
-- `SUPERADMIN_PASSWORD_HASH`
+- `VpnAccess__ServerAddress`
+- `VpnRuntime__DisconnectScriptPath`
+- `Email__Port`
+- `Email__FromName`
 
 ## Expected Host Layout
 

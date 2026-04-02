@@ -44,25 +44,31 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vp
 
 Для `stage` используйте отдельный bootstrap env-файл, например `/etc/vpnportal/vpn-host.stage.env`, и отдельный runtime env-файл `/etc/vpnportal/vpnportal.stage.container.env`.
 
-В bootstrap env-файле общие с приложением значения теперь тоже называются как runtime keys приложения, например:
+В bootstrap env-файле теперь можно оставить только минимальный набор ручных значений:
 
-- `ASPNETCORE_ENVIRONMENT=stage`
-- `Email__PublicBaseUrl=https://stage-vpn.example.com`
+- `TARGET=stage`
+- `PUBLIC_BASE_URL=https://stage-vpn.example.com`
+- `VPN_SERVER_ADDRESS=stage-vpn.example.com`
 - `InternalApi__SharedSecret=...`
-- `VpnAccess__ServerAddress=stage-vpn.example.com`
-- `VpnRuntime__DisconnectScriptPath=/usr/local/lib/vpnportal/disconnect-session.sh`
+- `POSTGRES_APP_PASSWORD=...`
+- `POSTGRES_RADIUS_PASSWORD=...`
+- `RADIUS_SHARED_SECRET=...`
+- `STRONGSWAN_CERT_PATH=/etc/ipsec.d/certs/server-cert.pem`
+- `STRONGSWAN_KEY_PATH=/etc/ipsec.d/private/server-key.pem`
+- `STRONGSWAN_RIGHT_SOURCE_IP=10.10.10.0/24,fd00:1234::/64`
+- `STRONGSWAN_DNS=8.8.8.8,8.8.4.4,1.1.1.1`
 - `Email__Host=...`
-- `Email__Port=587`
 - `Email__Username=...`
 - `Email__Password=...`
 - `Email__FromEmail=...`
-- `Email__FromName=VPN Portal Stage`
 
-Отдельно в bootstrap env остаются host-only keys вроде `POSTGRES_*`, `STRONGSWAN_*`, `RADIUS_*`, `PORTAL_DEPLOY_ROOT` и `INTERNAL_API_BASE_URL`.
+Остальное bootstrap loader вычисляет автоматически из `TARGET`, `PUBLIC_BASE_URL` и `VPN_SERVER_ADDRESS`, включая `ASPNETCORE_ENVIRONMENT`, `PORTAL_DEPLOY_ROOT`, `PORTAL_ENV_FILE`, `Email__PublicBaseUrl`, `VpnAccess__ServerAddress` и стандартные имена postgres-ролей.
+
+Если у хоста нестандартный layout или адреса различаются, можно явно переопределить `INTERNAL_API_BASE_URL`, `PORTAL_DEPLOY_ROOT`, `PORTAL_ENV_FILE`, `STRONGSWAN_SERVER_ID`, `VpnAccess__ServerAddress`, `Email__Port` и другие optional keys из example-файла.
 
 В этом режиме он дополнительно запускает predeploy-часть `deploy/predeploy/infrastructure/vpn-host/01-03` и `05-06`, включая установку пакетов, настройку `FreeRADIUS`, `PostgreSQL` и подготовку runtime env-файла портала.
 
-`strongSwan` конфиг из репозитория не применяется на шаге predeploy. Он обновляется отдельным шагом обычного deploy workflow.
+Конфиг `strongSwan` из репозитория не является шагом predeploy. Он обновляется отдельным deploy-скриптом `deploy/host/apply-strongswan-config.sh` во время обычного deploy workflow.
 
 При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub Environment Secrets для runtime-конфигурации приложения, миграций БД и создания первого администратора.
 

@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/common.sh"
 
 require_root
 load_env "${1:-}"
+require_env_vars VPN_HOST_ENV_FILE POSTGRES_DB POSTGRES_RADIUS_USER POSTGRES_RADIUS_PASSWORD RADIUS_CLIENT_ADDRESS RADIUS_SHARED_SECRET INTERNAL_API_BASE_URL InternalApi__SharedSecret
 
 log_step "Rendering FreeRADIUS configuration"
 render_template "${VPN_HOST_ROOT}/freeradius/clients.conf.template" /etc/freeradius/3.0/clients.conf

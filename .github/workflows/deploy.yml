@@ -260,10 +260,10 @@ jobs:
           export VPNPORTAL_HOST_PORT="$HOST_PORT"
 
           VPN_HOST_ENV_FILE="/etc/vpnportal/vpn-host.$TARGET.env"
-          VPN_BOOTSTRAP_DIR="$RELEASE_DIR/deploy/predeploy/infrastructure/vpn-host"
+          STRONGSWAN_DEPLOY_SCRIPT="$RELEASE_DIR/deploy/host/apply-strongswan-config.sh"
 
           if [ -f "$VPN_HOST_ENV_FILE" ]; then
-            sudo "$VPN_BOOTSTRAP_DIR/04-configure-strongswan.sh" "$VPN_HOST_ENV_FILE"
+            sudo bash "$STRONGSWAN_DEPLOY_SCRIPT" "$VPN_HOST_ENV_FILE"
           else
             echo "Skipping strongSwan config refresh; bootstrap env not found at $VPN_HOST_ENV_FILE"
           fi

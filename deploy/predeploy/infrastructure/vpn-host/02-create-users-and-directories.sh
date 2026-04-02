@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/common.sh"
 
 require_root
 load_env "${1:-}"
+require_env_vars PORTAL_DEPLOY_ROOT PORTAL_ENV_DIR
 
 log_step "Creating deployment directories"
 ensure_directory "${PORTAL_DEPLOY_ROOT}" root:root 0755

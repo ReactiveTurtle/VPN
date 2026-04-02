@@ -55,7 +55,7 @@
 
 - Host bootstrap env files: `/etc/vpnportal/vpn-host.prod.env`, `/etc/vpnportal/vpn-host.stage.env`
 - App runtime env files: `/etc/vpnportal/vpnportal.prod.container.env`, `/etc/vpnportal/vpnportal.stage.container.env`
-- Shared app-facing values in the bootstrap env files use the runtime config names directly, for example `Email__PublicBaseUrl`, `InternalApi__SharedSecret`, `VpnAccess__ServerAddress`, `VpnRuntime__DisconnectScriptPath`, and `Email__*`.
+- The bootstrap loader now derives the usual `prod`/`stage` runtime values from a smaller input set like `TARGET`, `PUBLIC_BASE_URL`, and `VPN_SERVER_ADDRESS`, while still allowing explicit overrides when the host layout or public addresses differ from the defaults.
 - Internal endpoint: `POST /api/internal/radius/accounting-events`
 - Auth header: `X-Internal-Api-Key: <InternalApi:SharedSecret>`
 - Canonical host-side helper: `/usr/local/lib/vpnportal/forward-accounting-event.sh`
