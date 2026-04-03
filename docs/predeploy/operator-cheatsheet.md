@@ -14,6 +14,8 @@
 
 ```bash
 sudo install -d -m 0750 /etc/vpnportal
+sudo install -m 0640 deploy/predeploy/env/predeploy.prod.env.example /etc/vpnportal/predeploy.prod.env
+sudo nano /etc/vpnportal/predeploy.prod.env
 sudo install -m 0640 infrastructure/vpn-host/env/vpn-host.prod.env.example /etc/vpnportal/vpn-host.prod.env
 sudo nano /etc/vpnportal/vpn-host.prod.env
 ```
@@ -21,7 +23,7 @@ sudo nano /etc/vpnportal/vpn-host.prod.env
 2. Подготовьте app host:
 
 ```bash
-sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.prod.env
+sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.prod.env --vpn-host-env /etc/vpnportal/vpn-host.prod.env
 ```
 
 3. Если bootstrap запускаете вручную, порядок такой:
@@ -48,6 +50,8 @@ sudo ./deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh /etc/vpn
 
 ```bash
 sudo install -d -m 0750 /etc/vpnportal
+sudo install -m 0640 deploy/predeploy/env/predeploy.stage.env.example /etc/vpnportal/predeploy.stage.env
+sudo nano /etc/vpnportal/predeploy.stage.env
 sudo install -m 0640 infrastructure/vpn-host/env/vpn-host.stage.env.example /etc/vpnportal/vpn-host.stage.env
 sudo nano /etc/vpnportal/vpn-host.stage.env
 ```
@@ -55,7 +59,7 @@ sudo nano /etc/vpnportal/vpn-host.stage.env
 2. Подготовьте app host:
 
 ```bash
-sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target stage --server-name stage-vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.stage.env
+sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.stage.env --vpn-host-env /etc/vpnportal/vpn-host.stage.env
 ```
 
 3. Если bootstrap запускаете вручную, порядок такой:
@@ -78,9 +82,10 @@ sudo ./deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh /etc/vpn
 
 ## Что Проверить Перед Стартом
 
+- заполнены обязательные переменные в `/etc/vpnportal/predeploy.<target>.env`
 - заполнены обязательные переменные в `/etc/vpnportal/vpn-host.<target>.env`
 - SSH уже настроен для deploy user
-- `DEPLOY_PATH` существует и доступен для записи
+- `DEPLOY_PATH` из `/etc/vpnportal/predeploy.<target>.env` существует и доступен для записи
 - после добавления deploy user в группу `docker` выполнен новый логин или `newgrp docker`
 - GitHub Environment Secrets настроены отдельно для `stage` и `prod`
 

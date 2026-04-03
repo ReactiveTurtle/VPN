@@ -26,6 +26,7 @@ Recommended `stage` deploy secret values:
 - `DEPLOY_PORT=<staging-ssh-port>`
 - `DEPLOY_USER=deploy`
 - `DEPLOY_PATH=/opt/vpnportal-stage`
+- `DEPLOY_SERVER_NAME=stage-vpn.example.com`
 - `DEPLOY_SSH_PRIVATE_KEY=<private key for the stage deploy user>`
 
 `DEPLOY_COMMAND` is not used by the current `deploy.yml` workflow and does not need to be configured.
@@ -39,6 +40,7 @@ Important:
 - `DEPLOY_PORT`
 - `DEPLOY_USER`
 - `DEPLOY_PATH`
+- `DEPLOY_SERVER_NAME`
 - `DEPLOY_SSH_PRIVATE_KEY`
 - `DATABASE__CONNECTIONSTRING`
 - `EMAIL__HOST`
@@ -60,6 +62,7 @@ Recommended:
 
 - app root: `/opt/vpnportal`
 - compose file: `/opt/vpnportal/docker-compose.yml`
+- app predeploy env file: `/etc/vpnportal/predeploy.prod.env` or `/etc/vpnportal/predeploy.stage.env`
 - runtime env file: `/etc/vpnportal/vpnportal.prod.container.env`
 - container loopback port: `127.0.0.1:5000` for prod, `127.0.0.1:5001` for stage
 - deploy-managed operational tools: `/usr/local/bin`
@@ -69,11 +72,13 @@ Recommended:
 
 You can automate most application-host setup steps with:
 
-- `sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com`
+- `sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.prod.env`
 
-This helper installs base packages, including Docker Engine, Docker Compose plugin, and nginx, prepares directories, adds the deploy user to the `docker` group, renders nginx config, and writes the example container env file when missing.
+This helper installs base packages, including Docker Engine, Docker Compose plugin, and nginx, prepares directories, adds the deploy user from the predeploy env file to the `docker` group, renders nginx config, and writes the example container env file when missing.
 
 If the same server also acts as the VPN host, you can additionally pass `--vpn-host-env /etc/vpnportal/vpn-host.prod.env` or `--vpn-host-env /etc/vpnportal/vpn-host.stage.env` to run the repository bootstrap flow for `strongSwan`, `FreeRADIUS`, and `PostgreSQL`.
+
+`prepare-app-host.sh` now reads `/etc/vpnportal/predeploy.prod.env` or `/etc/vpnportal/predeploy.stage.env` as the host-side source of truth for app predeploy settings such as `DEPLOY_PATH`, `SERVER_NAME`, `RUNTIME_ENV_FILE`, `NGINX_SITE_NAME`, and `APP_PORT`.
 
 It does not configure SSH access, configure GitHub deployment secrets, run schema migrations outside the deploy workflow, or create the first `superadmin`.
 
@@ -83,7 +88,14 @@ The repository keeps only the base `appsettings.json` files in git.
 
 Environment-specific runtime values are rendered from GitHub Environment Secrets during `deploy.yml` into a host-side container env file under `/etc/vpnportal/`.
 
+The same workflow also renders a host-side app predeploy env file under `/etc/vpnportal/`:
+
+- `/etc/vpnportal/predeploy.prod.env`
+- `/etc/vpnportal/predeploy.stage.env`
+
 The checked-in files under `deploy/predeploy/env/*.container.env.example` are templates only. They are not the source of truth for production secrets.
+
+The checked-in files under `deploy/predeploy/env/predeploy.*.env.example` document the required host-side predeploy shape for first-time manual setup before GitHub Environment Secrets begin managing those files on the host.
 
 Runtime application secrets in GitHub Environment Secrets should use uppercase names, such as `DATABASE__CONNECTIONSTRING`, `EMAIL__PASSWORD`, `INTERNALAPI__SHAREDSECRET`, and `VPNACCESS__SERVERADDRESS`. During deploy, the workflow materializes them into the host-side container env file using the runtime .NET configuration keys like `Database__ConnectionString` and `Email__Password`:
 
@@ -94,9 +106,9 @@ The rendered host-side env file also sets `ASPNETCORE_ENVIRONMENT` explicitly to
 
 1. Install `Docker Engine`, `Docker Compose plugin`, `nginx`, and `systemd` support.
 2. Create deployment directory, for example `/opt/vpnportal`.
-3. Copy `deploy/predeploy/nginx/vpnportal.conf` to your nginx sites config and update `server_name`.
-4. Copy `deploy/predeploy/env/vpnportal.prod.container.env.example` or `deploy/predeploy/env/vpnportal.stage.container.env.example` into `/etc/vpnportal/`.
-5. Copy `deploy/docker/docker-compose.yml` into `DEPLOY_PATH`.
+3. Copy `deploy/predeploy/env/predeploy.prod.env.example` or `deploy/predeploy/env/predeploy.stage.env.example` into `/etc/vpnportal/predeploy.<env>.env` and fill the real host-level values if you are preparing the server before the first workflow-managed upload.
+4. Run `prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.<env>.env` so the server layout matches the same host-level values that deploy will use later.
+5. Copy `deploy/docker/docker-compose.yml` into `DEPLOY_PATH` only if you are preparing the server fully by hand before the workflow starts managing releases.
 6. Bootstrap the VPN host separately with `infrastructure/vpn-host/README.md` and the documented predeploy scripts if this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL. `strongSwan` config rollout itself is handled later by `deploy/host/apply-strongswan-config.sh` during `deploy.yml`.
 7. Ensure `DEPLOY_PATH` already exists on the server and is writable by the deployment user.
 8. Ensure the application database connection string uses `host.docker.internal` instead of `localhost` if PostgreSQL remains on the host.
@@ -108,7 +120,7 @@ If the deploy user was just added to the `docker` group, re-login before running
 ## Workflow behavior
 
 - `ci.yml` builds backend and frontend on push/PR.
-- `deploy.yml` archives the current repository source, uploads the source snapshot to the target host, renders a runtime env file from GitHub Environment Secrets, installs that file under `/etc/vpnportal/`, and then runs `docker compose build` remotely.
+- `deploy.yml` archives the current repository source, uploads the source snapshot to the target host, renders both the app predeploy env file and the runtime env file from GitHub Environment Secrets, installs those files under `/etc/vpnportal/`, and then runs `docker compose build` remotely.
 - When `/etc/vpnportal/vpn-host.stage.env` or `/etc/vpnportal/vpn-host.prod.env` exists for the current target, `deploy.yml` runs `deploy/host/apply-strongswan-config.sh` to reapply the repository version of the `strongSwan` configuration before updating the API container.
 - `docker compose run --rm migrations` applies schema changes before `docker compose up -d api` updates the application container.
 - Runtime helpers under `/usr/local/lib/vpnportal` remain host-managed and are mounted into the app container read-only.

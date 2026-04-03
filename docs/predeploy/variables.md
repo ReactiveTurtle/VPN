@@ -2,7 +2,7 @@
 
 Этот документ фиксирует, какие переменные нужны для каждого predeploy-шага, откуда они берутся и где именно валидируются.
 
-## Три Разных Набора Переменных
+## Четыре Разных Набора Переменных
 
 ### 1. GitHub Environment Secrets
 
@@ -14,6 +14,7 @@ SSH и deploy secrets:
 - `DEPLOY_PORT`
 - `DEPLOY_USER`
 - `DEPLOY_PATH`
+- `DEPLOY_SERVER_NAME`
 - `DEPLOY_SSH_PRIVATE_KEY`
 
 Runtime secrets приложения:
@@ -34,7 +35,25 @@ Runtime secrets приложения:
 - SSH/deploy secrets проверяются в `.github/workflows/deploy.yml` на шаге `Validate deployment secrets`
 - runtime secrets приложения проверяются в `.github/workflows/deploy.yml` на шаге `Validate application secrets`
 
-### 2. Bootstrap Env VPN-Хоста
+### 2. Host-Side App Predeploy Env
+
+Это файл `/etc/vpnportal/predeploy.prod.env` или `/etc/vpnportal/predeploy.stage.env`.
+
+Именно этот файл использует `deploy/predeploy/prepare-app-host.sh` как единый источник истины для app predeploy.
+
+Обязательные значения:
+
+- `DEPLOY_ENV_NAME`
+- `DEPLOY_PATH`
+- `DEPLOY_USER`
+- `SERVER_NAME`
+- `RUNTIME_ENV_FILE`
+- `NGINX_SITE_NAME`
+- `APP_PORT`
+
+Этот файл рендерится из GitHub Environment Secrets во время `deploy.yml`, но перед самым первым ручным predeploy его можно создать из `deploy/predeploy/env/predeploy.<env>.env.example`.
+
+### 3. Bootstrap Env VPN-Хоста
 
 Это файл `/etc/vpnportal/vpn-host.prod.env` или `/etc/vpnportal/vpn-host.stage.env`.
 
@@ -77,7 +96,7 @@ Runtime secrets приложения:
 - `Email__Port`
 - `Email__FromName`
 
-### 3. Runtime Env Контейнера
+### 4. Runtime Env Контейнера
 
 Это файл `/etc/vpnportal/vpnportal.prod.container.env` или `/etc/vpnportal/vpnportal.stage.container.env`.
 

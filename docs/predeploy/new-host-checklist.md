@@ -7,7 +7,7 @@
 Сначала выполните начальные host-level шаги:
 
 1. Установите необходимые host-компоненты, такие как `Docker Engine`, `Docker Compose plugin`, `nginx` и поддержка `systemd`.
-2. Создайте корневую директорию деплоя, например `/opt/vpnportal`.
+2. Подготовьте host-side predeploy env-файл и создайте директорию деплоя из его `DEPLOY_PATH`, например `/opt/vpnportal`.
 3. Подготовьте `/etc/vpnportal/` для env-файлов.
 4. Убедитесь, что SSH-доступ уже работает, как описано в `docs/predeploy/ssh-access.md`.
 
@@ -17,6 +17,7 @@
 
 - app root: `/opt/vpnportal`
 - compose file: `/opt/vpnportal/docker-compose.yml`
+- app predeploy env file: `/etc/vpnportal/predeploy.prod.env` or `/etc/vpnportal/predeploy.stage.env`
 - runtime env file: `/etc/vpnportal/vpnportal.prod.container.env`
 - published container port via host loopback: `127.0.0.1:5000` or `127.0.0.1:5001`
 - deploy-managed operational tools: `/usr/local/bin`
@@ -24,11 +25,12 @@
 
 ## Какие Переменные Где Живут
 
-Перед запуском шагов разделите переменные на три группы:
+Перед запуском шагов разделите переменные на четыре группы:
 
 1. GitHub Environment Secrets для обычного deploy workflow
-2. bootstrap env-файл VPN-хоста `/etc/vpnportal/vpn-host.<target>.env`
-3. runtime env-файл контейнера `/etc/vpnportal/vpnportal.<target>.container.env`
+2. host-side app predeploy env-файл `/etc/vpnportal/predeploy.<target>.env`
+3. bootstrap env-файл VPN-хоста `/etc/vpnportal/vpn-host.<target>.env`
+4. runtime env-файл контейнера `/etc/vpnportal/vpnportal.<target>.container.env`
 
 Полная матрица переменных по шагам и местам валидации описана в `docs/predeploy/variables.md`.
 
@@ -41,20 +43,33 @@
 Пример:
 
 ```bash
-sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com
+sudo install -d -m 0750 /etc/vpnportal
+sudo install -m 0640 deploy/predeploy/env/predeploy.prod.env.example /etc/vpnportal/predeploy.prod.env
+sudo nano /etc/vpnportal/predeploy.prod.env
+sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.prod.env
 ```
 
-Скрипт подготавливает директории, ставит `Docker Engine`, `Docker Compose plugin` и `nginx`, добавляет deploy user в группу `docker`, настраивает `nginx` config и container env-файл из example.
+Скрипт подготавливает директории, ставит `Docker Engine`, `Docker Compose plugin` и `nginx`, добавляет deploy user из host-side predeploy env-файла в группу `docker`, настраивает `nginx` config и container env-файл из example.
 
 Если целевая машина одновременно является VPN-хостом, скрипт можно запустить с уже заполненным env-файлом bootstrap:
 
 ```bash
-sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vpn.example.com --vpn-host-env /etc/vpnportal/vpn-host.prod.env
+sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.prod.env --vpn-host-env /etc/vpnportal/vpn-host.prod.env
 ```
 
-Для `stage` используйте отдельный bootstrap env-файл, например `/etc/vpnportal/vpn-host.stage.env`, и отдельный runtime env-файл `/etc/vpnportal/vpnportal.stage.container.env`.
+Для `stage` используйте отдельные файлы `/etc/vpnportal/predeploy.stage.env`, `/etc/vpnportal/vpn-host.stage.env` и `/etc/vpnportal/vpnportal.stage.container.env`.
 
-В bootstrap env-файле теперь можно оставить только минимальный набор ручных значений:
+В app predeploy env-файле должен быть уже готовый host-level набор значений:
+
+- `DEPLOY_ENV_NAME=stage`
+- `DEPLOY_PATH=/opt/vpnportal-stage`
+- `DEPLOY_USER=deploy`
+- `SERVER_NAME=stage-vpn.example.com`
+- `RUNTIME_ENV_FILE=/etc/vpnportal/vpnportal.stage.container.env`
+- `NGINX_SITE_NAME=vpnportal-stage.conf`
+- `APP_PORT=5001`
+
+В bootstrap env-файле VPN-хоста теперь можно оставить только минимальный набор ручных значений:
 
 - `TARGET=stage`
 - `PUBLIC_BASE_URL=https://stage-vpn.example.com`
@@ -72,7 +87,9 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vp
 - `Email__Password=...`
 - `Email__FromEmail=...`
 
-Остальное bootstrap loader вычисляет автоматически из `TARGET`, `PUBLIC_BASE_URL` и `VPN_SERVER_ADDRESS`, включая `ASPNETCORE_ENVIRONMENT`, `PORTAL_DEPLOY_ROOT`, `PORTAL_ENV_FILE`, `Email__PublicBaseUrl`, `VpnAccess__ServerAddress` и стандартные имена postgres-ролей.
+Для app predeploy больше нет отдельного `--target`: `prepare-app-host.sh` читает все host-level значения из `/etc/vpnportal/predeploy.<env>.env` и использует этот файл как единый источник истины.
+
+Остальное bootstrap loader VPN-хоста вычисляет автоматически из `TARGET`, `PUBLIC_BASE_URL` и `VPN_SERVER_ADDRESS`, включая `ASPNETCORE_ENVIRONMENT`, `PORTAL_DEPLOY_ROOT`, `PORTAL_ENV_FILE`, `Email__PublicBaseUrl`, `VpnAccess__ServerAddress` и стандартные имена postgres-ролей.
 
 Если у хоста нестандартный layout или адреса различаются, можно явно переопределить `INTERNAL_API_BASE_URL`, `PORTAL_DEPLOY_ROOT`, `PORTAL_ENV_FILE`, `STRONGSWAN_SERVER_ID`, `VpnAccess__ServerAddress`, `Email__Port` и другие optional keys из example-файла.
 
@@ -91,14 +108,14 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --target prod --server-name vp
 
 При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub Environment Secrets для runtime-конфигурации приложения, миграций БД и создания первого администратора.
 
-1. Скопируйте `deploy/predeploy/nginx/vpnportal.conf` в конфигурацию nginx и обновите `server_name`.
-2. Скопируйте `deploy/predeploy/env/vpnportal.prod.container.env.example` или `deploy/predeploy/env/vpnportal.stage.container.env.example` в `/etc/vpnportal/`.
-3. Скопируйте `deploy/docker/docker-compose.yml` на сервер, например в `/opt/vpnportal/docker-compose.yml`.
-4. Убедитесь, что `DEPLOY_PATH` существует на сервере и доступен для записи пользователю деплоя.
+1. Подготовьте `/etc/vpnportal/predeploy.<env>.env` из `deploy/predeploy/env/predeploy.<env>.env.example` или дождитесь, пока `deploy.yml` отрендерит его из GitHub Environment Secrets.
+2. При первом ручном predeploy запустите `prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.<env>.env`.
+3. Скопируйте `deploy/docker/docker-compose.yml` на сервер, например в `DEPLOY_PATH/docker-compose.yml`, только если workflow ещё не начал управлять релизами.
+4. Убедитесь, что `DEPLOY_PATH` из `/etc/vpnportal/predeploy.<env>.env` существует на сервере и доступен для записи пользователю деплоя.
 5. Убедитесь, что в `/usr/local/bin` можно писать через `sudo install`, если вы хотите отдельно обновлять host-managed operational tools.
 6. Убедитесь, что `nginx` включен и может проксировать в контейнер на loopback-порт целевого окружения.
 
-Docker rollout использует один `docker-compose.yml` и environment-specific container env-файлы. `stage` и `prod` разделяются через project name, loopback-port и разные env-файлы.
+Docker rollout использует один `docker-compose.yml` на окружение и environment-specific env-файлы в `/etc/vpnportal/`. `stage` и `prod` разделяются через `predeploy.<env>.env`, runtime env-файл, project name и loopback-port.
 
 Если `prepare-app-host.sh` добавил пользователя деплоя в группу `docker`, после этого нужно перелогиниться под этим пользователем или выполнить `newgrp docker`, иначе новые права группы не применятся в текущей сессии.
 
