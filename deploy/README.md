@@ -30,6 +30,11 @@ Recommended `stage` deploy secret values:
 
 `DEPLOY_COMMAND` is not used by the current `deploy.yml` workflow and does not need to be configured.
 
+Important:
+
+- save `DEPLOY_PATH` without trailing whitespace or hidden line-ending characters
+- a stray `\r`, newline, or trailing space in the GitHub Environment secret can make the first `scp` upload fail with `dest open ... No such file or directory`, even when the target directory already exists on the host
+
 - `DEPLOY_HOST`
 - `DEPLOY_PORT`
 - `DEPLOY_USER`

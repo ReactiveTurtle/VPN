@@ -135,6 +135,8 @@ sudo -n install -m 0640 /dev/null /etc/vpnportal/deploy-user-check.tmp && sudo r
 
 Если `sudo -n` завершается ошибкой, значит для пользователя еще не настроены нужные `sudoers`-права.
 
+Дополнительно проверьте, что GitHub Environment secret `DEPLOY_PATH` не содержит скрытых символов в конце строки. Для текущего workflow это критично: лишний `\r`, перевод строки или пробел в `DEPLOY_PATH` приводит к падению первого `scp` с ошибкой `No such file or directory`, даже если сам каталог на сервере существует и доступен пользователю `deploy`.
+
 ## Связанные Документы
 
 - `docs/predeploy/ssh-access.md`

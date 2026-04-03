@@ -58,6 +58,12 @@ SSH и deploy secrets:
 - `DEPLOY_PATH`
 - `DEPLOY_SSH_PRIVATE_KEY`
 
+Важно:
+
+- `DEPLOY_PATH` должен быть сохранен без скрытых символов в конце строки
+- если в GitHub Environment Secret случайно попал `\r`, перевод строки или пробел в конце, `scp` может падать с `dest open ... No such file or directory`, даже если каталог на сервере реально существует и доступен пользователю `deploy`
+- если есть подозрение на такой случай, удалите значение секрета и введите его заново вручную, например ровно `/opt/vpnportal`
+
 Рекомендуемые значения для GitHub Environment `stage`:
 
 - `DEPLOY_HOST=<staging-host-or-ip>`
