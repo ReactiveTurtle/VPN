@@ -64,7 +64,7 @@ SSH и deploy secrets:
 - если в GitHub Environment Secret случайно попал `\r`, перевод строки или пробел в конце, `scp` может падать с `dest open ... No such file or directory`, даже если каталог на сервере реально существует и доступен пользователю `deploy`
 - если есть подозрение на такой случай, удалите значение секрета и введите его заново вручную, например ровно `/opt/vpnportal`
 
-Обычный deploy workflow не рендерит `/etc/vpnportal/predeploy.<env>.env`. Этот файл подготавливается отдельно для first-time app predeploy и используется `prepare-app-host.sh` как единый источник истины для host-level app settings.
+Обычный deploy workflow рендерит `/etc/vpnportal/predeploy.<env>.env` рядом с runtime env-файлом. Этот файл используется `prepare-app-host.sh` как единый источник истины для host-level app settings. Для nginx workflow сейчас подставляет `NGINX_PORTAL_SERVER_NAME=${DEPLOY_HOST}`.
 
 Рекомендуемые значения для GitHub Environment `stage`:
 

@@ -45,12 +45,12 @@ Runtime secrets приложения:
 - `DEPLOY_ENV_NAME`
 - `DEPLOY_PATH`
 - `DEPLOY_USER`
-- `SERVER_NAME`
+- `NGINX_PORTAL_SERVER_NAME`
 - `RUNTIME_ENV_FILE`
 - `NGINX_SITE_NAME`
 - `APP_PORT`
 
-Обычный `deploy.yml` этот файл не рендерит. Перед первым ручным app predeploy его нужно создать из `deploy/predeploy/env/predeploy.<env>.env.example`.
+Обычный `deploy.yml` рендерит этот файл перед отправкой predeploy-скриптов. Перед самым первым ручным app predeploy его также можно создать из `deploy/predeploy/env/predeploy.<env>.env.example`.
 
 ### 3. Bootstrap Env VPN-Хоста
 

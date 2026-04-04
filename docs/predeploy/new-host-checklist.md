@@ -64,7 +64,7 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal
 - `DEPLOY_ENV_NAME=stage`
 - `DEPLOY_PATH=/opt/vpnportal-stage`
 - `DEPLOY_USER=deploy`
-- `SERVER_NAME=stage-vpn.example.com`
+- `NGINX_PORTAL_SERVER_NAME=stage-vpn.example.com`
 - `RUNTIME_ENV_FILE=/etc/vpnportal/vpnportal.stage.container.env`
 - `NGINX_SITE_NAME=vpnportal-stage.conf`
 - `APP_PORT=5001`
@@ -108,8 +108,8 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal
 
 При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub Environment Secrets для runtime-конфигурации приложения, миграций БД и создания первого администратора.
 
-1. Подготовьте `/etc/vpnportal/predeploy.<env>.env` из `deploy/predeploy/env/predeploy.<env>.env.example` до первого app predeploy.
-2. При первом ручном predeploy запустите `prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.<env>.env`.
+1. Подготовьте `/etc/vpnportal/predeploy.<env>.env` из `deploy/predeploy/env/predeploy.<env>.env.example` до первого app predeploy или дождитесь первого regular deploy, который обновит этот файл на хосте.
+2. При первом ручном predeploy запустите `prepare-app-host.sh` или `prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.<env>.env`.
 3. Скопируйте `deploy/docker/docker-compose.yml` на сервер, например в `DEPLOY_PATH/docker-compose.yml`, только если workflow ещё не начал управлять релизами.
 4. Убедитесь, что `DEPLOY_PATH` из `/etc/vpnportal/predeploy.<env>.env` существует на сервере и доступен для записи пользователю деплоя.
 5. Убедитесь, что в `/usr/local/bin` можно писать через `sudo install`, если вы хотите отдельно обновлять host-managed operational tools.

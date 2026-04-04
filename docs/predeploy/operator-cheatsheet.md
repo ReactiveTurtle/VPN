@@ -20,7 +20,7 @@ sudo install -m 0640 infrastructure/vpn-host/env/vpn-host.prod.env.example /etc/
 sudo nano /etc/vpnportal/vpn-host.prod.env
 ```
 
-`/etc/vpnportal/predeploy.prod.env` подготавливается отдельно для app predeploy и не рендерится обычным deploy workflow.
+`/etc/vpnportal/predeploy.prod.env` можно подготовить вручную до первого app predeploy или получить из обычного deploy workflow, который обновляет этот файл на хосте.
 
 2. Подготовьте app host:
 
@@ -58,7 +58,7 @@ sudo install -m 0640 infrastructure/vpn-host/env/vpn-host.stage.env.example /etc
 sudo nano /etc/vpnportal/vpn-host.stage.env
 ```
 
-`/etc/vpnportal/predeploy.stage.env` подготавливается отдельно для app predeploy и не рендерится обычным deploy workflow.
+`/etc/vpnportal/predeploy.stage.env` можно подготовить вручную до первого app predeploy или получить из обычного deploy workflow, который обновляет этот файл на хосте.
 
 2. Подготовьте app host:
 

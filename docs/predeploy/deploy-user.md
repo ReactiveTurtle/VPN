@@ -121,7 +121,7 @@ sudo visudo -cf /etc/sudoers.d/vpnportal-deploy
 
 `DEPLOY_HOST`, `DEPLOY_PORT`, `DEPLOY_USER`, `DEPLOY_PATH` и `DEPLOY_SSH_PRIVATE_KEY` должны храниться отдельно для `stage` и `prod`, чтобы branch deploy шел на staging host, а tag deploy - на production host.
 
-Имя сайта для nginx не требуется обычному deploy workflow. Оно живет в `/etc/vpnportal/predeploy.<env>.env` и нужно только для first-time app predeploy через `prepare-app-host.sh`.
+Имя сайта для nginx живет в `/etc/vpnportal/predeploy.<env>.env` под ключом `NGINX_PORTAL_SERVER_NAME`. Обычный deploy workflow обновляет этот файл автоматически и сейчас подставляет туда `DEPLOY_HOST`, чтобы regular deploy и first-time app predeploy оставались согласованными.
 
 ## Проверка
 

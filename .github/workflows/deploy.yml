@@ -26,6 +26,7 @@ jobs:
       target: ${{ steps.meta.outputs.target }}
       host_port: ${{ steps.meta.outputs.host_port }}
       runtime_env_file: ${{ steps.meta.outputs.runtime_env_file }}
+      nginx_site_name: ${{ steps.meta.outputs.nginx_site_name }}
       compose_project: ${{ steps.meta.outputs.compose_project }}
       source_archive: ${{ steps.meta.outputs.source_archive }}
       artifact_name: ${{ steps.meta.outputs.artifact_name }}
@@ -56,11 +57,13 @@ jobs:
             prod)
               HOST_PORT="5000"
               RUNTIME_ENV_FILE="/etc/vpnportal/vpnportal.prod.container.env"
+              NGINX_SITE_NAME="vpnportal.conf"
               COMPOSE_PROJECT="vpnportal-prod"
               ;;
             stage)
               HOST_PORT="5001"
               RUNTIME_ENV_FILE="/etc/vpnportal/vpnportal.stage.container.env"
+              NGINX_SITE_NAME="vpnportal-stage.conf"
               COMPOSE_PROJECT="vpnportal-stage"
               ;;
             *)
@@ -76,6 +79,7 @@ jobs:
           echo "target=${TARGET}" >> "$GITHUB_OUTPUT"
           echo "host_port=${HOST_PORT}" >> "$GITHUB_OUTPUT"
           echo "runtime_env_file=${RUNTIME_ENV_FILE}" >> "$GITHUB_OUTPUT"
+          echo "nginx_site_name=${NGINX_SITE_NAME}" >> "$GITHUB_OUTPUT"
           echo "compose_project=${COMPOSE_PROJECT}" >> "$GITHUB_OUTPUT"
           echo "source_archive=${SOURCE_ARCHIVE}" >> "$GITHUB_OUTPUT"
           echo "artifact_name=${ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
@@ -140,22 +144,40 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Render host predeploy env file
+        shell: bash
+        run: |
+          cat > vpnportal.predeploy.env <<EOF
+          DEPLOY_ENV_NAME=${{ needs.package.outputs.target }}
+          DEPLOY_PATH=${{ secrets.DEPLOY_PATH }}
+          DEPLOY_USER=${{ secrets.DEPLOY_USER }}
+          NGINX_PORTAL_SERVER_NAME=${{ secrets.DEPLOY_HOST }}
+          RUNTIME_ENV_FILE=${{ needs.package.outputs.runtime_env_file }}
+          NGINX_SITE_NAME=${{ needs.package.outputs.nginx_site_name }}
+          APP_PORT=${{ needs.package.outputs.host_port }}
+          EOF
+
       - name: Deploy predeploy scripts
         run: |
           tar -czf vpnportal-predeploy.tar.gz deploy/predeploy/
           scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal-predeploy.tar.gz "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal-predeploy.tar.gz"
+          scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal.predeploy.env "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal.predeploy.env.tmp"
 
       - name: Extract predeploy scripts on target
         run: |
           ssh -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-          "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' bash -s" <<'EOF'
+          "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' TARGET='${{ needs.package.outputs.target }}' bash -s" <<'EOF'
           set -euo pipefail
+          sudo install -d -m 0755 /etc/vpnportal
           test -d "$DEPLOY_PATH"
           test -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
+          test -f "$DEPLOY_PATH/vpnportal.predeploy.env.tmp"
           rm -rf "$DEPLOY_PATH/predeploy"
           install -d -m 0755 "$DEPLOY_PATH/predeploy"
           tar -xzf "$DEPLOY_PATH/vpnportal-predeploy.tar.gz" -C "$DEPLOY_PATH/predeploy" --strip-components=2
           rm -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
+          sudo install -m 0640 "$DEPLOY_PATH/vpnportal.predeploy.env.tmp" "/etc/vpnportal/predeploy.$TARGET.env"
+          rm -f "$DEPLOY_PATH/vpnportal.predeploy.env.tmp"
           EOF
 
       - name: Validate application secrets

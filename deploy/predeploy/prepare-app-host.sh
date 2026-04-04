@@ -12,7 +12,7 @@ VPN_HOST_ENV_FILE=""
 usage() {
     cat <<'EOF'
 Usage:
-  sudo ./deploy/predeploy/prepare-app-host.sh --predeploy-env <path> [options]
+  sudo ./deploy/predeploy/prepare-app-host.sh [options]
 
 Options:
   --predeploy-env <path>         Host-side predeploy env file under /etc/vpnportal
@@ -22,7 +22,7 @@ Options:
   --help                         Show this help
 
 What the script does:
-  - loads host-level app predeploy settings from the provided env file
+  - loads host-level app predeploy settings from the provided env file or auto-detects a single /etc/vpnportal/predeploy.*.env file
   - installs nginx, Docker Engine, and Docker Compose plugin on Ubuntu via apt
   - creates deployment directories under the configured deploy path and /etc/vpnportal
   - creates the target container env file from the matching example if it does not exist yet
@@ -80,10 +80,25 @@ validate_numeric() {
 }
 
 load_predeploy_env() {
+    local stage_env="/etc/vpnportal/predeploy.stage.env"
+    local prod_env="/etc/vpnportal/predeploy.prod.env"
+
     if [[ -z "${PREDEPLOY_ENV_FILE}" ]]; then
-        printf '--predeploy-env is required.\n' >&2
-        usage >&2
-        exit 1
+        if [[ -f "${stage_env}" && -f "${prod_env}" ]]; then
+            printf '%s\n' 'Multiple predeploy env files found. Pass --predeploy-env explicitly.' >&2
+            usage >&2
+            exit 1
+        fi
+
+        if [[ -f "${stage_env}" ]]; then
+            PREDEPLOY_ENV_FILE="${stage_env}"
+        elif [[ -f "${prod_env}" ]]; then
+            PREDEPLOY_ENV_FILE="${prod_env}"
+        else
+            printf '%s\n' 'No predeploy env file found. Create /etc/vpnportal/predeploy.stage.env or /etc/vpnportal/predeploy.prod.env, or pass --predeploy-env explicitly.' >&2
+            usage >&2
+            exit 1
+        fi
     fi
 
     if [[ ! -f "${PREDEPLOY_ENV_FILE}" ]]; then
@@ -97,7 +112,7 @@ load_predeploy_env() {
     : "${DEPLOY_ENV_NAME:?DEPLOY_ENV_NAME is required}"
     : "${DEPLOY_PATH:?DEPLOY_PATH is required}"
     : "${DEPLOY_USER:?DEPLOY_USER is required}"
-    : "${SERVER_NAME:?SERVER_NAME is required}"
+    : "${NGINX_PORTAL_SERVER_NAME:?NGINX_PORTAL_SERVER_NAME is required}"
     : "${RUNTIME_ENV_FILE:?RUNTIME_ENV_FILE is required}"
     : "${NGINX_SITE_NAME:?NGINX_SITE_NAME is required}"
     : "${APP_PORT:?APP_PORT is required}"
@@ -215,7 +230,7 @@ install_nginx_site() {
     local escaped_server_name escaped_proxy_pass temp_file
 
     log_step "Rendering nginx config"
-    escaped_server_name="$(escape_sed_replacement "${SERVER_NAME}")"
+    escaped_server_name="$(escape_sed_replacement "${NGINX_PORTAL_SERVER_NAME}")"
     escaped_proxy_pass="$(escape_sed_replacement "http://127.0.0.1:${APP_PORT}")"
     temp_file="$(mktemp)"
 
