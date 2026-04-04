@@ -31,7 +31,7 @@ infer_target() {
             printf 'prod'
             ;;
         *)
-            printf 'Could not infer deployment target from %s. Set TARGET=stage|prod in the bootstrap env file.\n' "${env_file}" >&2
+            printf 'Не удалось определить target deployment по %s. Укажите TARGET=stage|prod в bootstrap env-файле.\n' "${env_file}" >&2
             exit 1
             ;;
     esac
@@ -44,7 +44,7 @@ normalize_env() {
         prod|stage)
             ;;
         *)
-            printf 'Unsupported deployment target: %s\n' "${TARGET}" >&2
+            printf 'Неподдерживаемый target deployment: %s\n' "${TARGET}" >&2
             exit 1
             ;;
     esac
@@ -111,7 +111,7 @@ require_env_vars() {
         value="${!name:-}"
 
         if [[ -z "${value}" ]]; then
-            printf 'Missing required environment variable: %s\n' "${name}" >&2
+            printf 'Отсутствует обязательная переменная окружения: %s\n' "${name}" >&2
             missing=1
         fi
     done
@@ -125,7 +125,7 @@ load_env() {
     local env_file="${1:-${DEFAULT_ENV_FILE}}"
 
     if [[ ! -f "${env_file}" ]]; then
-        printf 'Environment file not found: %s\n' "${env_file}" >&2
+        printf 'Env-файл не найден: %s\n' "${env_file}" >&2
         exit 1
     fi
 
@@ -141,7 +141,7 @@ load_env() {
 
 require_root() {
     if [[ "${EUID}" -ne 0 ]]; then
-        printf 'Run this script as root.\n' >&2
+        printf 'Запустите этот скрипт от root.\n' >&2
         exit 1
     fi
 }

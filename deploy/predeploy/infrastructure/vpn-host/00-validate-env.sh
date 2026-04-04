@@ -17,7 +17,7 @@ validate_http_url() {
         http://*|https://*)
             ;;
         *)
-            printf 'Environment variable %s must start with http:// or https://\n' "${name}" >&2
+            printf 'Переменная окружения %s должна начинаться с http:// или https://\n' "${name}" >&2
             exit 1
             ;;
     esac
@@ -31,13 +31,13 @@ validate_absolute_path() {
         /*)
             ;;
         *)
-            printf 'Environment variable %s must be an absolute path\n' "${name}" >&2
+            printf 'Переменная окружения %s должна содержать абсолютный путь\n' "${name}" >&2
             exit 1
             ;;
     esac
 }
 
-log_step "Validating VPN host bootstrap environment"
+log_step "Проверка bootstrap env для VPN host"
 
 require_env_vars \
     PUBLIC_BASE_URL \
@@ -67,9 +67,9 @@ validate_absolute_path VpnRuntime__DisconnectScriptPath "${VpnRuntime__Disconnec
 
 cat <<EOF
 
-Bootstrap environment is valid.
+Bootstrap env корректен.
 
-Validated required input names:
+Проверены обязательные входные параметры:
   - PUBLIC_BASE_URL
   - VPN_SERVER_ADDRESS
   - InternalApi__SharedSecret
@@ -85,7 +85,7 @@ Validated required input names:
   - Email__Password
   - Email__FromEmail
 
-Resolved values:
+Вычисленные значения:
   - TARGET=${TARGET}
   - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
   - PORTAL_DEPLOY_ROOT=${PORTAL_DEPLOY_ROOT}

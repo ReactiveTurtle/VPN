@@ -10,25 +10,25 @@ require_root
 load_env "${1:-}"
 require_env_vars POSTGRES_DB
 
-log_step "Checking PostgreSQL connectivity"
+log_step "Проверка доступности PostgreSQL"
 sudo -u postgres psql -d "${POSTGRES_DB}" -c 'select current_database(), current_user;'
 
-log_step "Checking systemd units"
+log_step "Проверка systemd units"
 systemctl --no-pager --full status postgresql strongswan-starter freeradius nginx || true
 
-log_step "Validating FreeRADIUS configuration"
+log_step "Проверка конфигурации FreeRADIUS"
 freeradius -CX
 
-log_step "Checking strongSwan status"
+log_step "Проверка состояния strongSwan"
 ipsec statusall || true
 
-log_step "Checking accounting forwarder helper"
+log_step "Проверка helper для forwarding accounting"
 test -x /usr/local/lib/vpnportal/forward-accounting-event.sh
 
-log_step "Checking runtime disconnect helper"
+log_step "Проверка runtime helper для disconnect"
 test -x /usr/local/lib/vpnportal/disconnect-session.sh
 
-log_step "Listing listening sockets"
+log_step "Список listening sockets"
 ss -lntup
 
-printf '\nVerification completed. Review command output for follow-up actions.\n'
+printf '\nПроверка завершена. Изучите вывод команд для дальнейших действий.\n'

@@ -10,7 +10,7 @@ require_root
 load_env "${1:-}"
 require_env_vars VPN_HOST_ENV_FILE POSTGRES_DB POSTGRES_RADIUS_USER POSTGRES_RADIUS_PASSWORD RADIUS_CLIENT_ADDRESS RADIUS_SHARED_SECRET INTERNAL_API_BASE_URL InternalApi__SharedSecret
 
-log_step "Rendering FreeRADIUS configuration"
+log_step "Рендер конфигурации FreeRADIUS"
 render_template "${VPN_HOST_ROOT}/freeradius/clients.conf.template" /etc/freeradius/3.0/clients.conf
 render_template "${VPN_HOST_ROOT}/freeradius/mods-available/exec-accounting.template" /etc/freeradius/3.0/mods-available/exec-accounting
 render_template "${VPN_HOST_ROOT}/freeradius/mods-available/sql.template" /etc/freeradius/3.0/mods-available/sql
@@ -26,10 +26,10 @@ rm -f /etc/freeradius/3.0/mods-enabled/exec-auth
 rm -f /etc/freeradius/3.0/mods-available/exec-auth
 rm -f /usr/local/lib/vpnportal/forward-auth-event.sh
 
-log_step "Validating FreeRADIUS configuration"
+log_step "Проверка конфигурации FreeRADIUS"
 freeradius -CX
 
-log_step "Restarting FreeRADIUS"
+log_step "Перезапуск FreeRADIUS"
 systemctl restart freeradius
 
-printf '\nFreeRADIUS configuration updated.\n'
+printf '\nКонфигурация FreeRADIUS обновлена.\n'

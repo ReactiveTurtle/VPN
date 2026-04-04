@@ -9,10 +9,10 @@ source "${SCRIPT_DIR}/common.sh"
 require_root
 load_env "${1:-}"
 
-log_step "Updating apt metadata"
+log_step "Обновление apt metadata"
 apt-get update
 
-log_step "Installing VPN host packages"
+log_step "Установка пакетов VPN host"
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
     gettext-base \
     libcharon-extra-plugins \
@@ -24,10 +24,10 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y \
     freeradius \
     freeradius-postgresql
 
-log_step "Enabling core services"
+log_step "Включение базовых сервисов"
 systemctl enable postgresql
 systemctl enable strongswan-starter || true
 systemctl enable freeradius
 systemctl enable nginx
 
-printf '\nPackage installation completed.\n'
+printf '\nУстановка пакетов завершена.\n'

@@ -12,17 +12,17 @@ require_env_vars INTERNAL_API_BASE_URL InternalApi__SharedSecret
 
 base_url="${INTERNAL_API_BASE_URL%/}"
 
-log_step "Checking public system status endpoint"
+log_step "Проверка публичного endpoint system status"
 curl --fail --silent --show-error "${base_url}/api/system/status"
 
-log_step "Checking database status endpoint"
+log_step "Проверка endpoint статуса базы данных"
 curl --fail --silent --show-error "${base_url}/api/system/database"
 
-log_step "Checking that internal API secret is configured"
+log_step "Проверка, что internal API secret настроен"
 if [[ -z "${InternalApi__SharedSecret:-}" ]]; then
-    printf 'InternalApi__SharedSecret is empty.\n' >&2
+    printf 'InternalApi__SharedSecret пуст.\n' >&2
     exit 1
 fi
 
-log_step "Smoke test completed"
-printf 'Portal status endpoints are reachable at %s\n' "${base_url}"
+log_step "Smoke test завершен"
+printf 'Status endpoints портала доступны по адресу %s\n' "${base_url}"
