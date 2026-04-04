@@ -108,7 +108,7 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal
 
 При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub Environment Secrets для runtime-конфигурации приложения, миграций БД и создания первого администратора.
 
-1. Подготовьте `/etc/vpnportal/predeploy.<env>.env` из `deploy/predeploy/env/predeploy.<env>.env.example` или дождитесь, пока `deploy.yml` отрендерит его из GitHub Environment Secrets.
+1. Подготовьте `/etc/vpnportal/predeploy.<env>.env` из `deploy/predeploy/env/predeploy.<env>.env.example` до первого app predeploy.
 2. При первом ручном predeploy запустите `prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.<env>.env`.
 3. Скопируйте `deploy/docker/docker-compose.yml` на сервер, например в `DEPLOY_PATH/docker-compose.yml`, только если workflow ещё не начал управлять релизами.
 4. Убедитесь, что `DEPLOY_PATH` из `/etc/vpnportal/predeploy.<env>.env` существует на сервере и доступен для записи пользователю деплоя.

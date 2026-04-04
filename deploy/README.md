@@ -26,7 +26,6 @@ Recommended `stage` deploy secret values:
 - `DEPLOY_PORT=<staging-ssh-port>`
 - `DEPLOY_USER=deploy`
 - `DEPLOY_PATH=/opt/vpnportal-stage`
-- `DEPLOY_SERVER_NAME=stage-vpn.example.com`
 - `DEPLOY_SSH_PRIVATE_KEY=<private key for the stage deploy user>`
 
 `DEPLOY_COMMAND` is not used by the current `deploy.yml` workflow and does not need to be configured.
@@ -40,7 +39,6 @@ Important:
 - `DEPLOY_PORT`
 - `DEPLOY_USER`
 - `DEPLOY_PATH`
-- `DEPLOY_SERVER_NAME`
 - `DEPLOY_SSH_PRIVATE_KEY`
 - `DATABASE__CONNECTIONSTRING`
 - `EMAIL__HOST`
@@ -88,14 +86,9 @@ The repository keeps only the base `appsettings.json` files in git.
 
 Environment-specific runtime values are rendered from GitHub Environment Secrets during `deploy.yml` into a host-side container env file under `/etc/vpnportal/`.
 
-The same workflow also renders a host-side app predeploy env file under `/etc/vpnportal/`:
-
-- `/etc/vpnportal/predeploy.prod.env`
-- `/etc/vpnportal/predeploy.stage.env`
-
 The checked-in files under `deploy/predeploy/env/*.container.env.example` are templates only. They are not the source of truth for production secrets.
 
-The checked-in files under `deploy/predeploy/env/predeploy.*.env.example` document the required host-side predeploy shape for first-time manual setup before GitHub Environment Secrets begin managing those files on the host.
+The checked-in files under `deploy/predeploy/env/predeploy.*.env.example` document the required host-side predeploy shape for first-time manual setup. The regular deploy workflow does not manage `/etc/vpnportal/predeploy.<env>.env` for you.
 
 Runtime application secrets in GitHub Environment Secrets should use uppercase names, such as `DATABASE__CONNECTIONSTRING`, `EMAIL__PASSWORD`, `INTERNALAPI__SHAREDSECRET`, and `VPNACCESS__SERVERADDRESS`. During deploy, the workflow materializes them into the host-side container env file using the runtime .NET configuration keys like `Database__ConnectionString` and `Email__Password`:
 
@@ -120,7 +113,7 @@ If the deploy user was just added to the `docker` group, re-login before running
 ## Workflow behavior
 
 - `ci.yml` builds backend and frontend on push/PR.
-- `deploy.yml` archives the current repository source, uploads the source snapshot to the target host, renders both the app predeploy env file and the runtime env file from GitHub Environment Secrets, installs those files under `/etc/vpnportal/`, and then runs `docker compose build` remotely.
+- `deploy.yml` archives the current repository source, uploads the source snapshot to the target host, renders the runtime env file from GitHub Environment Secrets, installs that file under `/etc/vpnportal/`, and then runs `docker compose build` remotely.
 - When `/etc/vpnportal/vpn-host.stage.env` or `/etc/vpnportal/vpn-host.prod.env` exists for the current target, `deploy.yml` runs `deploy/host/apply-strongswan-config.sh` to reapply the repository version of the `strongSwan` configuration before updating the API container.
 - `docker compose run --rm migrations` applies schema changes before `docker compose up -d api` updates the application container.
 - Runtime helpers under `/usr/local/lib/vpnportal` remain host-managed and are mounted into the app container read-only.

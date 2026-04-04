@@ -14,7 +14,6 @@ SSH и deploy secrets:
 - `DEPLOY_PORT`
 - `DEPLOY_USER`
 - `DEPLOY_PATH`
-- `DEPLOY_SERVER_NAME`
 - `DEPLOY_SSH_PRIVATE_KEY`
 
 Runtime secrets приложения:
@@ -51,7 +50,7 @@ Runtime secrets приложения:
 - `NGINX_SITE_NAME`
 - `APP_PORT`
 
-Этот файл рендерится из GitHub Environment Secrets во время `deploy.yml`, но перед самым первым ручным predeploy его можно создать из `deploy/predeploy/env/predeploy.<env>.env.example`.
+Обычный `deploy.yml` этот файл не рендерит. Перед первым ручным app predeploy его нужно создать из `deploy/predeploy/env/predeploy.<env>.env.example`.
 
 ### 3. Bootstrap Env VPN-Хоста
 
