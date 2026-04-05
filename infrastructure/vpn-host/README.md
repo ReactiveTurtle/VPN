@@ -49,11 +49,12 @@ Run these predeploy scripts in this order as `root`:
 2. `deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh`
 3. `deploy/predeploy/infrastructure/vpn-host/02-create-users-and-directories.sh`
 4. `deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh`
-5. `deploy/predeploy/infrastructure/vpn-host/04-configure-freeradius.sh`
-6. `deploy/predeploy/infrastructure/vpn-host/05-configure-portal-host.sh`
-7. `deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh`
+5. `deploy/predeploy/infrastructure/vpn-host/04-generate-strongswan-pki.sh`
+6. `deploy/predeploy/infrastructure/vpn-host/05-configure-freeradius.sh`
+7. `deploy/predeploy/infrastructure/vpn-host/06-configure-portal-host.sh`
+8. `deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh`
 
-There is no separate predeploy strongSwan configuration step. Predeploy only validates the bootstrap env in step `00` and installs the `strongSwan` packages as part of `deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh`.
+There is no separate predeploy strongSwan configuration step. Predeploy validates the bootstrap env in step `00`, installs the `strongSwan` packages in step `01`, generates the host PKI in step `04`, and applies the repository config later during deploy.
 
 Post-deploy runtime verification lives in `deploy/host/verify-portal-runtime.sh` and should run only after the first application deploy has completed and the API is already reachable.
 
@@ -78,7 +79,7 @@ Fill a real bootstrap environment file before applying configurations. For the f
 - VPN endpoint via `VPN_SERVER_ADDRESS`
 - PostgreSQL passwords
 - RADIUS shared secret
-- strongSwan certificate paths
+- strongSwan network settings
 - runtime email settings via `Email__Host`, `Email__Username`, `Email__Password`, and `Email__FromEmail`
 
 The bootstrap loader derives the usual `prod`/`stage` values automatically. By default it computes:
@@ -110,8 +111,6 @@ Required bootstrap variables:
 - `POSTGRES_APP_PASSWORD`
 - `POSTGRES_RADIUS_PASSWORD`
 - `RADIUS_SHARED_SECRET`
-- `STRONGSWAN_CERT_PATH`
-- `STRONGSWAN_KEY_PATH`
 - `STRONGSWAN_RIGHT_SOURCE_IP`
 - `STRONGSWAN_DNS`
 - `Email__Host`
@@ -186,7 +185,7 @@ sudo install -m 0755 infrastructure/vpn-host/tools/vpn-speed.py /usr/local/bin/v
 
 ## Validation Runbook
 
-- Host predeploy verification: `deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh`
+- Host predeploy verification: `deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh`
 - Post-deploy portal runtime verification: `deploy/host/verify-portal-runtime.sh`
 - End-to-end runtime validation: `runbooks/verify-vpn-runtime-flow.md`
 

@@ -94,7 +94,9 @@ The checked-in files under `deploy/predeploy/env/*.container.env.example` are te
 
 The checked-in files under `deploy/predeploy/env/predeploy.*.env.example` document the required host-side predeploy shape for first-time manual setup. The regular deploy workflow refreshes `/etc/vpnportal/predeploy.<env>.env` on the host and currently sets `NGINX_PORTAL_SERVER_NAME` from `DEPLOY_HOST`.
 
-The same workflow now also refreshes `/etc/vpnportal/vpn-host.<env>.env`, because full host predeploy requires the VPN/bootstrap variables to be present on the machine before `prepare-app-host.sh` starts the `00-06` chain.
+The same workflow now also refreshes `/etc/vpnportal/vpn-host.<env>.env`, because full host predeploy requires the VPN/bootstrap variables to be present on the machine before `prepare-app-host.sh` starts the `00-07` chain.
+
+The VPN bootstrap flow now generates the strongSwan CA certificate, server certificate, and private key automatically on the host when the standard `/etc/ipsec.d/` files are not already present.
 
 Runtime application secrets in GitHub Environment Secrets should use uppercase names, such as `DATABASE__CONNECTIONSTRING`, `EMAIL__PASSWORD`, `INTERNALAPI__SHAREDSECRET`, and `VPNACCESS__SERVERADDRESS`. During deploy, the workflow materializes them into the host-side container env file using the runtime .NET configuration keys like `Database__ConnectionString` and `Email__Password`:
 
@@ -108,7 +110,7 @@ The rendered host-side env file also sets `ASPNETCORE_ENVIRONMENT` explicitly to
 3. Copy `deploy/predeploy/env/predeploy.prod.env.example` or `deploy/predeploy/env/predeploy.stage.env.example` into `/etc/vpnportal/predeploy.<env>.env` and fill the real host-level values if you are preparing the server before the first workflow-managed upload.
 4. Run `prepare-app-host.sh` or `prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.<env>.env` so the server layout matches the same host-level values that deploy will use later.
 5. Copy `deploy/docker/docker-compose.yml` into `DEPLOY_PATH` only if you are preparing the server fully by hand before the workflow starts managing releases.
-6. Bootstrap the VPN host separately with `infrastructure/vpn-host/README.md` and the documented predeploy scripts if this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL. `strongSwan` config rollout itself is handled later by `deploy/host/apply-strongswan-config.sh` during `deploy.yml`.
+6. If this server also runs `strongSwan`, `FreeRADIUS`, and PostgreSQL, make sure the matching `/etc/vpnportal/vpn-host.<env>.env` exists before running `prepare-app-host.sh`. That script now executes the documented VPN host bootstrap chain `00-07` automatically. `strongSwan` config rollout itself is still handled later by `deploy/host/apply-strongswan-config.sh` during `deploy.yml`.
 7. Ensure `DEPLOY_PATH` already exists on the server and is writable by the deployment user.
 8. Ensure the application database connection string uses `host.docker.internal` instead of `localhost` if PostgreSQL remains on the host.
 9. Run the schema migration program before the first API start: `dotnet run --project src/VpnPortal.Migrations`.

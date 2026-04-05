@@ -22,7 +22,9 @@ sudo nano /etc/vpnportal/vpn-host.prod.env
 
 `/etc/vpnportal/predeploy.prod.env` можно подготовить вручную до первого app predeploy или получить из обычного deploy workflow, который обновляет этот файл на хосте.
 
-`/etc/vpnportal/vpn-host.prod.env` тоже можно подготовить вручную заранее или получить из обычного deploy workflow. Без него `prepare-app-host.sh` завершится ошибкой и не запустит шаги `00-06`.
+`/etc/vpnportal/vpn-host.prod.env` тоже можно подготовить вручную заранее или получить из обычного deploy workflow. Без него `prepare-app-host.sh` завершится ошибкой и не запустит шаги `00-07`.
+
+`strongSwan` сертификат и ключ готовить вручную не нужно: шаг `04-generate-strongswan-pki.sh` создаст их сам, если полного комплекта файлов еще нет.
 
 2. Подготовьте app host:
 
@@ -37,9 +39,10 @@ sudo ./deploy/predeploy/infrastructure/vpn-host/00-validate-env.sh /etc/vpnporta
 sudo ./deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh /etc/vpnportal/vpn-host.prod.env
 sudo ./deploy/predeploy/infrastructure/vpn-host/02-create-users-and-directories.sh /etc/vpnportal/vpn-host.prod.env
 sudo ./deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh /etc/vpnportal/vpn-host.prod.env
-sudo ./deploy/predeploy/infrastructure/vpn-host/04-configure-freeradius.sh /etc/vpnportal/vpn-host.prod.env
-sudo ./deploy/predeploy/infrastructure/vpn-host/05-configure-portal-host.sh /etc/vpnportal/vpn-host.prod.env
-sudo ./deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh /etc/vpnportal/vpn-host.prod.env
+sudo ./deploy/predeploy/infrastructure/vpn-host/04-generate-strongswan-pki.sh /etc/vpnportal/vpn-host.prod.env
+sudo ./deploy/predeploy/infrastructure/vpn-host/05-configure-freeradius.sh /etc/vpnportal/vpn-host.prod.env
+sudo ./deploy/predeploy/infrastructure/vpn-host/06-configure-portal-host.sh /etc/vpnportal/vpn-host.prod.env
+sudo ./deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh /etc/vpnportal/vpn-host.prod.env
 ```
 
 4. После первого deploy и запуска API:
@@ -62,7 +65,9 @@ sudo nano /etc/vpnportal/vpn-host.stage.env
 
 `/etc/vpnportal/predeploy.stage.env` можно подготовить вручную до первого app predeploy или получить из обычного deploy workflow, который обновляет этот файл на хосте.
 
-`/etc/vpnportal/vpn-host.stage.env` тоже можно подготовить вручную заранее или получить из обычного deploy workflow. Без него `prepare-app-host.sh` завершится ошибкой и не запустит шаги `00-06`.
+`/etc/vpnportal/vpn-host.stage.env` тоже можно подготовить вручную заранее или получить из обычного deploy workflow. Без него `prepare-app-host.sh` завершится ошибкой и не запустит шаги `00-07`.
+
+`strongSwan` сертификат и ключ готовить вручную не нужно: шаг `04-generate-strongswan-pki.sh` создаст их сам, если полного комплекта файлов еще нет.
 
 2. Подготовьте app host:
 
@@ -77,9 +82,10 @@ sudo ./deploy/predeploy/infrastructure/vpn-host/00-validate-env.sh /etc/vpnporta
 sudo ./deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh /etc/vpnportal/vpn-host.stage.env
 sudo ./deploy/predeploy/infrastructure/vpn-host/02-create-users-and-directories.sh /etc/vpnportal/vpn-host.stage.env
 sudo ./deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh /etc/vpnportal/vpn-host.stage.env
-sudo ./deploy/predeploy/infrastructure/vpn-host/04-configure-freeradius.sh /etc/vpnportal/vpn-host.stage.env
-sudo ./deploy/predeploy/infrastructure/vpn-host/05-configure-portal-host.sh /etc/vpnportal/vpn-host.stage.env
-sudo ./deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh /etc/vpnportal/vpn-host.stage.env
+sudo ./deploy/predeploy/infrastructure/vpn-host/04-generate-strongswan-pki.sh /etc/vpnportal/vpn-host.stage.env
+sudo ./deploy/predeploy/infrastructure/vpn-host/05-configure-freeradius.sh /etc/vpnportal/vpn-host.stage.env
+sudo ./deploy/predeploy/infrastructure/vpn-host/06-configure-portal-host.sh /etc/vpnportal/vpn-host.stage.env
+sudo ./deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh /etc/vpnportal/vpn-host.stage.env
 ```
 
 4. После первого deploy и запуска API:

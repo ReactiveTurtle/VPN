@@ -46,8 +46,6 @@ require_env_vars \
     POSTGRES_APP_PASSWORD \
     POSTGRES_RADIUS_PASSWORD \
     RADIUS_SHARED_SECRET \
-    STRONGSWAN_CERT_PATH \
-    STRONGSWAN_KEY_PATH \
     STRONGSWAN_RIGHT_SOURCE_IP \
     STRONGSWAN_DNS \
     Email__Host \
@@ -61,8 +59,6 @@ if [[ -n "${INTERNAL_API_BASE_URL:-}" ]]; then
     validate_http_url INTERNAL_API_BASE_URL "${INTERNAL_API_BASE_URL}"
 fi
 
-validate_absolute_path STRONGSWAN_CERT_PATH "${STRONGSWAN_CERT_PATH}"
-validate_absolute_path STRONGSWAN_KEY_PATH "${STRONGSWAN_KEY_PATH}"
 validate_absolute_path VpnRuntime__DisconnectScriptPath "${VpnRuntime__DisconnectScriptPath}"
 
 cat <<EOF
@@ -76,8 +72,6 @@ Bootstrap env корректен.
   - POSTGRES_APP_PASSWORD
   - POSTGRES_RADIUS_PASSWORD
   - RADIUS_SHARED_SECRET
-  - STRONGSWAN_CERT_PATH
-  - STRONGSWAN_KEY_PATH
   - STRONGSWAN_RIGHT_SOURCE_IP
   - STRONGSWAN_DNS
   - Email__Host

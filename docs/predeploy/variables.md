@@ -34,8 +34,6 @@ VPN bootstrap secrets для полного predeploy single-host сервера
 - `POSTGRES_APP_PASSWORD`
 - `POSTGRES_RADIUS_PASSWORD`
 - `RADIUS_SHARED_SECRET`
-- `STRONGSWAN_CERT_PATH`
-- `STRONGSWAN_KEY_PATH`
 - `STRONGSWAN_RIGHT_SOURCE_IP`
 - `STRONGSWAN_DNS`
 
@@ -71,9 +69,15 @@ VPN bootstrap secrets для полного predeploy single-host сервера
 
 Это файл `/etc/vpnportal/vpn-host.prod.env` или `/etc/vpnportal/vpn-host.stage.env`.
 
-Именно этот файл используют шаги `00-06` из `deploy/predeploy/infrastructure/vpn-host/`, а также post-deploy runtime verification script `deploy/host/verify-portal-runtime.sh`.
+Именно этот файл используют шаги `00-07` из `deploy/predeploy/infrastructure/vpn-host/`, а также post-deploy runtime verification script `deploy/host/verify-portal-runtime.sh`.
 
 Обычный `deploy.yml` теперь также рендерит этот файл перед отправкой predeploy-скриптов, чтобы на машине были все переменные, которые реально нужны полному predeploy.
+
+По умолчанию bootstrap loader сам подставляет стандартные пути `strongSwan` PKI-файлов:
+
+- `STRONGSWAN_CERT_PATH=/etc/ipsec.d/certs/server-cert.pem`
+- `STRONGSWAN_KEY_PATH=/etc/ipsec.d/private/server-key.pem`
+- `STRONGSWAN_CA_CERT_PATH=/etc/ipsec.d/cacerts/ca-cert.pem`
 
 Ручные обязательные значения для bootstrap:
 
@@ -83,8 +87,6 @@ VPN bootstrap secrets для полного predeploy single-host сервера
 - `POSTGRES_APP_PASSWORD`
 - `POSTGRES_RADIUS_PASSWORD`
 - `RADIUS_SHARED_SECRET`
-- `STRONGSWAN_CERT_PATH`
-- `STRONGSWAN_KEY_PATH`
 - `STRONGSWAN_RIGHT_SOURCE_IP`
 - `STRONGSWAN_DNS`
 - `Email__Host`
@@ -119,9 +121,9 @@ VPN bootstrap secrets для полного predeploy single-host сервера
 Он нужен уже для запуска контейнера приложения. Его либо:
 
 - рендерит GitHub deploy workflow из GitHub Environment Secrets
-- либо подготавливает `05-configure-portal-host.sh` во время bootstrap single-host сервера
+- либо подготавливает `06-configure-portal-host.sh` во время bootstrap single-host сервера
 
-## Порядок Шагов `00-06`
+## Порядок Шагов `00-07`
 
 Шаги выполняются строго последовательно. Если любой шаг завершается с ошибкой, следующий шаг не запускается.
 
@@ -142,8 +144,6 @@ VPN bootstrap secrets для полного predeploy single-host сервера
 - `POSTGRES_APP_PASSWORD`
 - `POSTGRES_RADIUS_PASSWORD`
 - `RADIUS_SHARED_SECRET`
-- `STRONGSWAN_CERT_PATH`
-- `STRONGSWAN_KEY_PATH`
 - `STRONGSWAN_RIGHT_SOURCE_IP`
 - `STRONGSWAN_DNS`
 - `Email__Host`
@@ -155,7 +155,7 @@ VPN bootstrap secrets для полного predeploy single-host сервера
 
 - `PUBLIC_BASE_URL` должен начинаться с `http://` или `https://`
 - `INTERNAL_API_BASE_URL`, если задан явно, должен начинаться с `http://` или `https://`
-- `STRONGSWAN_CERT_PATH`, `STRONGSWAN_KEY_PATH` и `VpnRuntime__DisconnectScriptPath` должны быть absolute path
+- `VpnRuntime__DisconnectScriptPath` должен быть absolute path
 
 Где валидация:
 
@@ -217,7 +217,27 @@ VPN bootstrap secrets для полного predeploy single-host сервера
 
 - `require_env_vars PORTAL_ENV_DIR POSTGRES_DB POSTGRES_APP_USER POSTGRES_APP_PASSWORD POSTGRES_RADIUS_USER POSTGRES_RADIUS_PASSWORD`
 
-### Шаг 04. `04-configure-freeradius.sh`
+### Шаг 04. `04-generate-strongswan-pki.sh`
+
+Что делает:
+
+- проверяет наличие полного комплекта strongSwan PKI-файлов
+- если файлов нет, генерирует CA, сертификат сервера и ключ сервера
+- если комплект неполный, завершает bootstrap с ошибкой
+
+Нужны переменные:
+
+- `VPN_SERVER_ADDRESS`
+- `STRONGSWAN_CERT_PATH`
+- `STRONGSWAN_KEY_PATH`
+- `STRONGSWAN_CA_CERT_PATH`
+
+Важно:
+
+- эти пути обычно не задаются вручную, а подставляются bootstrap loader по умолчанию
+- стандартные пути: `/etc/ipsec.d/private/server-key.pem`, `/etc/ipsec.d/certs/server-cert.pem`, `/etc/ipsec.d/cacerts/ca-cert.pem`
+
+### Шаг 05. `05-configure-freeradius.sh`
 
 Что делает:
 
@@ -242,7 +262,7 @@ VPN bootstrap secrets для полного predeploy single-host сервера
 
 - `require_env_vars VPN_HOST_ENV_FILE POSTGRES_DB POSTGRES_RADIUS_USER POSTGRES_RADIUS_PASSWORD RADIUS_CLIENT_ADDRESS RADIUS_SHARED_SECRET INTERNAL_API_BASE_URL InternalApi__SharedSecret`
 
-### Шаг 05. `05-configure-portal-host.sh`
+### Шаг 06. `06-configure-portal-host.sh`
 
 Что делает:
 
@@ -272,7 +292,7 @@ VPN bootstrap secrets для полного predeploy single-host сервера
 
 - `require_env_vars PORTAL_ENV_FILE ASPNETCORE_ENVIRONMENT POSTGRES_DB POSTGRES_APP_USER POSTGRES_APP_PASSWORD Email__Host Email__Port Email__Username Email__Password Email__FromEmail Email__FromName Email__PublicBaseUrl InternalApi__SharedSecret VpnAccess__ServerAddress VpnRuntime__DisconnectScriptPath`
 
-### Шаг 06. `06-verify-stack.sh`
+### Шаг 07. `07-verify-stack.sh`
 
 Что делает:
 

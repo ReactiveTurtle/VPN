@@ -155,8 +155,6 @@ jobs:
           require_secret POSTGRES_APP_PASSWORD "${{ secrets.POSTGRES_APP_PASSWORD }}"
           require_secret POSTGRES_RADIUS_PASSWORD "${{ secrets.POSTGRES_RADIUS_PASSWORD }}"
           require_secret RADIUS_SHARED_SECRET "${{ secrets.RADIUS_SHARED_SECRET }}"
-          require_secret STRONGSWAN_CERT_PATH "${{ secrets.STRONGSWAN_CERT_PATH }}"
-          require_secret STRONGSWAN_KEY_PATH "${{ secrets.STRONGSWAN_KEY_PATH }}"
           require_secret STRONGSWAN_RIGHT_SOURCE_IP "${{ secrets.STRONGSWAN_RIGHT_SOURCE_IP }}"
           require_secret STRONGSWAN_DNS "${{ secrets.STRONGSWAN_DNS }}"
           require_secret EMAIL__HOST "${{ secrets.EMAIL__HOST }}"
@@ -203,8 +201,6 @@ jobs:
           POSTGRES_APP_PASSWORD=${{ secrets.POSTGRES_APP_PASSWORD }}
           POSTGRES_RADIUS_PASSWORD=${{ secrets.POSTGRES_RADIUS_PASSWORD }}
           RADIUS_SHARED_SECRET=${{ secrets.RADIUS_SHARED_SECRET }}
-          STRONGSWAN_CERT_PATH=${{ secrets.STRONGSWAN_CERT_PATH }}
-          STRONGSWAN_KEY_PATH=${{ secrets.STRONGSWAN_KEY_PATH }}
           STRONGSWAN_RIGHT_SOURCE_IP=${{ secrets.STRONGSWAN_RIGHT_SOURCE_IP }}
           STRONGSWAN_DNS=${{ secrets.STRONGSWAN_DNS }}
           Email__Host=${{ secrets.EMAIL__HOST }}

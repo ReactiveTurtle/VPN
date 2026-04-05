@@ -21,7 +21,7 @@
 
 Для текущей single-host topology основной путь подготовки PostgreSQL уже автоматизирован шагом `deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh`. Перед ним рекомендуется запускать `deploy/predeploy/infrastructure/vpn-host/00-validate-env.sh`, чтобы сразу увидеть, каких переменных не хватает.
 
-Повторная read-only проверка этих ролей и `CONNECT`-прав также выполняется шагом `deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh`.
+Повторная read-only проверка этих ролей и `CONNECT`-прав также выполняется шагом `deploy/predeploy/infrastructure/vpn-host/07-verify-stack.sh`.
 
 Ручной SQL-сценарий ниже нужен, если вы настраиваете PostgreSQL вне стандартного bootstrap потока или хотите воспроизвести тот же результат вручную.
 

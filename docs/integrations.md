@@ -55,6 +55,7 @@
 
 - Host bootstrap env files: `/etc/vpnportal/vpn-host.prod.env`, `/etc/vpnportal/vpn-host.stage.env`
 - App runtime env files: `/etc/vpnportal/vpnportal.prod.container.env`, `/etc/vpnportal/vpnportal.stage.container.env`
+- strongSwan PKI files are generated on the host bootstrap path under `/etc/ipsec.d/` when they do not already exist
 - The bootstrap loader now derives the usual `prod`/`stage` runtime values from a smaller input set like `TARGET`, `PUBLIC_BASE_URL`, and `VPN_SERVER_ADDRESS`, while still allowing explicit overrides when the host layout or public addresses differ from the defaults.
 - Internal endpoint: `POST /api/internal/radius/accounting-events`
 - Auth header: `X-Internal-Api-Key: <InternalApi:SharedSecret>`

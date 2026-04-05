@@ -28,7 +28,7 @@ usage() {
   - создает директории деплоя по настроенному пути и в /etc/vpnportal
   - создает целевой env-файл контейнера из подходящего example, если его еще нет
   - рендерит nginx-конфиг с настроенными server name, именем site и upstream-портом
-  - автоматически находит env-файл bootstrap VPN host для того же окружения и запускает repository bootstrap flow шагами `00-06`
+  - автоматически находит env-файл bootstrap VPN host для того же окружения и запускает repository bootstrap flow шагами `00-07`
 
 Что скрипт не делает:
   - не настраивает SSH-доступ
@@ -316,9 +316,10 @@ run_vpn_host_bootstrap() {
     run_step "Шаг 01 - установка пакетов VPN host" "${bootstrap_dir}/01-install-packages.sh" "${VPN_HOST_ENV_FILE}"
     run_step "Шаг 02 - создание директорий VPN host" "${bootstrap_dir}/02-create-users-and-directories.sh" "${VPN_HOST_ENV_FILE}"
     run_step "Шаг 03 - инициализация PostgreSQL" "${bootstrap_dir}/03-install-and-init-postgres.sh" "${VPN_HOST_ENV_FILE}"
-    run_step "Шаг 04 - настройка FreeRADIUS" "${bootstrap_dir}/04-configure-freeradius.sh" "${VPN_HOST_ENV_FILE}"
-    run_step "Шаг 05 - подготовка runtime env портала" "${bootstrap_dir}/05-configure-portal-host.sh" "${VPN_HOST_ENV_FILE}"
-    run_step "Шаг 06 - итоговая проверка host stack" "${bootstrap_dir}/06-verify-stack.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 04 - генерация strongSwan PKI" "${bootstrap_dir}/04-generate-strongswan-pki.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 05 - настройка FreeRADIUS" "${bootstrap_dir}/05-configure-freeradius.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 06 - подготовка runtime env портала" "${bootstrap_dir}/06-configure-portal-host.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 07 - итоговая проверка host stack" "${bootstrap_dir}/07-verify-stack.sh" "${VPN_HOST_ENV_FILE}"
 }
 
 if [[ "${INSTALL_PACKAGES}" -eq 1 ]]; then
@@ -328,5 +329,5 @@ fi
 run_step "App host - создание директорий" create_directories
 run_step "App host - подготовка runtime env" install_env_file
 run_step "App host - рендер nginx-конфига" install_nginx_site
-run_step "VPN host - bootstrap 00-06" run_vpn_host_bootstrap
+run_step "VPN host - bootstrap 00-07" run_vpn_host_bootstrap
 print_summary

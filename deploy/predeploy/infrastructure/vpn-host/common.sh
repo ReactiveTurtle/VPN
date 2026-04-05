@@ -66,6 +66,9 @@ normalize_env() {
     POSTGRES_APP_USER="${POSTGRES_APP_USER:-vpn_portal_app}"
     POSTGRES_RADIUS_USER="${POSTGRES_RADIUS_USER:-vpn_portal_radius}"
     RADIUS_CLIENT_ADDRESS="${RADIUS_CLIENT_ADDRESS:-127.0.0.1}"
+    STRONGSWAN_CERT_PATH="${STRONGSWAN_CERT_PATH:-/etc/ipsec.d/certs/server-cert.pem}"
+    STRONGSWAN_KEY_PATH="${STRONGSWAN_KEY_PATH:-/etc/ipsec.d/private/server-key.pem}"
+    STRONGSWAN_CA_CERT_PATH="${STRONGSWAN_CA_CERT_PATH:-/etc/ipsec.d/cacerts/ca-cert.pem}"
     Email__Port="${Email__Port:-587}"
     VpnRuntime__DisconnectScriptPath="${VpnRuntime__DisconnectScriptPath:-/usr/local/lib/vpnportal/disconnect-session.sh}"
 
@@ -95,6 +98,9 @@ normalize_env() {
     export POSTGRES_APP_USER
     export POSTGRES_RADIUS_USER
     export RADIUS_CLIENT_ADDRESS
+    export STRONGSWAN_CERT_PATH
+    export STRONGSWAN_KEY_PATH
+    export STRONGSWAN_CA_CERT_PATH
     export STRONGSWAN_SERVER_ID
     export Email__PublicBaseUrl
     export Email__Port
