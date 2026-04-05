@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/common.sh"
+source "${SCRIPT_DIR}/../predeploy/infrastructure/vpn-host/common.sh"
 
 require_root
 load_env "${1:-}"
@@ -24,5 +24,5 @@ if [[ -z "${InternalApi__SharedSecret:-}" ]]; then
     exit 1
 fi
 
-log_step "Smoke test завершен"
+log_step "Проверка runtime портала завершена"
 printf 'Status endpoints портала доступны по адресу %s\n' "${base_url}"

@@ -253,9 +253,11 @@ install_nginx_site() {
 
 print_summary() {
     local vpn_host_note="not requested"
+    local smoke_test_note="не запускался"
 
     if [[ -n "${VPN_HOST_ENV_FILE}" ]]; then
         vpn_host_note="выполнен с ${VPN_HOST_ENV_FILE}"
+        smoke_test_note="доступна после первого deploy и запуска API через deploy/host/verify-portal-runtime.sh"
     fi
 
     cat <<EOF
@@ -268,6 +270,7 @@ Predeploy env: ${PREDEPLOY_ENV_FILE}
 Env-файл: ${RUNTIME_ENV_FILE}
 nginx site: ${NGINX_AVAILABLE_PATH}
 Bootstrap VPN host: ${vpn_host_note}
+Smoke test портала: ${smoke_test_note}
 
 Следующие ручные шаги:
   1. Настройте SSH-доступ для пользователя деплоя.
@@ -300,6 +303,7 @@ run_vpn_host_bootstrap() {
     "${bootstrap_dir}/03-install-and-init-postgres.sh" "${VPN_HOST_ENV_FILE}"
     "${bootstrap_dir}/04-configure-freeradius.sh" "${VPN_HOST_ENV_FILE}"
     "${bootstrap_dir}/05-configure-portal-host.sh" "${VPN_HOST_ENV_FILE}"
+    "${bootstrap_dir}/06-verify-stack.sh" "${VPN_HOST_ENV_FILE}"
 }
 
 if [[ "${INSTALL_PACKAGES}" -eq 1 ]]; then

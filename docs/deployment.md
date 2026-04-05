@@ -71,7 +71,7 @@ These helpers are versioned in the repository and should be treated as part of t
 Use these assets after bootstrap and deploy:
 
 - `deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh`
-- `deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh`
+- `deploy/host/verify-portal-runtime.sh`
 - `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md`
 
 ## Schema Application

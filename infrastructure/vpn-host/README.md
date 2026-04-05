@@ -52,11 +52,10 @@ Run these predeploy scripts in this order as `root`:
 5. `deploy/predeploy/infrastructure/vpn-host/04-configure-freeradius.sh`
 6. `deploy/predeploy/infrastructure/vpn-host/05-configure-portal-host.sh`
 7. `deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh`
-8. `deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh`
 
 There is no separate predeploy strongSwan configuration step. Predeploy only validates the bootstrap env in step `00` and installs the `strongSwan` packages as part of `deploy/predeploy/infrastructure/vpn-host/01-install-packages.sh`.
 
-Run step `07-smoke-test-portal.sh` only after the first application deploy has completed and the API is already reachable.
+Post-deploy runtime verification lives in `deploy/host/verify-portal-runtime.sh` and should run only after the first application deploy has completed and the API is already reachable.
 
 ## Deploy-Time strongSwan Rollout
 
@@ -187,7 +186,8 @@ sudo install -m 0755 infrastructure/vpn-host/tools/vpn-speed.py /usr/local/bin/v
 
 ## Validation Runbook
 
-- Non-destructive smoke check: `deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh`
+- Host predeploy verification: `deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh`
+- Post-deploy portal runtime verification: `deploy/host/verify-portal-runtime.sh`
 - End-to-end runtime validation: `runbooks/verify-vpn-runtime-flow.md`
 
 ## Verification

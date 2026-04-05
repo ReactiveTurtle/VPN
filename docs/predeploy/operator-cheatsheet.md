@@ -43,7 +43,7 @@ sudo ./deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh /etc/vpnporta
 4. После первого deploy и запуска API:
 
 ```bash
-sudo ./deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh /etc/vpnportal/vpn-host.prod.env
+sudo ./deploy/host/verify-portal-runtime.sh /etc/vpnportal/vpn-host.prod.env
 ```
 
 ## Stage
@@ -81,7 +81,7 @@ sudo ./deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh /etc/vpnporta
 4. После первого deploy и запуска API:
 
 ```bash
-sudo ./deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh /etc/vpnportal/vpn-host.stage.env
+sudo ./deploy/host/verify-portal-runtime.sh /etc/vpnportal/vpn-host.stage.env
 ```
 
 ## Что Проверить Перед Стартом
@@ -98,4 +98,4 @@ sudo ./deploy/predeploy/infrastructure/vpn-host/07-smoke-test-portal.sh /etc/vpn
 1. Запустить обычный deploy workflow.
 2. Убедиться, что миграции БД применились.
 3. Создать первого `superadmin` по `docs/runbooks/create-first-superadmin.md`.
-4. Прогнать `07-smoke-test-portal.sh` и затем `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md`.
+4. Прогнать `deploy/host/verify-portal-runtime.sh` и затем `infrastructure/vpn-host/runbooks/verify-vpn-runtime-flow.md`.

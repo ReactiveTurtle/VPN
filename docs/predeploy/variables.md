@@ -274,7 +274,11 @@ Runtime secrets приложения:
 
 - `require_env_vars POSTGRES_DB POSTGRES_APP_USER POSTGRES_RADIUS_USER`
 
-### Шаг 07. `07-smoke-test-portal.sh`
+Этот шаг теперь входит в автоматическую цепочку `prepare-app-host.sh --vpn-host-env ...`.
+
+## Post-Deploy Verification
+
+### `deploy/host/verify-portal-runtime.sh`
 
 Что делает:
 
@@ -288,7 +292,8 @@ Runtime secrets приложения:
 
 Важно:
 
-- этот шаг имеет смысл только после первого deploy и запуска API
+- это post-deploy runtime verification, а не predeploy шаг
+- `deploy.yml` запускает этот скрипт после `docker compose up -d api`, когда на хосте есть `/etc/vpnportal/vpn-host.<env>.env`
 
 Где валидация:
 

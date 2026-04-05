@@ -118,6 +118,7 @@ If the deploy user was just added to the `docker` group, re-login before running
 - `deploy.yml` archives the current repository source, uploads the source snapshot to the target host, refreshes `/etc/vpnportal/predeploy.<env>.env`, renders the runtime env file from GitHub Environment Secrets, installs that file under `/etc/vpnportal/`, and then runs `docker compose build` remotely.
 - When `/etc/vpnportal/vpn-host.stage.env` or `/etc/vpnportal/vpn-host.prod.env` exists for the current target, `deploy.yml` runs `deploy/host/apply-strongswan-config.sh` to reapply the repository version of the `strongSwan` configuration before updating the API container.
 - `docker compose run --rm migrations` applies schema changes before `docker compose up -d api` updates the application container.
+- After the API starts, `deploy.yml` runs `deploy/host/verify-portal-runtime.sh` when the matching `/etc/vpnportal/vpn-host.<env>.env` file exists.
 - Runtime helpers under `/usr/local/lib/vpnportal` remain host-managed and are mounted into the app container read-only.
 
 ## Current Image Scope
