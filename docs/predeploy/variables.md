@@ -40,6 +40,8 @@ Runtime secrets приложения:
 
 Именно этот файл использует `deploy/predeploy/prepare-app-host.sh` как единый источник истины для app predeploy.
 
+По `DEPLOY_ENV_NAME` из этого файла `prepare-app-host.sh` также автоматически выбирает обязательный bootstrap env-файл VPN host: `/etc/vpnportal/vpn-host.stage.env` или `/etc/vpnportal/vpn-host.prod.env`.
+
 Обязательные значения:
 
 - `DEPLOY_ENV_NAME`
@@ -56,7 +58,7 @@ Runtime secrets приложения:
 
 Это файл `/etc/vpnportal/vpn-host.prod.env` или `/etc/vpnportal/vpn-host.stage.env`.
 
-Именно этот файл используют шаги `00-07` из `deploy/predeploy/infrastructure/vpn-host/`.
+Именно этот файл используют шаги `00-06` из `deploy/predeploy/infrastructure/vpn-host/`, а также post-deploy runtime verification script `deploy/host/verify-portal-runtime.sh`.
 
 Ручные обязательные значения для bootstrap:
 
@@ -104,7 +106,7 @@ Runtime secrets приложения:
 - рендерит GitHub deploy workflow из GitHub Environment Secrets
 - либо подготавливает `05-configure-portal-host.sh` во время bootstrap single-host сервера
 
-## Порядок Шагов `00-07`
+## Порядок Шагов `00-06`
 
 ### Шаг 00. `00-validate-env.sh`
 
@@ -274,7 +276,7 @@ Runtime secrets приложения:
 
 - `require_env_vars POSTGRES_DB POSTGRES_APP_USER POSTGRES_RADIUS_USER`
 
-Этот шаг теперь входит в автоматическую цепочку `prepare-app-host.sh --vpn-host-env ...`.
+Этот шаг теперь входит в автоматическую цепочку `prepare-app-host.sh`, которая автоматически использует matching `/etc/vpnportal/vpn-host.<env>.env`.
 
 ## Post-Deploy Verification
 

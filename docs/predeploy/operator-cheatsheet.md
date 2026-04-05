@@ -25,7 +25,7 @@ sudo nano /etc/vpnportal/vpn-host.prod.env
 2. Подготовьте app host:
 
 ```bash
-sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.prod.env --vpn-host-env /etc/vpnportal/vpn-host.prod.env
+sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.prod.env
 ```
 
 3. Если bootstrap запускаете вручную, порядок такой:
@@ -63,7 +63,7 @@ sudo nano /etc/vpnportal/vpn-host.stage.env
 2. Подготовьте app host:
 
 ```bash
-sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.stage.env --vpn-host-env /etc/vpnportal/vpn-host.stage.env
+sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.stage.env
 ```
 
 3. Если bootstrap запускаете вручную, порядок такой:
@@ -88,6 +88,7 @@ sudo ./deploy/host/verify-portal-runtime.sh /etc/vpnportal/vpn-host.stage.env
 
 - заполнены обязательные переменные в `/etc/vpnportal/predeploy.<target>.env`
 - заполнены обязательные переменные в `/etc/vpnportal/vpn-host.<target>.env`
+- `prepare-app-host.sh` будет использовать оба файла одного и того же окружения автоматически
 - SSH уже настроен для deploy user
 - `DEPLOY_PATH` из `/etc/vpnportal/predeploy.<target>.env` существует и доступен для записи
 - после добавления deploy user в группу `docker` выполнен новый логин или `newgrp docker`

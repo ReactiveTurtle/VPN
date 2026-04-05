@@ -18,7 +18,7 @@ usage() {
   --predeploy-env <path>         Host-side predeploy env-файл в /etc/vpnportal
   --skip-packages                Не устанавливать nginx и Docker-пакеты
   --skip-enable-nginx            Не включать и не перезапускать nginx
-  --vpn-host-env <path>          Запустить bootstrap infrastructure/vpn-host с этим env-файлом
+  --vpn-host-env <path>          Переопределить путь к env-файлу bootstrap VPN host
   --help                         Показать эту справку
 
 Что делает скрипт:
@@ -27,14 +27,14 @@ usage() {
   - создает директории деплоя по настроенному пути и в /etc/vpnportal
   - создает целевой env-файл контейнера из подходящего example, если его еще нет
   - рендерит nginx-конфиг с настроенными server name, именем site и upstream-портом
-  - при необходимости валидирует и запускает repository bootstrap flow для VPN host
+  - автоматически находит env-файл bootstrap VPN host для того же окружения и запускает repository bootstrap flow
 
 Что скрипт не делает:
   - не настраивает SSH-доступ
   - не подставляет GitHub deployment secrets в runtime env-файл Docker
   - не запускает миграции базы данных
   - не создает первого superadmin
-  - не выполняет bootstrap strongSwan, FreeRADIUS или PostgreSQL, если не передан --vpn-host-env
+  - не применяет схему приложения
 EOF
 }
 
@@ -136,6 +136,10 @@ load_predeploy_env() {
 
     NGINX_AVAILABLE_PATH="/etc/nginx/sites-available/${NGINX_SITE_NAME}"
     NGINX_ENABLED_PATH="/etc/nginx/sites-enabled/${NGINX_SITE_NAME}"
+
+    if [[ -z "${VPN_HOST_ENV_FILE}" ]]; then
+        VPN_HOST_ENV_FILE="/etc/vpnportal/vpn-host.${DEPLOY_ENV_NAME}.env"
+    fi
 }
 
 while [[ $# -gt 0 ]]; do
@@ -252,13 +256,9 @@ install_nginx_site() {
 }
 
 print_summary() {
-    local vpn_host_note="not requested"
-    local smoke_test_note="не запускался"
-
-    if [[ -n "${VPN_HOST_ENV_FILE}" ]]; then
-        vpn_host_note="выполнен с ${VPN_HOST_ENV_FILE}"
-        smoke_test_note="доступна после первого deploy и запуска API через deploy/host/verify-portal-runtime.sh"
-    fi
+    local vpn_host_note="выполнен с ${VPN_HOST_ENV_FILE}"
+    local smoke_test_note="доступна после первого deploy и запуска API через deploy/host/verify-portal-runtime.sh"
+    local postgres_note="роли PostgreSQL и доступ к базе проверены в шагах 03 и 06"
 
     cat <<EOF
 
@@ -270,6 +270,7 @@ Predeploy env: ${PREDEPLOY_ENV_FILE}
 Env-файл: ${RUNTIME_ENV_FILE}
 nginx site: ${NGINX_AVAILABLE_PATH}
 Bootstrap VPN host: ${vpn_host_note}
+Проверки PostgreSQL: ${postgres_note}
 Smoke test портала: ${smoke_test_note}
 
 Следующие ручные шаги:
@@ -285,12 +286,9 @@ EOF
 run_vpn_host_bootstrap() {
     local bootstrap_dir
 
-    if [[ -z "${VPN_HOST_ENV_FILE}" ]]; then
-        return
-    fi
-
     if [[ ! -f "${VPN_HOST_ENV_FILE}" ]]; then
-        printf 'VPN host env-файл не найден: %s\n' "${VPN_HOST_ENV_FILE}" >&2
+        printf 'Обязательный VPN host env-файл не найден: %s\n' "${VPN_HOST_ENV_FILE}" >&2
+        printf 'prepare-app-host.sh использует окружение из %s и требует matching vpn-host.<env>.env для полного predeploy.\n' "${PREDEPLOY_ENV_FILE}" >&2
         exit 1
     fi
 

@@ -74,7 +74,7 @@ You can automate most application-host setup steps with:
 
 This helper installs base packages, including Docker Engine, Docker Compose plugin, and nginx, prepares directories, adds the deploy user from the predeploy env file to the `docker` group, renders nginx config, and writes the example container env file when missing.
 
-If the same server also acts as the VPN host, you can additionally pass `--vpn-host-env /etc/vpnportal/vpn-host.prod.env` or `--vpn-host-env /etc/vpnportal/vpn-host.stage.env` to run the repository bootstrap flow for `strongSwan`, `FreeRADIUS`, and `PostgreSQL`.
+If the same server also acts as the VPN host, `prepare-app-host.sh` automatically requires the matching `/etc/vpnportal/vpn-host.prod.env` or `/etc/vpnportal/vpn-host.stage.env` file for the selected predeploy environment and runs the repository bootstrap flow for `strongSwan`, `FreeRADIUS`, and `PostgreSQL`.
 
 `prepare-app-host.sh` now reads `/etc/vpnportal/predeploy.prod.env` or `/etc/vpnportal/predeploy.stage.env` as the host-side source of truth for app predeploy settings such as `DEPLOY_PATH`, `NGINX_PORTAL_SERVER_NAME`, `RUNTIME_ENV_FILE`, `NGINX_SITE_NAME`, and `APP_PORT`.
 
