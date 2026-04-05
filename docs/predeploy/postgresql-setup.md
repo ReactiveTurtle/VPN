@@ -8,11 +8,20 @@
 
 - База данных `vpn_portal`
 - Пользователь `vpn_portal_app` — для подключения приложения к БД
-- Пользователь `vpn_portal_radius` — для подключения FreeRADIUS к БД (опционально, если RADIUS работает от имени приложения)
+- Пользователь `vpn_portal_radius` — для подключения FreeRADIUS к БД
+
+В текущем bootstrap-потоке single-host сервера шаг `deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh` автоматически создает обе роли и проверяет, что:
+
+- роль `vpn_portal_app` существует
+- роль `vpn_portal_radius` существует
+- база данных существует
+- обе роли имеют `CONNECT` к `vpn_portal`
 
 ## Предварительные Требования
 
 Для текущей single-host topology основной путь подготовки PostgreSQL уже автоматизирован шагом `deploy/predeploy/infrastructure/vpn-host/03-install-and-init-postgres.sh`. Перед ним рекомендуется запускать `deploy/predeploy/infrastructure/vpn-host/00-validate-env.sh`, чтобы сразу увидеть, каких переменных не хватает.
+
+Повторная read-only проверка этих ролей и `CONNECT`-прав также выполняется шагом `deploy/predeploy/infrastructure/vpn-host/06-verify-stack.sh`.
 
 Ручной SQL-сценарий ниже нужен, если вы настраиваете PostgreSQL вне стандартного bootstrap потока или хотите воспроизвести тот же результат вручную.
 
@@ -35,13 +44,15 @@ sudo -u postgres psql -d vpn_portal
 
 ## Создание Пользователей И Базы Данных
 
+Для стандартного single-host bootstrap этот раздел обычно не нужен: роли и база данных создаются автоматически шагом `03-install-and-init-postgres.sh`. Ниже остается ручной эквивалент для нестандартной подготовки или отладки.
+
 Выполните следующие SQL-команды в psql:
 
 ```sql
 -- Создаем пользователя для приложения
 CREATE USER vpn_portal_app WITH PASSWORD 'change-me-secure-password';
 
--- Создаем пользователя для FreeRADIUS (опционально)
+-- Создаем пользователя для FreeRADIUS
 CREATE USER vpn_portal_radius WITH PASSWORD 'change-me-secure-password-radius';
 
 -- Создаем базу данных
@@ -50,7 +61,7 @@ CREATE DATABASE vpn_portal OWNER vpn_portal_app;
 -- Даем права приложению
 GRANT ALL PRIVILEGES ON DATABASE vpn_portal TO vpn_portal_app;
 
--- Даем права FreeRADIUS (опционально)
+-- Даем права FreeRADIUS
 GRANT ALL PRIVILEGES ON DATABASE vpn_portal TO vpn_portal_radius;
 ```
 

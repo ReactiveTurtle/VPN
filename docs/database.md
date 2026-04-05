@@ -33,7 +33,15 @@ Bootstrap assets under `infrastructure/vpn-host/postgresql/` cover:
 
 - database role creation
 - database creation
+- bootstrap-time verification of the application and FreeRADIUS database roles
 - a manual superadmin SQL example for trusted administrative use after migrations are applied
+
+The current bootstrap flow creates separate PostgreSQL roles for the portal application and for FreeRADIUS:
+
+- `vpn_portal_app`
+- `vpn_portal_radius`
+
+The portal runtime connection string uses the application role, while the FreeRADIUS SQL module uses the RADIUS role.
 
 ## Migration Model
 

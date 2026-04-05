@@ -179,6 +179,8 @@ Runtime secrets приложения:
 Что делает:
 
 - создаёт PostgreSQL roles и базу данных
+- проверяет, что роли `POSTGRES_APP_USER` и `POSTGRES_RADIUS_USER` существуют
+- проверяет, что обе роли имеют `CONNECT` к `POSTGRES_DB`
 - копирует пример SQL для ручного создания первого `superadmin`
 
 Нужны переменные:
@@ -256,6 +258,8 @@ Runtime secrets приложения:
 Что делает:
 
 - проверяет локальную доступность `PostgreSQL`
+- повторно проверяет наличие ролей `POSTGRES_APP_USER` и `POSTGRES_RADIUS_USER`
+- повторно проверяет, что обе роли имеют `CONNECT` к `POSTGRES_DB`
 - показывает статус systemd units
 - проверяет `freeradius -CX`
 - проверяет runtime helpers и открытые сокеты
@@ -263,10 +267,12 @@ Runtime secrets приложения:
 Нужны переменные:
 
 - `POSTGRES_DB`
+- `POSTGRES_APP_USER`
+- `POSTGRES_RADIUS_USER`
 
 Где валидация:
 
-- `require_env_vars POSTGRES_DB`
+- `require_env_vars POSTGRES_DB POSTGRES_APP_USER POSTGRES_RADIUS_USER`
 
 ### Шаг 07. `07-smoke-test-portal.sh`
 
