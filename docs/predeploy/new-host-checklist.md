@@ -105,6 +105,8 @@ sudo /opt/vpnportal/predeploy/prepare-app-host.sh --predeploy-env /etc/vpnportal
 
 Это даёт раннюю валидацию bootstrap env-файла до начала изменений на хосте и затем выполняет установку пакетов, подготовку каталогов, `PostgreSQL`, `FreeRADIUS`, runtime env-файл портала и итоговую verify-проверку хоста.
 
+Шаги идут строго друг за другом. Если любой шаг завершается ошибкой, `prepare-app-host.sh` явно сообщает, какой шаг не пройден, и не запускает следующие шаги.
+
 Конфиг `strongSwan` из репозитория не является отдельным шагом predeploy. Пакет `strongSwan` ставится в `01-install-packages.sh`, а конфиг обновляется отдельным deploy-скриптом `deploy/host/apply-strongswan-config.sh` во время обычного deploy workflow.
 
 Post-deploy runtime verification больше не считается частью predeploy-цепочки. Проверка доступности API выполняется отдельным скриптом `deploy/host/verify-portal-runtime.sh` после deploy.
@@ -112,7 +114,7 @@ Post-deploy runtime verification больше не считается часть
 При этом он не заменяет ручные шаги для SSH-доступа, настройки GitHub Environment Secrets для runtime-конфигурации приложения, миграций БД и создания первого администратора.
 
 1. Подготовьте `/etc/vpnportal/predeploy.<env>.env` из `deploy/predeploy/env/predeploy.<env>.env.example` до первого app predeploy или дождитесь первого regular deploy, который обновит этот файл на хосте.
-2. Подготовьте matching `/etc/vpnportal/vpn-host.<env>.env` для того же окружения.
+2. Подготовьте matching `/etc/vpnportal/vpn-host.<env>.env` для того же окружения или дождитесь regular deploy, который теперь также обновляет этот файл на хосте.
 3. При первом ручном predeploy запустите `prepare-app-host.sh` или `prepare-app-host.sh --predeploy-env /etc/vpnportal/predeploy.<env>.env`.
 4. Скопируйте `deploy/docker/docker-compose.yml` на сервер, например в `DEPLOY_PATH/docker-compose.yml`, только если workflow ещё не начал управлять релизами.
 5. Убедитесь, что `DEPLOY_PATH` из `/etc/vpnportal/predeploy.<env>.env` существует на сервере и доступен для записи пользователю деплоя.

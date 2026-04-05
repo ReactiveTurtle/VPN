@@ -29,9 +29,20 @@ Runtime secrets приложения:
 - `VPNACCESS__SERVERADDRESS`
 - `VPNRUNTIME__DISCONNECTSCRIPTPATH`
 
+VPN bootstrap secrets для полного predeploy single-host сервера:
+
+- `POSTGRES_APP_PASSWORD`
+- `POSTGRES_RADIUS_PASSWORD`
+- `RADIUS_SHARED_SECRET`
+- `STRONGSWAN_CERT_PATH`
+- `STRONGSWAN_KEY_PATH`
+- `STRONGSWAN_RIGHT_SOURCE_IP`
+- `STRONGSWAN_DNS`
+
 Валидация:
 
 - SSH/deploy secrets проверяются в `.github/workflows/deploy.yml` на шаге `Validate deployment secrets`
+- VPN bootstrap secrets проверяются в `.github/workflows/deploy.yml` на шаге `Validate VPN bootstrap secrets`
 - runtime secrets приложения проверяются в `.github/workflows/deploy.yml` на шаге `Validate application secrets`
 
 ### 2. Host-Side App Predeploy Env
@@ -54,11 +65,15 @@ Runtime secrets приложения:
 
 Обычный `deploy.yml` рендерит этот файл перед отправкой predeploy-скриптов. Перед самым первым ручным app predeploy его также можно создать из `deploy/predeploy/env/predeploy.<env>.env.example`.
 
+`prepare-app-host.sh` сначала загружает именно этот файл, а затем по `DEPLOY_ENV_NAME` требует matching `/etc/vpnportal/vpn-host.<env>.env` для полного predeploy.
+
 ### 3. Bootstrap Env VPN-Хоста
 
 Это файл `/etc/vpnportal/vpn-host.prod.env` или `/etc/vpnportal/vpn-host.stage.env`.
 
 Именно этот файл используют шаги `00-06` из `deploy/predeploy/infrastructure/vpn-host/`, а также post-deploy runtime verification script `deploy/host/verify-portal-runtime.sh`.
+
+Обычный `deploy.yml` теперь также рендерит этот файл перед отправкой predeploy-скриптов, чтобы на машине были все переменные, которые реально нужны полному predeploy.
 
 Ручные обязательные значения для bootstrap:
 
@@ -107,6 +122,8 @@ Runtime secrets приложения:
 - либо подготавливает `05-configure-portal-host.sh` во время bootstrap single-host сервера
 
 ## Порядок Шагов `00-06`
+
+Шаги выполняются строго последовательно. Если любой шаг завершается с ошибкой, следующий шаг не запускается.
 
 ### Шаг 00. `00-validate-env.sh`
 

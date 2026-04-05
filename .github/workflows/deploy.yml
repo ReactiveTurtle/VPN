@@ -134,6 +134,41 @@ jobs:
             exit 1
           fi
 
+      - name: Validate VPN bootstrap secrets
+        shell: bash
+        run: |
+          missing=0
+
+          require_secret() {
+            local name="$1"
+            local value="$2"
+
+            if [[ -z "$value" ]]; then
+              echo "Missing required VPN bootstrap secret: $name" >&2
+              missing=1
+            fi
+          }
+
+          require_secret EMAIL__PUBLICBASEURL "${{ secrets.EMAIL__PUBLICBASEURL }}"
+          require_secret VPNACCESS__SERVERADDRESS "${{ secrets.VPNACCESS__SERVERADDRESS }}"
+          require_secret INTERNALAPI__SHAREDSECRET "${{ secrets.INTERNALAPI__SHAREDSECRET }}"
+          require_secret POSTGRES_APP_PASSWORD "${{ secrets.POSTGRES_APP_PASSWORD }}"
+          require_secret POSTGRES_RADIUS_PASSWORD "${{ secrets.POSTGRES_RADIUS_PASSWORD }}"
+          require_secret RADIUS_SHARED_SECRET "${{ secrets.RADIUS_SHARED_SECRET }}"
+          require_secret STRONGSWAN_CERT_PATH "${{ secrets.STRONGSWAN_CERT_PATH }}"
+          require_secret STRONGSWAN_KEY_PATH "${{ secrets.STRONGSWAN_KEY_PATH }}"
+          require_secret STRONGSWAN_RIGHT_SOURCE_IP "${{ secrets.STRONGSWAN_RIGHT_SOURCE_IP }}"
+          require_secret STRONGSWAN_DNS "${{ secrets.STRONGSWAN_DNS }}"
+          require_secret EMAIL__HOST "${{ secrets.EMAIL__HOST }}"
+          require_secret EMAIL__USERNAME "${{ secrets.EMAIL__USERNAME }}"
+          require_secret EMAIL__PASSWORD "${{ secrets.EMAIL__PASSWORD }}"
+          require_secret EMAIL__FROMEMAIL "${{ secrets.EMAIL__FROMEMAIL }}"
+
+          if [[ "$missing" -ne 0 ]]; then
+            echo "Configure the missing VPN bootstrap secrets in the GitHub Environment: ${{ needs.package.outputs.target }}" >&2
+            exit 1
+          fi
+
       - name: Setup SSH agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -157,11 +192,35 @@ jobs:
           APP_PORT=${{ needs.package.outputs.host_port }}
           EOF
 
+      - name: Render VPN host bootstrap env file
+        shell: bash
+        run: |
+          cat > vpnportal.vpn-host.env <<EOF
+          TARGET=${{ needs.package.outputs.target }}
+          PUBLIC_BASE_URL=${{ secrets.EMAIL__PUBLICBASEURL }}
+          VPN_SERVER_ADDRESS=${{ secrets.VPNACCESS__SERVERADDRESS }}
+          InternalApi__SharedSecret=${{ secrets.INTERNALAPI__SHAREDSECRET }}
+          POSTGRES_APP_PASSWORD=${{ secrets.POSTGRES_APP_PASSWORD }}
+          POSTGRES_RADIUS_PASSWORD=${{ secrets.POSTGRES_RADIUS_PASSWORD }}
+          RADIUS_SHARED_SECRET=${{ secrets.RADIUS_SHARED_SECRET }}
+          STRONGSWAN_CERT_PATH=${{ secrets.STRONGSWAN_CERT_PATH }}
+          STRONGSWAN_KEY_PATH=${{ secrets.STRONGSWAN_KEY_PATH }}
+          STRONGSWAN_RIGHT_SOURCE_IP=${{ secrets.STRONGSWAN_RIGHT_SOURCE_IP }}
+          STRONGSWAN_DNS=${{ secrets.STRONGSWAN_DNS }}
+          Email__Host=${{ secrets.EMAIL__HOST }}
+          Email__Username=${{ secrets.EMAIL__USERNAME }}
+          Email__Password=${{ secrets.EMAIL__PASSWORD }}
+          Email__FromEmail=${{ secrets.EMAIL__FROMEMAIL }}
+          Email__FromName=${{ secrets.EMAIL__FROMNAME }}
+          VpnRuntime__DisconnectScriptPath=${{ secrets.VPNRUNTIME__DISCONNECTSCRIPTPATH }}
+          EOF
+
       - name: Deploy predeploy scripts
         run: |
           tar -czf vpnportal-predeploy.tar.gz deploy/predeploy/
           scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal-predeploy.tar.gz "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal-predeploy.tar.gz"
           scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal.predeploy.env "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal.predeploy.env.tmp"
+          scp -P "${{ secrets.DEPLOY_PORT }}" vpnportal.vpn-host.env "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}/vpnportal.vpn-host.env.tmp"
 
       - name: Extract predeploy scripts on target
         run: |
@@ -172,12 +231,15 @@ jobs:
           test -d "$DEPLOY_PATH"
           test -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
           test -f "$DEPLOY_PATH/vpnportal.predeploy.env.tmp"
+          test -f "$DEPLOY_PATH/vpnportal.vpn-host.env.tmp"
           rm -rf "$DEPLOY_PATH/predeploy"
           install -d -m 0755 "$DEPLOY_PATH/predeploy"
           tar -xzf "$DEPLOY_PATH/vpnportal-predeploy.tar.gz" -C "$DEPLOY_PATH/predeploy" --strip-components=2
           rm -f "$DEPLOY_PATH/vpnportal-predeploy.tar.gz"
           sudo install -m 0640 "$DEPLOY_PATH/vpnportal.predeploy.env.tmp" "/etc/vpnportal/predeploy.$TARGET.env"
+          sudo install -m 0640 "$DEPLOY_PATH/vpnportal.vpn-host.env.tmp" "/etc/vpnportal/vpn-host.$TARGET.env"
           rm -f "$DEPLOY_PATH/vpnportal.predeploy.env.tmp"
+          rm -f "$DEPLOY_PATH/vpnportal.vpn-host.env.tmp"
           EOF
 
       - name: Validate application secrets

@@ -22,6 +22,8 @@ sudo nano /etc/vpnportal/vpn-host.prod.env
 
 `/etc/vpnportal/predeploy.prod.env` можно подготовить вручную до первого app predeploy или получить из обычного deploy workflow, который обновляет этот файл на хосте.
 
+`/etc/vpnportal/vpn-host.prod.env` тоже можно подготовить вручную заранее или получить из обычного deploy workflow. Без него `prepare-app-host.sh` завершится ошибкой и не запустит шаги `00-06`.
+
 2. Подготовьте app host:
 
 ```bash
@@ -59,6 +61,8 @@ sudo nano /etc/vpnportal/vpn-host.stage.env
 ```
 
 `/etc/vpnportal/predeploy.stage.env` можно подготовить вручную до первого app predeploy или получить из обычного deploy workflow, который обновляет этот файл на хосте.
+
+`/etc/vpnportal/vpn-host.stage.env` тоже можно подготовить вручную заранее или получить из обычного deploy workflow. Без него `prepare-app-host.sh` завершится ошибкой и не запустит шаги `00-06`.
 
 2. Подготовьте app host:
 

@@ -76,6 +76,8 @@ This helper installs base packages, including Docker Engine, Docker Compose plug
 
 If the same server also acts as the VPN host, `prepare-app-host.sh` automatically requires the matching `/etc/vpnportal/vpn-host.prod.env` or `/etc/vpnportal/vpn-host.stage.env` file for the selected predeploy environment and runs the repository bootstrap flow for `strongSwan`, `FreeRADIUS`, and `PostgreSQL`.
 
+If that matching `vpn-host.<env>.env` file is missing, `prepare-app-host.sh` fails immediately and does not continue to later steps.
+
 `prepare-app-host.sh` now reads `/etc/vpnportal/predeploy.prod.env` or `/etc/vpnportal/predeploy.stage.env` as the host-side source of truth for app predeploy settings such as `DEPLOY_PATH`, `NGINX_PORTAL_SERVER_NAME`, `RUNTIME_ENV_FILE`, `NGINX_SITE_NAME`, and `APP_PORT`.
 
 If only one of those files exists on the host, `prepare-app-host.sh` can auto-detect it without `--predeploy-env`. If both files exist, pass `--predeploy-env` explicitly.
@@ -91,6 +93,8 @@ Environment-specific runtime values are rendered from GitHub Environment Secrets
 The checked-in files under `deploy/predeploy/env/*.container.env.example` are templates only. They are not the source of truth for production secrets.
 
 The checked-in files under `deploy/predeploy/env/predeploy.*.env.example` document the required host-side predeploy shape for first-time manual setup. The regular deploy workflow refreshes `/etc/vpnportal/predeploy.<env>.env` on the host and currently sets `NGINX_PORTAL_SERVER_NAME` from `DEPLOY_HOST`.
+
+The same workflow now also refreshes `/etc/vpnportal/vpn-host.<env>.env`, because full host predeploy requires the VPN/bootstrap variables to be present on the machine before `prepare-app-host.sh` starts the `00-06` chain.
 
 Runtime application secrets in GitHub Environment Secrets should use uppercase names, such as `DATABASE__CONNECTIONSTRING`, `EMAIL__PASSWORD`, `INTERNALAPI__SHAREDSECRET`, and `VPNACCESS__SERVERADDRESS`. During deploy, the workflow materializes them into the host-side container env file using the runtime .NET configuration keys like `Database__ConnectionString` and `Email__Password`:
 
@@ -115,7 +119,7 @@ If the deploy user was just added to the `docker` group, re-login before running
 ## Workflow behavior
 
 - `ci.yml` builds backend and frontend on push/PR.
-- `deploy.yml` archives the current repository source, uploads the source snapshot to the target host, refreshes `/etc/vpnportal/predeploy.<env>.env`, renders the runtime env file from GitHub Environment Secrets, installs that file under `/etc/vpnportal/`, and then runs `docker compose build` remotely.
+- `deploy.yml` archives the current repository source, uploads the source snapshot to the target host, refreshes `/etc/vpnportal/predeploy.<env>.env` and `/etc/vpnportal/vpn-host.<env>.env`, renders the runtime env file from GitHub Environment Secrets, installs that file under `/etc/vpnportal/`, and then runs `docker compose build` remotely.
 - When `/etc/vpnportal/vpn-host.stage.env` or `/etc/vpnportal/vpn-host.prod.env` exists for the current target, `deploy.yml` runs `deploy/host/apply-strongswan-config.sh` to reapply the repository version of the `strongSwan` configuration before updating the API container.
 - `docker compose run --rm migrations` applies schema changes before `docker compose up -d api` updates the application container.
 - After the API starts, `deploy.yml` runs `deploy/host/verify-portal-runtime.sh` when the matching `/etc/vpnportal/vpn-host.<env>.env` file exists.

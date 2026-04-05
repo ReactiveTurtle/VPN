@@ -8,6 +8,7 @@ PREDEPLOY_ENV_FILE=""
 INSTALL_PACKAGES=1
 ENABLE_NGINX=1
 VPN_HOST_ENV_FILE=""
+LAST_COMPLETED_STEP=""
 
 usage() {
     cat <<'EOF'
@@ -27,11 +28,11 @@ usage() {
   - создает директории деплоя по настроенному пути и в /etc/vpnportal
   - создает целевой env-файл контейнера из подходящего example, если его еще нет
   - рендерит nginx-конфиг с настроенными server name, именем site и upstream-портом
-  - автоматически находит env-файл bootstrap VPN host для того же окружения и запускает repository bootstrap flow
+  - автоматически находит env-файл bootstrap VPN host для того же окружения и запускает repository bootstrap flow шагами `00-06`
 
 Что скрипт не делает:
   - не настраивает SSH-доступ
-  - не подставляет GitHub deployment secrets в runtime env-файл Docker
+  - не подставляет GitHub deployment secrets в runtime env-файл Docker без deploy workflow
   - не запускает миграции базы данных
   - не создает первого superadmin
   - не применяет схему приложения
@@ -47,6 +48,21 @@ require_root() {
 
 log_step() {
     printf '\n==> %s\n' "$1"
+}
+
+run_step() {
+    local step_name="$1"
+    shift
+
+    printf '\n---- %s: старт\n' "${step_name}"
+
+    if ! "$@"; then
+        printf 'ОШИБКА: %s не пройден. Следующие шаги не будут выполняться.\n' "${step_name}" >&2
+        exit 1
+    fi
+
+    LAST_COMPLETED_STEP="${step_name}"
+    printf '---- %s: завершен\n' "${step_name}"
 }
 
 escape_sed_replacement() {
@@ -272,6 +288,7 @@ nginx site: ${NGINX_AVAILABLE_PATH}
 Bootstrap VPN host: ${vpn_host_note}
 Проверки PostgreSQL: ${postgres_note}
 Smoke test портала: ${smoke_test_note}
+Последний завершенный шаг: ${LAST_COMPLETED_STEP}
 
 Следующие ручные шаги:
   1. Настройте SSH-доступ для пользователя деплоя.
@@ -295,21 +312,21 @@ run_vpn_host_bootstrap() {
     bootstrap_dir="${SCRIPT_DIR}/infrastructure/vpn-host"
 
     log_step "Запуск bootstrap VPN host"
-    "${bootstrap_dir}/00-validate-env.sh" "${VPN_HOST_ENV_FILE}"
-    "${bootstrap_dir}/01-install-packages.sh" "${VPN_HOST_ENV_FILE}"
-    "${bootstrap_dir}/02-create-users-and-directories.sh" "${VPN_HOST_ENV_FILE}"
-    "${bootstrap_dir}/03-install-and-init-postgres.sh" "${VPN_HOST_ENV_FILE}"
-    "${bootstrap_dir}/04-configure-freeradius.sh" "${VPN_HOST_ENV_FILE}"
-    "${bootstrap_dir}/05-configure-portal-host.sh" "${VPN_HOST_ENV_FILE}"
-    "${bootstrap_dir}/06-verify-stack.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 00 - проверка bootstrap env" "${bootstrap_dir}/00-validate-env.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 01 - установка пакетов VPN host" "${bootstrap_dir}/01-install-packages.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 02 - создание директорий VPN host" "${bootstrap_dir}/02-create-users-and-directories.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 03 - инициализация PostgreSQL" "${bootstrap_dir}/03-install-and-init-postgres.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 04 - настройка FreeRADIUS" "${bootstrap_dir}/04-configure-freeradius.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 05 - подготовка runtime env портала" "${bootstrap_dir}/05-configure-portal-host.sh" "${VPN_HOST_ENV_FILE}"
+    run_step "Шаг 06 - итоговая проверка host stack" "${bootstrap_dir}/06-verify-stack.sh" "${VPN_HOST_ENV_FILE}"
 }
 
 if [[ "${INSTALL_PACKAGES}" -eq 1 ]]; then
-    install_packages
+    run_step "App host - установка базовых пакетов" install_packages
 fi
 
-create_directories
-install_env_file
-install_nginx_site
-run_vpn_host_bootstrap
+run_step "App host - создание директорий" create_directories
+run_step "App host - подготовка runtime env" install_env_file
+run_step "App host - рендер nginx-конфига" install_nginx_site
+run_step "VPN host - bootstrap 00-06" run_vpn_host_bootstrap
 print_summary
